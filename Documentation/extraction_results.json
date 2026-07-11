@@ -1,0 +1,146 @@
+{
+    "An_Explainable_AI-Based_Context-Aware_Forecasting_Framework_for_Accurate_and_Understandable_Demand_Predictions.pdf": {
+        "Dataset": "Module 1: Data Acquisition and Preprocessing In this",
+        "Method": "nagement. While deep learning models like Long Short-",
+        "Result": "(CNN) provide high predictive accuracy, their lack of",
+        "Quote": "So, bottom line\u2014this thing is a one-stop shop for demand forecasting"
+    },
+    "A_Mobile_Application_for_Inventory_Management_to_Support_Digital_Transformation_in_Small_Retail_Businesses.pdf": {
+        "Dataset": "gement practices that lead to data inaccuracies",
+        "Method": "centered design approach and includes core functions such as",
+        "Result": "ve been shown to enhance data accuracy and",
+        "Quote": "This study demonstrates that a lightweight mobile application can significantly enhance inventory management efficiency and support digital transformation in."
+    },
+    "Comparative_Evaluation_of_SARIMA_FB_Prophet_and_LSTM_for_Hourly_Demand_Forecasting_in_Saudagar_Kopi.pdf": {
+        "Dataset": "sales data collected from Saudagar Kopi in Jakarta over a three-",
+        "Method": "EE  Comparative Evaluation of SARIMA, FB Prophet,",
+        "Result": "achieved RMSE = 0.5265 and closely followed the obs",
+        "Quote": "This research examined the significance of demand forecasting, particularly within the Food and Bever age industry"
+    },
+    "Demand_Forecasting_in_Retail_Using_Prophet_and_Deep_Learning.pdf": {
+        "Dataset": "y utilizing historical sales  data, seasonal fluctuations, and  cost",
+        "Method": "Forecasting  in Retail  using Prophet  and",
+        "Result": "LGBMRegressor  attained  an accuracy  of 97.86%,  surpassing",
+        "Quote": "efficiency in after -sales service"
+    },
+    "Enhanced_sales_forecasting_of_perishable_and_non-_perishable_goods_using_weather_data_with_insights_on_Imports_and_price_sensitivity.pdf": {
+        "Dataset": "erishable goods using weather data with",
+        "Method": "vity. Using Random Forest and ARIMA models, the",
+        "Result": "s. This advantage will ensure accuracy in",
+        "Quote": "This project provides a solid, data -driven solution to the restaurant industry because restaurants can immediately respond to changes."
+    },
+    "Evaluation_of_Optimized_LSTM_and_Moving_Average_in_SME_Inventory_Forecasting_and_Simulation.pdf": {
+        "Dataset": "e need for a more systematic, data-d riven",
+        "Method": "IEEE Evaluation of Optimized LSTM and Moving",
+        "Result": "RMSE of 1.65 and a MAPE of 45.06%\u2014better than MA(7)  with",
+        "Quote": "This study aims to confirm whether an LSTM-based sa les forecasting method exhibits better performance than the 7-day Moving."
+    },
+    "Forecasting_Daily_Sales_of_Coffee_Shop_Products_A_Comparative_Study_of_Moving_Average_ARIMA_and_SARIMA.pdf": {
+        "Dataset": "iction. Utilizing transaction data",
+        "Method": "tive Study of Moving Average, ARIMA,",
+        "Result": "models, with an MAE of 235,034.67 and an RMSE of",
+        "Quote": "This study confirms ARIMA as the optimal forecasting model for Ice Afecto sales, delivering superior accuracy (MAE: 235,034"
+    },
+    "Key_Factors_Influencing_Sales_Forecasting_in_the_Food_and_Beverage_Industry_An_Integrated_Approach.pdf": {
+        "Dataset": "combining quantitative data with internal and external variables",
+        "Method": "Approach",
+        "Result": "forecast accuracy. The findings suggest that de",
+        "Quote": "The F&B industry operates in a highly dynamic environment where multiple internal and external fa ctors interact to shape."
+    },
+    "LSTM-Based_Hourly_Sales_Forecasting_in_SME_Food_and_Beverage_Retail.pdf": {
+        "Dataset": "the data has a strong daily seasonal cycle.",
+        "Method": "LSTM-Based Hourly Sales Forecasting in",
+        "Result": "best performance with MAE and RMSE, which is",
+        "Quote": "Entrepreneurship Department BINUS Business School Bina Nusantara University Bandung, Indonesia moch."
+    },
+    "Performance_Analysis_of_Time_Series_Models_to_Predict_Sales_Activity_of_SMEs.pdf": {
+        "Dataset": "data operating with a pre-order system and to test",
+        "Method": "Models to Predict Sales Activity of SMEs",
+        "Result": "such as Mean Absolute Error (MAE),",
+        "Quote": "Department BINUS Business School Bina Nusantara University Bandung, Indonesia justine."
+    },
+    "Predictive_Marketing_and_Sales_Analytics_Using_Machine_Learning_for_Small_and_Medium_E-Commerce_Enterprises.pdf": {
+        "Dataset": "data,  browsing behavior, and promotional response pat",
+        "Method": "marketing analytics methods, which rely heavily on historical",
+        "Result": "accuracy, thereby offering SMEs a comp",
+        "Quote": "may help us manage e -commerce better using available data"
+    },
+    "Smart_Sales_Forecasting_Machine_Learning_Models_for_Demand_Prediction_in_Retail.pdf": {
+        "Dataset": "tradit ional historical sales data such as",
+        "Method": "Forecasting Machine Learning Models",
+        "Result": "t is related to the area, the accuracy of the",
+        "Quote": "This paper evaluat es the essential machine learning algorithms Decision Trees, Linear Regression, and Ridge Regression highlighting their programs,."
+    },
+    "Weather-Integrated_Recommendations_for_Food_Choices_with_SHAP_Explanation.pdf": {
+        "Dataset": "d prepare by using historical data  by ultimately",
+        "Method": "weather ch anges. This active approach is especially",
+        "Result": "To enhance accuracy, a set of ingredients was cur",
+        "Quote": "prediction and conclude to be \u201cPartly Cloudy\u201d in this case"
+    },
+    "AI-Powered_Business_Resilience_An_Intelligent_System_for_Predictive_Continuity_and_Decision_Making.pdf": {
+        "Dataset": "analyze business data and identify potential risks.  Then the",
+        "Method": "oost, LightGBM  and CatBoost  models.",
+        "Result": "sed model achieved an average accuracy of  87%, while the ANN model achieve",
+        "Quote": "The proposed ensemble model demonstrates improved accuracy and reliability in business risk prediction"
+    },
+    "A_Deep_Learning_Model_Integrating_Transformer_and_MambaBlock_Modules_with_Bi-LSTM_for_Power_Load_Forecasting_Considering_Holiday_Effects.pdf": {
+        "Dataset": "On Region A\u2019s 2014 dataset, it delivers a mean absolute error",
+        "Method": "A Deep Learning Model Integrating Transformer",
+        "Result": "ed strong performance, with a MAE of 190.39",
+        "Quote": "This study proposes a deep learning framework for power load forecasting that combines Transformer encoders, MambaBlock modules, and Bidirectional."
+    },
+    "A_Multi-Stage_BERT-Based_Cognitive_Framework_for_Conversational_Business_Intelligence_in_SMEs.pdf": {
+        "Dataset": "ving nature of cross-platform data. A conversational",
+        "Method": "ti-stage family of BERT-based models that serve as",
+        "Result": "ted signi\ufb01cant improvementsin accuracy and robustness [6], [7]. This",
+        "Quote": "and informed decision-making"
+    },
+    "Challenges_in_Milk_Yield_Forecasting_and_Feed_Optimization_A_Comparative_Study_of_AI-Based_and_Quantum-Enhanced_Dairy_Systems.pdf": {
+        "Dataset": "processing high -dimensional data and performing",
+        "Method": "methods of handling such issues. The purpose of t he stu",
+        "Result": "accuracy of 80-85%  and have a long history",
+        "Quote": "literature [24]"
+    },
+    "Comprehensive_Electricity_Demand_Forecasting_With_a_Custom_Multi-Dimensional_Dataset_With_Model_Analysis_and_Mobile_Visualization.pdf": {
+        "Dataset": "Dataset With Model Analysis and",
+        "Method": "Dataset With Model Analysis and",
+        "Result": "rticular, LSTM had the lowest MAPE of 8.20%,",
+        "Quote": "II"
+    },
+    "Crowdsourced_Delivery_Problem_With_Couriers_Preferences_A_Data-Driven_Method_With_Logic-Based_Benders_Decomposition.pdf": {
+        "Dataset": "Preferences: A Data-Driven Method With",
+        "Method": "Preferences: A Data-Driven Method With",
+        "Result": "accuracy. Hence, before predicting the",
+        "Quote": "outperforms Gurobi in both solution quality and computational e\u000eciency"
+    },
+    "Manufacturing_Big_Data_Modeling_Algorithm_Based_on_GM_11_-_LSTM_and_Its_Application_in_Sales_Forecasting (1).pdf": {
+        "Dataset": "Manufacturing Big Data Modeling Algorithm Based on GM (1,1)",
+        "Method": "Manufacturing Big Data Modeling Algorithm Based on GM (1,1)",
+        "Result": "the smallest average relative error of 0.83%, compared with the GM(1,1) m",
+        "Quote": "In this paper, firstly, the combined prediction model is ob- tained by combining the GM(1,1) model and the long."
+    },
+    "Manufacturing_Big_Data_Modeling_Algorithm_Based_on_GM_11_-_LSTM_and_Its_Application_in_Sales_Forecasting.pdf": {
+        "Dataset": "Manufacturing Big Data Modeling Algorithm Based on GM (1,1)",
+        "Method": "Manufacturing Big Data Modeling Algorithm Based on GM (1,1)",
+        "Result": "the smallest average relative error of 0.83%, compared with the GM(1,1) m",
+        "Quote": "In this paper, firstly, the combined prediction model is ob- tained by combining the GM(1,1) model and the long."
+    },
+    "Multimodal_Multiobjective_Neural_Architecture_Search_for_Lightweight_and_Failure-Resilient_Time_Series_Forecasting.pdf": {
+        "Dataset": "mail: jianyuli@nankai.edu.cn).data continues to increase. For instance, the recent L",
+        "Method": "asting accuracy, existing TSF models face two critical chal-",
+        "Result": "the maximum reduction in the RMSE is 14.50%.",
+        "Quote": "this work"
+    },
+    "State-Level_Drug_Retail_Sales_Forecasting_Using_XGBoost_and_Facebook_Prophet.pdf": {
+        "Dataset": "Rossmann drugstore chain dataset in Germany to predict state-by-",
+        "Method": "XGBoost and Facebook Prophet",
+        "Result": "median state-wise MAPE by 12 - 18% compared to the b",
+        "Quote": "Making accurate and efficient sales forecasts is important in the retail industry, as a lot of decisions are made."
+    },
+    "TexConnect_A_Cloud-Based_Platform_for_Inventory_and_Order_Management_with_AI-Driven_Market_Analysis_for_Textile_MSMEs.pdf": {
+        "Dataset": "not have access to real -time data about market",
+        "Method": "de d to provide an electronic method for",
+        "Result": "accuracy, and trust in communication,",
+        "Quote": "TexConnect shows that a bilingual cloud - based software platform can change the digital workflows for textile MSMEs in Tiruppur"
+    }
+}
