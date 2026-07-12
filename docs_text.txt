@@ -1,0 +1,169 @@
+CAP.DOCX:
+1st 
+One Paragraph for Literature Review
+This paper presents a demand forecasting system designed for small businesses using SARIMA, DeepAR, and a hybrid forecasting approach to improve inventory management. The authors compare traditional statistical forecasting with deep learning and report that DeepAR achieved the highest forecasting accuracy of 81.0%, while SARIMA achieved 50.76% and the hybrid model 77.14%. The proposed system also provides a web interface for uploading sales data and generating demand forecasts, enabling better stock planning and reducing overstocking and stock shortages. However, the model does not incorporate external factors such as weather, holidays, or promotions. This work is closely related to our proposed system because it demonstrates the importance of affordable demand forecasting tools for small businesses, while our work further enhances this concept by using the Prophet forecasting model with external factors to generate simple restock recommendations through a mobile application.
+
+2nd 
+One Paragraph for Literature Review
+This paper proposes an AI-Driven Predictive Analytics Framework (AID-PAF) for sustainable restaurant operations by integrating a Temporal-Fusion Neural Architecture (TFNA) with a waste-aware linear programming model for inventory optimization. The forecasting model incorporates historical sales along with external factors such as weather, holidays, promotions, and social media sentiment to generate accurate demand predictions. Experimental evaluation using an AnyLogic-MATLAB digital twin simulator achieved a MAPE of 6.5%, 96.2% customer fill rate, 40% reduction in food waste, and 21% reduction in procurement costs, demonstrating significant improvements in operational efficiency and sustainability. However, the framework relies on large datasets and computationally intensive deep learning models, making it less suitable for small businesses with limited resources. This work is closely related to our proposed system because it highlights the importance of combining demand forecasting with inventory optimization to reduce food waste, while our solution focuses on providing an affordable mobile application using the Prophet forecasting model with weather and holiday data for small food businesses
+
+
+
+3rd 
+One Paragraph for Literature Review
+This paper proposes a Smart Inventory Management System for small and medium-sized enterprises (SMEs) that integrates XGBoost-based demand forecasting, QR code product identification, Raspberry Pi edge devices, IoT, and cloud storage to automate inventory monitoring and replenishment decisions. The proposed system achieved 96% classification accuracy and an R² value greater than 0.95, outperforming traditional machine learning models such as Random Forest, Linear Regression, and KNN. Real-time stock monitoring and automated alerts help reduce stockouts, overstocking, and manual errors while providing a cost-effective alternative to expensive ERP systems such as SAP and Oracle. However, the system is primarily designed for warehouse inventory management and does not incorporate external demand factors such as weather or holidays. This work is relevant to our proposed system because it highlights the benefits of AI-powered inventory management for SMEs, while our project extends this concept by focusing on small food businesses, using the Prophet forecasting model and external factors to generate accurate daily inventory and restocking recommendations. 
+Top of Form
+
+
+
+
+
+4th 
+One Paragraph for Literature Review
+This paper investigates the application of machine learning models including LSTM, XGBoost, and Random Forest for demand forecasting, inventory optimization, and food waste reduction in restaurant supply chains. Using restaurant POS data, inventory logs, and waste records collected over three months, the authors compared the performance of the three models and found that XGBoost achieved the best results with 94.3% accuracy, 95.1% fill rate, 53.8% food waste reduction, and 27.6% cost savings, outperforming LSTM and Random Forest. The study demonstrates that predictive analytics can significantly improve inventory planning, reduce waste, and enhance restaurant profitability. However, the research is limited to a comparison of machine learning models and does not evaluate Prophet or provide a lightweight mobile solution for small businesses. This work is highly relevant to our proposed system because it validates the importance of AI-driven demand forecasting for inventory optimization, while our project focuses on an affordable Prophet-based mobile application that incorporates weather and holiday information to assist small food businesses in making daily restocking decisions.
+
+
+5th 
+Bottom of Form
+
+
+CHINMAY_CAP.DOCX:
+Field Details
+Paper Title
+Automated Demand Forecasting in Small to Medium-Sized Enterprises
+Authors
+Thomas Gärtner, Christoph Lippert, Stefan Konigorski
+Year
+2024
+Venue
+arXiv (University of Potsdam, Germany)
+Suitable for our problem?
+Yes (Highly Suitable)
+
+Topic Section(s)
+Time-series demand forecasting for SMEs 
+Inventory planning and production forecasting 
+AI/ML adoption in Small and Medium Enterprises (SMEs) 
+Automated forecasting pipelines 
+ERP-based decision support systems
+Method / Model Used
+The study developed an automated demand forecasting system for SMEs that cleans sales data, trains different forecasting models, and automatically selects the best one. It compares models such as ARIMA, SARIMAX, Holt-Winters, XGBoost, Dilated CNN, GAM, and Ensemble methods.
+Key Result / Accuracy Metric
+Among all models, the Dilated CNN performed the best with nRMSE = 0.3119 and MAPE = 33.19%. It also gave better forecasting results than simple methods in most of the SMEs tested.
+Limitations
+The system only uses historical sales data and does not consider factors like weather, holidays, or promotions. It also needs at least one year of sales history, so it is not suitable for new businesses.
+Connection to Our Problem Statement
+This paper is related to our project because it helps small businesses improve demand forecasting. Our system goes a step further by using the Prophet model along with weather and holiday data to provide easy daily restocking recommendations through a mobile app for bakeries, cafés, and small restaurants.
+One Paragraph for Literature Review
+Gärtner et al. [1] presented an automated demand forecasting system to help small and medium-sized enterprises (SMEs) improve their inventory planning and reduce manual forecasting efforts. The study used several forecasting models, including ARIMA, SARIMAX, Holt-Winters, XGBoost, Dilated CNN, and Ensemble models, to identify the most suitable forecasting approach. The results showed that the Dilated CNN model produced the most accurate forecasts and performed better than traditional forecasting methods in most of the SMEs included in the study. The proposed system helps businesses make better inventory decisions without requiring advanced technical knowledge. However, the model mainly depends on historical sales data and does not consider external factors such as weather or holidays. It also requires sufficient historical data, making it less suitable for newly established businesses.
+-------------------------------------------------------------------------------------------------------------
+2nd
+Field Details
+Paper Title
+Enhancing Retail Sales Forecasting with Optimized Machine Learning Models
+Authors
+Priyam Ganguly, Isha Mukherjee
+Year
+2024
+Venue
+arXiv (Computer Science – Machine Learning)
+Suitable for our problem?
+Yes (Highly Suitable)
+
+Topic Section(s)
+Retail demand forecasting 
+Machine learning for sales prediction 
+Inventory optimization 
+Time-series sales forecasting 
+AI-based decision support for retail businesses
+Method / Model Used:
+Used an optimized Random Forest model to forecast sales and compared it with other machine learning models.
+Key Result:
+Random Forest achieved the best performance with an R² score of 0.945.
+Limitations:
+It only predicts sales and does not provide restocking recommendations or use weather data.
+Connection to Our Problem Statement:
+Our system also forecasts demand but uses Prophet with weather and holiday data to give daily restocking suggestions for small food businesses.
+One Paragraph for Literature Review
+Ganguly and Mukherjee [2] proposed a machine learning-based approach to improve retail sales forecasting and inventory planning. The study compared different machine learning models such as Linear Regression, Random Forest, Gradient Boosting, Support Vector Regression, and XGBoost using a retail sales dataset. Hyperparameter tuning was applied to improve the performance of the models. The experimental results showed that the optimized Random Forest model achieved the highest forecasting accuracy compared to the other models. The study concluded that machine learning techniques can effectively predict future sales and support better inventory management. However, the research mainly focused on retail stores and did not provide inventory recommendations or consider external factors like weather and holidays. It also did not develop a mobile application for small food businesses.
+
+3rd
+Field Details
+Paper Title
+Demand Forecasting in Supply Chain Management for Rossmann Stores using Weather Enhanced Deep Learning Model
+Authors
+Nameer Ul Haq Qureshi, Salman Javed, Kamran Javed, Syed Meesam Raza Naqvi, Ali Raza, Zubair Saeed
+Year
+2024
+Venue
+IEEE Access (Research Article)
+Suitable for our problem?
+Yes (Highly Suitable)
+
+Topic Section(s)
+Demand forecasting in retail supply chain 
+Weather and external factors in demand forecasting 
+Deep learning for sales prediction 
+Inventory optimization 
+Machine learning for retail demand forecasting 
+
+Method / Model Used:
+The study used a GRU (Gated Recurrent Unit) deep learning model with Grid Search to forecast sales using historical sales, weather, holidays, and promotion data.
+Key Result:
+The GRU model outperformed the LSTM model, showing that adding weather data improved forecasting accuracy.
+Limitations:
+The model requires large datasets and high computing power, making it less suitable for small businesses.
+Connection to Our Problem Statement:
+This study supports our project by showing that weather data improves demand forecasting. Our system uses the Prophet model with weather and holiday data to provide simple daily restocking recommendations through a mobile app for bakeries, cafés, and small restaurants.
+
+One Paragraph for Literature Review
+Qureshi et al. [3] presented a weather-enhanced deep learning model to improve demand forecasting in retail supply chain management. The study used historical sales data along with weather conditions, holidays, promotional activities, and store location information to build a forecasting model using the Gated Recurrent Unit (GRU) algorithm. The results showed that the proposed GRU model performed better than the LSTM model and produced more accurate sales forecasts by considering external factors such as weather. The study highlighted that better forecasting can help reduce overstocking and stock shortages while improving inventory planning. However, the proposed model was tested only on large retail stores and requires high computational resources, making it difficult to use directly in small businesses such as bakeries, cafés, and restaurants.
+
+4th
+Paper Details
+Paper Title
+Optimization of Forecasting Performance in the Retail Sector Using Artificial Intelligence
+Authors
+Hoda Jatte, Sara Belattar, El Khatir Haimoudi
+Year
+2025
+Venue
+Engineering Proceedings (MDPI), ICATH 2025 Conference
+Suitable for Our Problem?
+Yes (Highly Suitable)
+
+Method / Model Used
+The study compared six AI forecasting models: Linear Regression, Decision Tree, Random Forest, XGBoost, Prophet, and LSTM using historical retail sales data.
+Key Result
+The LSTM model achieved the best performance with 92.31% accuracy and 96% F1-score, while Prophet also showed good forecasting results.
+Limitations
+The study used only a public retail dataset and did not include weather data or provide a mobile inventory recommendation system.
+Connection to Our Problem Statement
+This paper supports our project by showing that AI models can improve demand forecasting. Our system extends this by using Prophet with weather and holiday data to provide daily inventory and restocking recommendations through a mobile app for small food businesses.
+Literature Review Paragraph
+Jatte et al. [4] presented a comparative study on optimizing retail demand forecasting using Artificial Intelligence techniques to improve inventory management and supply chain operations. The authors employed six forecasting models, namely Linear Regression, Decision Tree, Random Forest, XGBoost, Prophet, and Long Short-Term Memory (LSTM), using a Kaggle retail demand forecasting dataset containing over 100,000 historical sales records. The methodology included data preprocessing, feature engineering, model training, and performance evaluation using Accuracy, Precision, Recall, F1-score, RMSE, and R² metrics. The experimental results demonstrated that the LSTM model achieved the highest forecasting performance with 92.31% accuracy and 96% F1-score, while the Prophet model also produced reliable forecasting results with 85.71% accuracy. The study concluded that AI-based forecasting models significantly improve demand prediction and inventory planning in the retail sector. However, the research was limited to a public retail dataset and did not validate the proposed models on small food businesses such as bakeries, cafés, and restaurants. Furthermore, the study did not incorporate comprehensive external factors such as weather and holidays or provide a real-time mobile inventory recommendation system, leaving scope for future research.
+
+
+5th
+Method / Model Used
+The study used an XGBoost model to forecast restaurant sales using historical sales, weather, holidays, events, promotions, and economic data.
+Key Result
+The model reduced RMSE by 22–33% and MAE by 19–31% compared to manual forecasting, leading to better inventory planning.
+Limitations
+The study was based on one fast-food chain in Germany and requires large amounts of quality data. It also does not provide a mobile application.
+Connection to Our Problem Statement
+This paper shows that combining sales data with weather and holidays improves demand forecasting. Our project uses the Prophet model in a simple mobile app to provide daily demand forecasts and restocking recommendations for small bakeries, cafés, and restaurants.
+Literature Review Paragraph
+Groene and Zakharov [5] presented an AI-based sales forecasting approach to help small food and beverage (F&B) businesses improve their operational and financial planning. The main objective of the study was to replace traditional experience-based forecasting with an intelligent machine learning model that can provide more accurate sales predictions. The authors developed an Extreme Gradient Boosting (XGBoost) model using more than five years of hourly sales data collected from a fast-food restaurant in Germany. The model was trained using historical sales data along with external factors such as weather conditions, holidays, local events, promotional activities, and macroeconomic indicators. The experimental results showed that the proposed AI model significantly outperformed manual forecasting methods by reducing the Root Mean Squared Error (RMSE) by 22%–33% and the Mean Absolute Error (MAE) by 19%–31%, leading to better inventory planning, reduced food waste, and improved operational efficiency. However, the study was conducted on a single fast-food franchise and required active involvement from managers during feature selection and model validation, which may limit its applicability to other businesses. Nevertheless, the research demonstrates the importance of integrating external factors into demand forecasting and strongly supports the development of AI-based inventory forecasting systems for small food businesses.
+
+6th
+Method / Model Used
+The study used the Facebook Prophet model with historical POS sales, weather data, and holiday information to generate 30-day restaurant sales forecasts.
+Key Result
+The model accurately captured seasonal sales patterns. The best result achieved was MAE = 0.76, MAPE = 0.18, and RMSE = 0.82, showing that weather and holidays improved forecasting accuracy.
+Limitations
+The study used data from only one restaurant and considered limited external factors. It also did not compare Prophet with more advanced AI models.
+Connection to Our Problem Statement
+This paper is closely related to our project because it also uses the Prophet model with weather and holiday data. Our system extends this work by providing daily inventory and restocking recommendations through a simple mobile app for small bakeries, cafés, and restaurants.
+One Paragraph for Literature Review
+Güler et al. [6] developed a restaurant sales forecasting system using the Facebook Prophet model to improve demand prediction. The study used around eight months of POS sales data along with weather information and holiday data to generate 30-day sales forecasts. The results showed that the model accurately captured seasonal trends and the effects of weather and holidays on sales, with the best performance achieving MAE = 0.76 and RMSE = 0.82. However, the research was based on data from only one restaurant and did not consider other factors such as promotions or local events. It also focused only on forecasting and did not provide a mobile application or inventory recommendations. This study is closely related to our project because it shows that using the Prophet model with weather and holiday data can improve demand forecasting. Our proposed system builds on this by offering a simple mobile app that provides daily demand forecasts and restocking recommendations for small bakeries, cafés, and restaurants.
