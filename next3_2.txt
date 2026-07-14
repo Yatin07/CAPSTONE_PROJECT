@@ -1,0 +1,1136 @@
+--- Mobile_Application_for_the_Intelligent_Management_of_Small_Shops_using_the_GPT-4_Model.pdf ---
+979-8-3315-1024-4/24/$31.00 ©2024 IEEE 
+Mobile application for the intelligent management 
+of small shops using the GPT-4 model 
+Gonzalo Sakuda  
+Faculty of Engineering  
+Universidad Peruana de Ciencias 
+Aplicadas 
+Lima, Perú 
+u20191d928@upc.edu.pe 
+ 
+Jack Leon 
+Faculty of Engineering  
+Universidad Peruana de Ciencias 
+Aplicadas 
+Lima, Perú 
+u20191125@upc.edu.pe 
+ 
+Royer Rojas 
+Faculty of Engineering 
+Universidad Peruana de Ciencias 
+Aplicadas 
+Lima, Perú 
+pcisrroj@upc.edu.pe 
+Abstract— Small shops and retail stores in Peru face 
+significant challenges in efficient management due to limited 
+access to technological resources, often relying on error-prone 
+manual processes. This study presents the development of a 
+mobile application powered by the GPT-4 model, designed to 
+provide personalized recommendations and optimize key 
+operations such as inventory management and sales forecasting. 
+By leveraging GPT-4’s advanced natural language processing 
+capabilities, the application acts as an intelligent assistant, 
+enabling shop owners to make informed decisions, automate 
+routine tasks, and enhance business performance. Key features 
+include 
+product 
+and 
+sales 
+management, 
+dashboards, 
+personalized recommendations, alerts, and other operational 
+tools. A survey conducted with 15 shop owners revealed positive 
+results, with over 66.7% rating the application between 4 and 5 
+on a Likert scale (1-5), indicating its effectiveness in improving 
+small shop management with the support of GPT-4. 
+Keywords— GPT-4, Management, Small Shops, Chatbot, 
+Assistant 
+I. INTRODUCTION 
+In recent years, the management of small-scale retail 
+establishments, such as small shops and stores, has posed 
+significant challenges in the Peruvian context. These 
+challenges stem from several factors, including limited access 
+to technological resources, leading to a reliance on manual 
+processes for inventory management, decision making, and 
+performance evaluation [1]. The absence of efficient 
+technological solutions exposes shop owners to errors in 
+calculations, uninformed decision making, and suboptimal 
+business performance [2]. This generates operational 
+problems that negatively affect their performance, such as 
+performing error-prone manual calculations for routine tasks, 
+inventory control using rudimentary methods, and strategic 
+decision making hampered by the lack of reliable data and 
+analytical tools [3], [4], [5]. These limitations prevent small 
+shop owners from realizing the full potential of their business 
+and making informed decisions to improve their profitability 
+and competitiveness in the marketplace.  
+This research aims to explore the potential of AI-driven 
+approaches to improve the management of small shops in 
+Peru. By leveraging the capabilities of GPT-4, the goal is to 
+develop a mobile application that serves as an intelligent 
+management tool for shop owners to manage their businesses, 
+make informed decisions, and optimize their business 
+operations. In that sense, with the integration of GPT-4, the 
+application will provide personalized recommendations based 
+on data from the small shop and an intelligent chatbot that 
+provides instant access to information from the small shop, as 
+well as serving as a management assistant. 
+II. LITERATURE REVIEW 
+A. GPT and Large Language Model 
+The capabilities that AI technology contains are useful for 
+various domains, in the case of the research focuses on the use 
+of GPT's LLM model. For example, GPT demonstrates a 
+robust ability to understand and generate natural language 
+fluently. This is achieved thanks to its architecture of attention 
+neural networks or "transformers" and the pre-training of 1 
+trillion parameters as in GPT-4 [6]. On the other hand, 
+according to Keng-Boon's study, generative AI is being used 
+in retail, so that it enables customers to have faster service and 
+improved employee productivity [7]. In addition, Kurnia 
+Muludi considers GPT as one of the best LLM models [8], 
+because of the results she obtained in her research. Also, 
+according to Amos Azaria, he highlights its ability to be used 
+in scientific research, mathematics, programming, education 
+and health care [9].  
+On the other hand, there are many LLM models, which can 
+be open source or closed source. Each of these is trained with 
+different data sizes, so the accuracy differs in each one.  For 
+this reason, Samuel Kernan's study compares different LLM 
+models using different performance criteria [10]. These 
+criteria are Factuality which refers to whether the generated 
+answers are correct according to the context, Completeness 
+which refers to whether the answers contain all the relevant 
+information of the question and Hallucinations which refers to 
+whether the answer is coherent according to the question. The 
+study concludes that GPT-4 shows the best performance 
+compared to other models. However, open-source models 
+such as StableBeluga2 also show similar performances. 
+B. GPT applications for recommendation 
+GPT has various applications in the health sector. For 
+instance, Ismael Dergaa's study utilized OpenAI's GPT-4 
+model to generate exercise routines tailored to individual 
+goals. While the routines effectively supported fitness, they 
+lacked deeper personalization [4]. Another notable use of GPT 
+is in early disease detection. A study employing ChatGPT for 
+the preliminary diagnosis of dengue fever reported highly 
+satisfactory results [11]. Similarly, Li's research developed a 
+chatbot leveraging GPT agents to evaluate responses to 
+questions about traumatic brain injury rehabilitation [12]. 
+Finally, Pash's study demonstrated how a GPT-powered 
+chatbot, using patient-provided information, accurately 
+identified the appropriate area of care [13].  
+The manufacturing sector has also benefited from the 
+application of GPT. For example, in Kahiomba's study, a web 
+application was developed to process data from production 
+machines, enabling GPT to generate responses that help 
+technicians identify issues quickly, thereby reducing 
+2024 IEEE 4th International Conference on Advanced Learning Technologies on Education & Research (ICALTER) | 979-8-3315-1024-4/24/$31.00 ©2024 IEEE | DOI: 10.1109/ICALTER65499.2024.10819203
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
+
+downtime [14]. Similarly, Wang's research pre-trained GPT 
+on manufacturing datasets to create a system capable of 
+addressing various tasks across different scenarios [15]. 
+Additionally, GPT facilitates the generation of programming 
+code for building graphs or models. Jackson's study 
+demonstrates this by using GPT-3.5 to create simulation 
+models of logistics systems in Python based on natural 
+language prompts [3]. Likewise, Maddigan's research 
+developed a web application powered by GPT-4 that not only 
+generates Python code to construct graphs but also interprets 
+and analyzes them through user queries [16]. 
+III. EXPERIMENTATION 
+A. Materials 
+The project aims to showcase the potential of a GPT-4-
+powered chatbot assistant for optimizing the management of 
+small shops. To achieve this, an Android application will be 
+developed, enabling shop owners to efficiently handle their 
+businesses 
+through 
+intelligent 
+recommendations 
+and 
+strategies generated by GPT-4. The app will facilitate key 
+tasks such as product creation, supplier management, sales 
+and purchase tracking, employee management, and dashboard 
+visualization. 
+By leveraging data provided by shop owners and the GPT-
+4 model, the application will deliver personalized queries and 
+responses, addressing topics such as shop performance and 
+app usage. Additionally, GPT-4 will generate tailored 
+business recommendations, including suggested products, 
+offers, and discounts, empowering shop owners with 
+actionable insights to gain a competitive edge in their markets. 
+The application will utilize MongoDB, a non-relational 
+database, to store large volumes of data efficiently and with 
+optimal latency. A REST API will be developed using NestJS, 
+a Node.js framework that employs TypeScript and offers 
+modular architecture, ensuring scalability and maintainability. 
+Furthermore, the application will integrate external 
+services such as Cloudflare R2, OpenAI API, AWS SES, and 
+Firebase Cloud Messaging for tasks like static file storage and 
+push notifications. Cloud services will also be employed to 
+host the API and database, specifically using Google Cloud’s 
+Compute Engine and MongoDB Atlas. 
+To evaluate the application's impact, a qualitative analysis 
+will be conducted through a user survey involving 15 shop 
+owners. This survey aims to assess the user experience and 
+determine the application’s effectiveness in improving shop 
+management. Additionally, it will demonstrate the role of the 
+GPT-4 model in enhancing business decision-making and 
+operational efficiency. 
+B. Methodology 
+The project follows a clear methodology to implement the 
+mobile application. The application, developed in Java 8, 
+interacts with end users to manage various tasks such as 
+creating products, managing suppliers, and tracking sales. The 
+REST API, developed with NestJS, handles the business logic 
+of the application and communicates with both the database 
+and external services. MongoDB is used to store the data, and 
+the OpenAI API interacts with the GPT-4 model to provide 
+personalized recommendations and responses based on the 
+shop’s context. 
+The GPT-4 model contributes significantly to the research 
+by enabling the creation of dynamic, context-aware 
+recommendations for shop owners. When a user queries the 
+system, the model processes the relevant data retrieved from 
+the database, such as product sales and inventory details, and 
+generates responses to help improve decision-making. The 
+assistant’s ability to interpret the data and provide tailored 
+advice is critical for achieving the research objective of 
+enhancing small shop management through artificial 
+intelligence. 
+Additionally, Fig. 1 describes the process in which a user 
+interacts with a GPT-based assistant. It begins when the user 
+asks a question. The relevant data is retrieved from the 
+database and saved, with a JSON file containing the obtained 
+data. Then, a vector store is created, and the JSON file is 
+uploaded to the vector store. A thread is created with the user's 
+message, and the assistant executes the thread to process the 
+query. If the response is satisfactory, the process ends; if not, 
+the user can make another query, and the process repeats. 
+ 
+Fig. 1. 
+Flowchart of user interaction and the GPT-4 model. 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
+
+The chatbot can be accessed by swiping left from the right 
+side of the screen, as shown in Fig. 3. Shop owners can use 
+the chat to ask questions about their store or the application, 
+as illustrated in Fig. 4. 
+Fig. 5 shows the new product registration view, which 
+includes fields for name, purchase price, stock, price, unit, 
+category, subcategory, supplier, image, and barcode. 
+Barcodes are obtained from packaged products, while codes 
+for unprocessed foods are generated and assigned. 
+Other modules in the application include dashboards, 
+employee management, product management, supplier 
+management, purchase management, offers and discounts, 
+sales creation, profile management, password recovery, user 
+registration, and recommendations. 
+All questions and responses are tabulated in Table 1. 
+According to the survey, 8.89% of the results were in the 1-2 
+range, 24.44% were in the 3 range, and 66.67% were in the 4-
+5 range. These results indicate that the developed system is 
+useful for shop owners. Question number 3 received 33.3%, 
+which could be due to the complexity of an ERP (Enterprise 
+Resource Planning). Additionally, GPT-4 has proven to be 
+valuable in streamlining processes, improving decision-
+making, and providing actionable insights, which further 
+enhances the system’s utility for the shop owners. 
+IV. CONCLUSIONS 
+In this paper, the design and development of a mobile 
+application for the intelligent management of small shops 
+using the GPT-4 model has been presented. During the study, 
+the system architecture was proposed and a detailed flow of 
+interaction with the GPT-4 model was elaborated. 
+According to the survey of 15 shop owners and employees, 
+the application proved to be useful, interactive, and easy to 
+use. The GPT-4 model has enabled shop owners to query their 
+shop data in an efficient and interactive way, significantly 
+improving data accessibility and providing quick, accurate 
+responses. The intuitive user interface has enhanced the user 
+experience, reducing training time and boosting productivity. 
+The chatbot's data accessibility and ease of use have been key 
+factors in its success, promoting rapid adoption and efficient 
+utilization. 
+In terms of limitations, our study was based on a limited 
+number of small shops and operational scenarios. While the 
+results were promising, the diversity of the shops evaluated 
+does not fully represent all possible variations in the industry. 
+Additionally, the application evaluation period was short, 
+which may not have captured all the seasonal and operational 
+variations a small shop may experience over time. 
+For future implications, incorporating IoT devices could 
+improve product tracking and process automation in small 
+shops, revolutionizing inventory management and logistics. 
+REFERENCES 
+ 
+[1] Schlaich, T., & Hoberg, K. (2024). When is the next order? Nowcasting 
+channel inventories with Point-of-Sales data to predict the timing of 
+retail orders. European Journal of Operational Research, 315(1), 35–
+49. https://doi.org/10.1016/j.ejor.2023.10.038  
+[2] Nakano, S. (2023). Customer demand concentration in online grocery 
+retailing: Differences between online and physical store shopping 
+baskets. Electronic Commerce Research and Applications, 62, 101336. 
+https://doi.org/10.1016/j.elerap.2023.101336  
+[3] Jackson, I., Jesus Saenz, M., & Ivanov, D. (2024). From natural 
+language to simulations: applying AI to automate simulation modelling 
+of logistics systems. International Journal of Production Research, 
+62(4), 1434–1457. https://doi.org/10.1080/00207543.2023.2276811  
+[4] Dergaa, I., ben Saad, H., el Omri, A., Glenn, J., Clark, C., Washif, J., 
+Guelmami, N., Hammouda, O., Al-Horani, R., Reynoso-Sánc 
+hez, L., Romdhani, M., Paineiras-Domingos, L., Vancini, R., Taheri, 
+M., Mataruna-Dos-Santos, L., Trabelsi, K., Chtourou, H., Zghibi, M., 
+Eken, Ö., … Chamari, K. (2024). Using artificial intelligence for 
+exercise prescription in personalised health promotion: A critical 
+evaluation of OpenAI’s GPT-4 model. Biology of Sport, 41(2), 221–
+241. https://doi.org/10.5114/biolsport.2024.133661  
+[5] Aye, G.C., Balcilar, M., Gupta, R., & Majumdar, A. (2015). 
+Forecasting aggregate retail sales: the case of South Africa. 
+International Journal of Production Economics, 160, 66-79. 
+[6] Hassija, V., Chakrabarti, A., Singh, A., Chamola, V., & Sikdar, B. 
+(2023). Unleashing the Potential of Conversational AI: Amplifying 
+Chat-GPT’s Capabilities and Tackling Technical Hurdles. IEEE 
+Access, 
+11, 
+143657–143682. 
+https://doi.org/10.1109/ACCESS.2023.3339553 
+[7] Ooi, K.-B., Tan, G. W.-H., Al-Emran, M., Al-Sharafi, M. A., Capatina, 
+A., Chakraborty, A., Dwivedi, Y. K., Huang, T.-L., Kar, A. K., Lee, 
+V.-H., Loh, X.-M., Micu, A., Mikalef, P., Mogaji, E., Pandey, N., 
+Raman, R., Rana, N. P., Sarker, P., Sharma, A., … Wong, L.-W. 
+(2023). The Potential of Generative Artificial Intelligence Across 
+Disciplines: Perspectives and Future Directions. Journal of Computer 
+Information 
+Systems, 
+1–32. 
+https://doi.org/10.1080/08874417.2023.2261010 
+[8] Muludi, K., Fitria, K. M., Triloka, J., & -, S. (2024). Retrieval-
+Augmented Generation Approach: Document Question Answering 
+using Large Language Model. International Journal of Advanced 
+Computer 
+Science 
+and 
+Applications, 
+15(3). 
+https://doi.org/10.14569/IJACSA.2024.0150379 
+[9] Azaria, A., Azoulay, R., & Reches, S. (2024). ChatGPT is a 
+Remarkable Tool—For Experts. Data Intelligence, 6(1), 240–296. 
+https://doi.org/10.1162/dint_a_00235 
+[10] Kernan Freire, S., Wang, C., Foosherian, M., Wellsandt, S., Ruiz-
+Arenas, S., & Niforatos, E. (2024). Knowledge sharing in 
+manufacturing using LLM-powered tools: user study and model 
+benchmarking. 
+Frontiers 
+in 
+Artificial 
+Intelligence, 
+7. 
+https://doi.org/10.3389/frai.2024.1293084 
+[11] Jáuregui-Velarde, R., Hernández Celis, D., Molina-Velarde, P., 
+Yactayo-Arias, C., & Andrade-Arenas, L. (2024). Evaluation of a 
+Chatbot Powered by ChatGPT for the Preliminary Diagnosis of 
+Dengue. International Journal of Online and Biomedical Engineering 
+(IJOE), 20(01), 58–73. https://doi.org/10.3991/ijoe.v20i01.45029 
+[12] Zhenzhu, L., Jingfeng, Z., Wei, Z., Jianjun, Z., & Yinshui, X. (2024). 
+GPT-agents based on medical guidelines can improve the 
+responsiveness and explainability of outcomes for traumatic brain 
+injury 
+rehabilitation. 
+Scientific 
+Reports, 
+14(1), 
+7626. 
+https://doi.org/10.1038/s41598-024-58514-9 
+[13] Paslı, S., Şahin, A. S., Beşer, M. F., Topçuoğlu, H., Yadigaroğlu, M., 
+& İmamoğlu, M. (2024). Assessing the precision of artificial 
+intelligence in ED triage decisions: Insights from a study with 
+ChatGPT. 
+Americ 
+an Journal of Emergency Medicine, 78, 170-175. 
+[14] Kiangala, K. S., & Wang, Z. (2024). An experimental hybrid 
+customized AI and generative AI chatbot human machine interface to 
+improve a factory troubleshooting downtime in the context of Industry 
+5.0. The International Journal of Advanced Manufacturing 
+Technology. 
+[15] Wang, H., Liu, M., & Shen, W. (2023). Industrial‐generative pre‐
+trained transformer for intelligent manufacturing systems. IET 
+Collaborative 
+Intelligent 
+Manufacturing, 
+5(2). 
+https://doi.org/10.1049/cim2.12078 
+[16] Maddigan, P., & Susnjak, T. (2023). Chat2VIS: Generating Data 
+Visualizations via Natural Language Using ChatGPT, Codex and GPT-
+3 Large Language Models. IEEE Access, 11, 45181–45193. 
+https://doi.org/10.1109/ACCESS.2023.3274199 
+ 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
+
+
+
+--- Optimizing_Supply_Chain_Management_for_Small_and_Medium-Sized_Businesses_Using_AI_A_Comparative_Analysis_of_GPT-4.5_Grok_3_Gemini_2.0_and_DeepSeek_R-1.pdf ---
+Optimizing Supply Chain Management for Small
+and Medium-Sized Businesses Using AI: A
+Comparative Analysis of GPT-4.5, Grok 3, Gemini
+2.0, and DeepSeek R-1
+Shreeyash Vyakarnam
+Industrial Engineer
+Lear Corporation
+Southfield, Michigan, USA
+ashvyak@umich.edu
+Bharath Raju Kanchipuram Baburavi
+Senior Product Associate
+JPMorgan Chase and Co.
+Dallas, Texas, USA
+bharath.raju@utdallas.edu
+Lawanya Awasthi
+Automation and Robotics Department
+University of Luxembourg
+Luxembourg
+lawanya.awasthi@uni.lu
+Abheek Abhijit Maiti
+AMER FVC Quality Manager
+SKF USA Inc.
+Dexter, Michigan, USA
+abheekm@umich.edu
+Manan Malik
+CLASP Department
+University of Michigan
+Ann Arbor, Michigan, USA
+mmanan@umich.edu
+Anumitha Panneerselvan
+Manufacturing Engineer
+Luminex Corporation
+Austin, Texas, USA
+aselvan23935@ucumberlands.edu
+Abstract—Small and medium-sized businesses (SMBs) often
+operate on limited profit margins. They may lack the financial
+resources to implement expensive Enterprise Resource Planning
+(ERP) systems or advanced artificial intelligence (AI) tools.
+However, the advent of generative AI technologies, such as
+GPT-4.5, Grok 3, Gemini 2.0, and DeepSeek R-1, presents an
+opportunity for these businesses to leverage AI-driven insights at
+a more affordable cost. This paper investigates the effectiveness
+of these AI models in addressing key supply chain management
+challenges, specifically focusing on demand planning and logistics.
+The results provide valuable insights into the most suitable AI
+tools for SMBs seeking to optimize their supply chain operations
+with minimal investment. This study offers practical guidance
+for SMBs to improve operational efficiency and enhance their
+competitive edge in the marketplace by conducting a comparative
+analysis of these tools.
+Index Terms—Artificial Intelligence, Supply Chain, ChatGPT-
+4.5, Gemini 2.0, DeepSeek R-1, Grok 3, Demand Planning,
+Logistics, Business, Generative AI, XGBoost, Random Forest
+Regression.
+I. INTRODUCTION
+Small and medium-sized businesses (SMBs) across the
+globe often operate on tight profit margins, with limited
+financial resources to invest in expensive Enterprise Resource
+Planning (ERP) systems such as SAP or Oracle. Similarly,
+sophisticated artificial intelligence (AI) tools like Palantir
+Foundry and DataRobot, commonly used by large enterprises,
+are often financially inaccessible to many SMBs. However, the
+rapid advancement of generative AI technologies, including
+GPT-4.5, Grok 3, Gemini 2.0, and DeepSeek R-1, offers
+SMBs an opportunity to leverage AI-driven insights at a
+reduced cost. Integrating such AI tools into their operations
+allows SMBs to make more informed decisions, ultimately
+improving revenue and reducing operational costs.
+A critical area where AI can assist SMBs is in supply
+chain management. Traditionally, supply chain optimization
+has relied on complex and costly software solutions, limiting
+smaller businesses’ ability to capitalize fully on data-driven
+decision-making. However, with the rise of AI, SMBs can
+now access advanced analytics and automation capabilities
+without significant financial investments. AI applications
+in supply chain management encompass various domains,
+such as demand planning and logistics. By improving these
+functions, businesses can increase efficiency, reduce waste,
+optimize inventory levels, and streamline the movement of
+goods, thereby strengthening overall competitiveness.
+This paper aims to evaluate the effectiveness of several
+AI models—GPT-4.5, Grok 3, Gemini 2.0, and DeepSeek R-
+1—in addressing key supply chain challenges. Specifically, the
+study will assess these AI tools by presenting one question
+from each critical domain of supply chain management: de-
+mand planning and logistics. The responses generated by these
+models will be analyzed to determine which AI tool provides
+the most accurate and actionable insights. The findings will
+help identify the most suitable AI algorithms for SMBs seek-
+ing to optimize their supply chain operations. This comparative
+analysis aims to bridge the gap between AI technology and
+practical business applications, offering valuable guidance for
+SMBs looking for cost-effective solutions to improve supply
+chain efficiency while looking at the current capability of these
+AI tools.
+979-8-3315-6536-7/25/$31.00 ©2025 IEEE
+SERA 2025, May 29-31, 2025, Las Vegas,  USA
+65
+2025 IEEE/ACIS 23rd International Conference on Software Engineering Research, Management and Applications (SERA) | 979-8-3315-6536-7/25/$31.00 ©2025 IEEE | DOI: 10.1109/SERA65747.2025.11154630
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:38:23 UTC from IEEE Xplore.  Restrictions apply. 
+
+II. LITERATURE REVIEW
+Artificial Intelligence (AI) has revolutionized a wide range
+of industries by enabling machines to perform tasks that
+require human-like cognitive abilities, such as understanding
+text,
+recognizing
+objects,
+and
+making
+predictions.
+The
+increasing availability of computational power and data
+storage has made AI technologies more accessible, opening
+up
+opportunities
+for
+substantial
+economic
+and
+social
+advancements across various sectors. Within this broader
+field of AI, generative AI, an advanced technology, has
+gained significant attention, particularly within supply chain
+management (SCM) [1]. Integrating generative AI into supply
+chains presents vast potential for improving operational
+efficiency, enhancing decision-making, and optimizing overall
+performance. By leveraging generative models, businesses
+can streamline operations, improve responsiveness, and make
+more accurate predictions regarding demand, inventory levels,
+and logistics. Moreover, organizational learning plays a pivotal
+role in accelerating AI adoption. As businesses become more
+familiar with AI technologies, they are better equipped to
+overcome initial challenges and realize the long-term benefits
+of AI [2]. This increasing familiarity positions companies
+to harness AI to boost operational efficiency and strengthen
+their competitive advantage within SCM.
+Managing supply chains can be particularly complex for
+small and medium-sized businesses (SMBs). SMBs often face
+resource constraints and a lack of specialized expertise, which
+pressure them to remain competitive. To stay viable, these
+businesses typically focus on product diversification, supply
+chain efficiency, and competitive pricing strategies. The
+advent of generative AI offers SMBs a valuable opportunity
+to refine these strategies. By leveraging AI technologies,
+SMBs can enhance decision-making, improve operational
+efficiency, and respond more swiftly to shifting market
+demands [3]. This ability to adapt and optimize positions
+SMBs to improve productivity and strengthen their market
+standing.
+AI applications in supply chain management span many
+areas, including demand forecasting, inventory optimization,
+warehouse operations, transportation routing, and logistics
+management [4]. Demand planning, in particular, is crucial
+for optimizing business operations. It involves using forecasts
+to guide strategic decisions, ensuring the smooth movement
+of
+raw
+materials,
+components,
+and
+finished
+products
+between suppliers and customers. Effective demand planning
+enables businesses to evaluate profit potential, make informed
+decisions regarding capacity, and maintain strong relationships
+with stakeholders and financial entities [5]. By using robust
+demand planning methods, businesses can generate more
+accurate forecasts, leading to improved production volumes,
+resource allocation, and inventory management decisions.
+These practices are vital for maximizing profitability and
+ensuring the efficient use of resources [6]. AI significantly
+enhances the analytical capabilities required for precise
+demand forecasting, helping businesses stay competitive in a
+fast-paced market environment [7].
+The Vehicle Routing Problem (VRP), central to distribution
+management, presents a significant challenge for many
+companies involved in goods and people delivery [8].
+The VRP aims to optimize vehicle routes and allocations
+to minimize transportation costs [9]. However, due to the
+variability in conditions across different settings, the objectives
+and constraints involved in VRP solutions can differ greatly.
+Most algorithmic research and software development in this
+field focus on a limited set of prototype problems, often
+overlooking the diverse practical contexts businesses face. By
+introducing greater flexibility into optimization systems, it
+becomes possible to adapt these solutions to various practical
+applications [10]. AI technologies have the potential to
+offer advanced solutions to VRP, enhancing transportation
+efficiency and helping companies optimize their distribution
+networks.
+Previous research has explored how AI-driven demand
+forecasting can be integrated into SAP-based supply chain
+systems,
+highlighting
+its
+ability
+to
+improve
+inventory
+control through predictive analytics. These studies also
+address
+challenges
+associated
+with
+AI
+implementation,
+including data integration issues, ensuring model accuracy,
+and
+navigating
+organizational
+change.
+They
+also
+point
+to
+emerging
+developments
+in
+AI-enabled
+supply
+chain
+optimization [11].
+Meanwhile,
+another
+study
+concludes
+that
+artificial
+intelligence can significantly boost supply chain efficiency
+through advanced simulations, predictive tools, and innovative
+data modeling. It discusses both the opportunities and hurdles
+of using generative AI in demand forecasting and considers
+its broader impact on the future of supply chain management.
+Despite these insights, the literature emphasizes the need for
+comparative analysis of generative AI models to evaluate
+their accuracy and performance [12].
+III. METHODOLOGY
+In this study, various Generative AI tools are presented with
+one problem from each demand planning and logistics domain.
+A. Demand Planning
+This study utilizes Kaggle data for demand forecasting
+in the context of Zara [13]. The dataset is randomly split
+into a training set (80%) and a test set (20%) [14]. Four
+Generative AI models—GPT-4.5, Grok 3, Gemini 2.0, and
+DeepSeek R-1—are evaluated based on their performance
+in predicting demand. The models’ accuracy is assessed
+using the Mean Absolute Percentage Error for the test
+dataset (MAPE). Additionally, the recommended machine
+learning(ML) models for demand forecasting are analyzed
+979-8-3315-6536-7/25/$31.00 ©2025 IEEE
+SERA 2025, May 29-31, 2025, Las Vegas,  USA
+66
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:38:23 UTC from IEEE Xplore.  Restrictions apply. 
+
+data and features for each tree and combines their outputs
+to improve stability and reduce overfitting [17]. XGBoost,
+or Extreme Gradient Boosting, builds trees in a sequence.
+Each new tree aims to fix the errors of the previous ones
+using gradient descent to minimize loss. It also includes
+regularization, which helps boost accuracy and efficiency [18].
+In general, XGBoost tends to outperform on structured
+datasets. Meanwhile, Random Forest is more straightforward
+to implement and tune, making it a good starting point for
+many problems.
+B. Logistics
+None of the artificial intelligence (AI) models evaluated
+in this study successfully solved the vehicle routing problem
+(VRP), primarily due to the inherent computational complexity
+associated with this problem. The VRP involves finding the
+most optimal routes for vehicles to deliver goods to various
+locations while minimizing costs, a well-known logistics and
+supply chain management challenge. Despite the advanced
+capabilities of modern AI tools, the computational demands
+required to solve VRP instances at scale remain a significant
+barrier. This highlights the need for continued advancements
+in AI-powered logistics solutions, especially in the context of
+small and medium-sized businesses (SMBs), which may face
+additional resource constraints.
+V. CONCLUSION AND DISCUSSION
+The inability of current AI models to effectively address
+the VRP points to the need for further advancements in
+AI-powered logistics solutions. Future research should focus
+on developing more scalable and efficient algorithms to
+tackle the VRP and other logistics challenges. Hybrid AI
+approaches, which combine multiple AI models or integrate
+AI with traditional optimization methods, could be an
+effective solution to improve the scalability and efficiency of
+logistics operations. Furthermore, AI’s ability to solve VRP
+in real-time, under dynamic and changing conditions, remains
+a significant area for improvement. Additionally, further
+studies should explore larger datasets for demand planning
+and implement more examples using k-fold cross-validation
+to develop better solutions.
+In conclusion, while DeepSeek R-1 demonstrated consid-
+erable promise in demand planning, providing SMBs with
+a tool to enhance forecasting accuracy and optimize supply
+chain operations, the challenge of solving complex logistics
+problems, such as the Vehicle Routing Problem, remains
+unsolved by current AI models. This study suggests that
+SMBs should consider DeepSeek R-1 for demand planning
+and inventory management while keeping a close eye on
+future advancements in AI for logistics. As AI technology
+evolves, these tools have significant potential to support SMBs
+in tackling increasingly complex supply chain challenges.
+Thus, continued investment in AI research and development
+is essential to unlocking its full potential for SMBs across
+various supply chain domains.
+REFERENCES
+[1] Anantrasirichai, N., and David Bull. “Artificial Intelligence in the Cre-
+ative Industries: A Review.” Artificial Intelligence Review, vol. 55, 2022,
+pp. 589–656. Springer, https://doi.org/10.1007/s10462-021-10039-7.
+[2] Haddud, A. “ChatGPT in Supply Chains: Exploring Potential Applica-
+tions, Benefits and Challenges.” Journal of Manufacturing Technology
+Management, vol. 35, no. 7, 2024, pp. 1293–1312. https://doi.org/10.
+1108/JMTM-02-2024-0075.
+[3] Wamba, S. F., M. M. Queiroz, C. J. C. Jabbour, and C. Shi. “Are Gen-
+erative AI and ChatGPT Game Changers for 21st-Century Operations
+and Supply Chain Excellence?” International Journal of Production
+Economics, vol. 265, 2023, p. 109015.
+[4] Mugambe, P. “Financial Innovation for Survival Among Micro-
+Enterprises with Declining Profit Margins.” Open Journal of Business
+and Management, vol. 12, 2024, pp. 3145–3165.
+[5] Toorajipour, R., et al. “Artificial Intelligence in Supply Chain Manage-
+ment: A Systematic Literature Review.” Journal of Business Research,
+vol. 122, 2021, pp. 502–517.
+[6] Sheldon, D. H. World Class Sales and Operations Planning: A Guide
+to Successful Implementation and Robust Execution. 1st ed., J. Ross
+Publishing, 2006.
+[7] Vlckova, V., and M. Patak. “Role of Demand Planning in Business
+Process Management.” Proceedings of the 6th International Scientific
+Conference Business and Management, 2010.
+[8] de Mattos, C. A., et al. “Artificial Intelligence Capabilities for Demand
+Planning Process.” Logistics, vol. 8, no. 2, 2024, p. 53. https://doi.org/
+10.3390/logistics8020053.
+[9] Pandiyan, Manikandan, et al. “Using Machine Learning Algorithms to
+Predict Steam-Assisted Flare Performance.” American Flame Research
+Committee Conference, 2023, Denver, CO.
+[10] Vyakarnam, S., G. Jayakumar, and J. A. Cherukara. “Design and Opti-
+mization of an Eco-Efficient Vehicle Routing Model for Heterogeneous
+Fleets and Multi Depot Systems.” Procedia Computer Science, vol. 230,
+2023, pp. 629–640.
+[11] Olasehinde, Tolamise. The Future of Demand Planning: Integrating
+Generative AI into Supply Chain Strategies. 2024.
+[12] Macron, Tolu. AI-Powered Demand Forecasting and Inventory Manage-
+ment in SAP-Based Supply Chains. 2025.
+[13] Chinson, S. “Zara Sales.” Kaggle, https://www.kaggle.com/datasets/
+xontoloyo/data-penjualan-zara.
+[14] Haque, M. A., et al. “Implication of Different Data Split Ratios on
+the Performance of Models in Price Prediction of Used Vehicles Using
+Regression Analysis.” Data and Metadata, vol. 3, 2024, p. 425.
+[15] de Myttenaere, A., B. Golden, B. Le Grand, and F. Rossi. “Mean
+Absolute Percentage Error for Regression Models.” Neurocomputing,
+vol. 192, 2016, pp. 38–48.
+[16] Timefold
+Solver
+0.8.42:
+Vehicle
+Routing.
+https://docs.timefold.
+ai/timefold-solver/0.8.x/use-cases-and-examples/vehicle-routing/
+vehicle-routing.
+[17] Chen, Tianqi, and Carlos Guestrin. “XGBoost: A Scalable Tree Boosting
+System.” Proceedings of the 22nd ACM SIGKDD International Confer-
+ence on Knowledge Discovery and Data Mining, 2016, pp. 785–794.
+https://doi.org/10.1145/2939672.2939785.
+[18] Breiman, Leo. “Random Forests.” Machine Learning, vol. 45, no. 1,
+2001, pp. 5–32. https://doi.org/10.1023/A:1010933404324.
+979-8-3315-6536-7/25/$31.00 ©2025 IEEE
+SERA 2025, May 29-31, 2025, Las Vegas,  USA
+68
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:38:23 UTC from IEEE Xplore.  Restrictions apply. 
+
+
+
+--- Performance_Analysis_of_Time_Series_Models_to_Predict_Sales_Activity_of_SMEs.pdf ---
+Performance Analysis of Time Series
+Models to Predict Sales Activity of SMEs
+1st Justine Christian Susanto
+Entrepreneurship Department
+BINUS Business School
+Bina Nusantara University
+Bandung, Indonesia
+justine.susanto@binus.ac.id
+2nd Maureen Letitia Wiratama
+Entrepreneurship Department
+BINUS Business School
+Bina Nusantara University
+Bandung, Indonesia
+maureen.wiratama@binus.ac.id
+3rd Patrick Christian Nathaniel
+Entrepreneurship Department
+BINUS Business School
+Bina Nusantara University
+Bandung, Indonesia
+patrick.nathaniel@binus.ac.id
+4th Ivan Diryana Sudirman
+Entrepreneurship Department
+BINUS Business School
+Bina Nusantara University
+Bandung, Indonesia
+ivan.diryana@binus.ac.id
+Abstract—Micro, Small, and Medium Enterprises
+(MSMEs) are a key pillar of the Indonesian economy.
+Many small businesses implement pre-order systems
+to minimize inventory risk and high initial capital
+requirements. However, pre-order systems also pose
+unique challenges, particularly in terms of uncertain
+production costs and potential delays in fulfilling
+orders. Daily sales in these systems tend to be un-
+stable, with periods of no transactions and sporadic
+spikes in demand. The purpose of this study is to
+develop and evaluate a forecasting model for MSME
+data operating with a pre-order system and to test
+whether machine learning tools such as XGBoost can
+produce reliable performance. This pattern results
+in a high frequency of zero values, making accurate
+predictions difficult. To predict such sales patterns,
+this study tests a Predictive Regression Model using
+the XGBoost technique and compares it with a
+baseline method. The data used consists of daily
+sales from 2023 to 2025. The data is then augmented
+with lag features and rolling window-based statistical
+features.
+Index Terms—Machine learning forecasting, XG-
+Boost regression, SMEs, demand forecasting,
+I. INTRODUCTION
+Micro,
+small,
+and
+medium
+enterprises
+(MSMEs) play a significant role in the Indonesian
+economy
+[1].
+Newly
+established
+businesses
+generally
+face
+limitations
+in
+capital,
+human
+resources
+(HR),
+and
+production
+capacity.
+In
+situations like this, many MSMEs choose a
+pre-order system as their primary strategy to
+mitigate
+operational
+risk.
+This
+sales
+system
+involves producing new goods after confirmation
+and agreement on the order. This system not
+only opens up business opportunities but also
+reduces stockpiling, reduces idle raw materials,
+and increases inventory turnover. This allows new
+entrepreneurs to experiment without incurring
+significant financial risks.
+On the other hand, while this pre-order system
+can reduce inventory-related risks, it also poses
+other equally significant risks. Because customers
+have paid in advance and have high expectations
+regarding the arrival time of their orders, when
+demand increases or capacity is insufficient, the
+risk of late and inaccurate delivery increases,
+directly impacting customer confidence. Further-
+more, sales data in the PO system tends to fluc-
+tuate. Sometimes there are days without orders,
+followed by several days of surges in demand.
+These patterns lead to volatile sales activity and
+make it nearly impossible to predict based solely
+on daily trends and standards.
+The disorganized data structure shows that even
+though the Pre-Order (PO) system itself does
+not require inventory control, the business still
+requires stock control for other purposes [2].
+Forecasting is an important foundation in this
+context, because it can help in predicting trends in
+workload as well as providing production capacity.
+Apart from that, forecasting is also valuable for
+dealing with human resource needs and predicting
+opportunities for delays. By having an understand-
+ing of potential future activities, industry can take
+preventive action such as temporarily increasing
+its workforce, increasing the purchase of certain
+raw materials and changing production processes
+2026 International Seminar on Intelligent Business and Edge-Computing Research (ISIBER)
+979-8-3315-5891-8/26/$31.00 ©2026 IEEE
+808
+2026 International Seminar on Intelligent Business and Edge-Computing Research (ISIBER) | 979-8-3315-5891-8/26/$31.00 ©2026 IEEE | DOI: 10.1109/ISIBER68248.2026.11470090
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 06,2026 at 19:30:25 UTC from IEEE Xplore.  Restrictions apply. 
+
+to prepare itself for variations in demand.
+The objectives of this study include the de-
+velopment and evaluation of a forecasting model
+for sales data from SMEs operating under an
+Pre-Order (PO) system, taking into account the
+characteristics of the SME data. In addition, there
+is also an additional objective, namely conducting
+an analysis to determine whether machine learn-
+ing models such as XGboost can provide better
+results compared to basic methods, such as naive
+forecasting and moving averages. This study also
+attempts to provide an overview of how forecast-
+ing works to help not only increase inventory, but
+also as a means to improve operational preparation
+and prevent risks in terms of order fulfillment in
+the PO system.
+II. RELATED WORK
+Research confirms that studies of pre-order
+sales systems point to the fact that pre-order data
+alone is not a sufficient tool to eliminate the need
+for forecasting. Instead, it increases the need for
+much more sophisticated and complex predictions.
+In the publishing industry, pre-order data, while
+providing some insight into potential demand, is
+still insufficient to meet all the needs of identify-
+ing post-launch product dynamics, understanding
+seasonal demand patterns, and understanding the
+impact of specific marketing activities [3]. In the
+area of procurement and inventory management,
+research has shown that data-driven systems re-
+quire organizations to combine preliminary order
+data with algorithms used to predict demand. This
+aims to consider factors such as uncertainty in the
+conversion process from purchase orders to formal
+orders, the likelihood of cancellations, and the
+need for restocking or replenishment of inventory
+[4], [5].
+Research conducted by Sampedro [?], shows
+that the frequency level of messages before sales
+or what is known as pre-orders, is a dynamic
+and very significant phenomenon that requires
+continuous prediction through statistical tools such
+as time series methodology and ARIMA (Au-
+toRegressive Integrated Moving Average) models.
+With these results, it can be concluded that the
+pre-order system, in general, adds a new path in
+the forecasting process, namely through estimates
+of the direction of message growth before recent
+sales are made. In e-commerce, computer-based
+predictive models are often used as a tool to
+combine information about previous orders with
+actual transactions and potential buyer behavior.
+Their primary goal is to predict the efficiency of
+the conversion process and the future demand for
+goods after a new product is released to the market
+[6]. In the fashion industry, a method known as
+a hybrid of artificial neural networks and logistic
+regression has demonstrated success in predicting
+pre-order numbers, consumer interest, and addi-
+tional demand directly or indirectly related to
+those orders during rapidly changing market trends
+[7].
+AHAR 24’s food ordering system management
+implements a pre-order system with a forecasting
+model to manage raw material requirements, cus-
+tomer capacity, and staff scheduling. [8]. Various
+studies have shown that pre-order systems are very
+useful, especially when used in the early stages.
+However, these systems still require a predictive
+model to manage potential unavailability of de-
+mand, operational capacity, and risk to maintain
+customer satisfaction.
+Traditional forecasting methodologies tend to
+be unable to recognize rapidly changing data and
+dynamic market changes. This can result in sig-
+nificant operational risks, such as overstocking or
+understocking. Research has shown that analytics-
+based predictions using machine learning have
+the potential to provide more accurate demand
+forecasting results. This approach also takes into
+account various factors, such as seasonal patterns,
+various external variables, and operational data
+that can be collected in real time. [9].
+XGBoost is a machine learning tool that can
+be used for prediction and is frequently used
+for this purpose, particularly in data facing Zero
+Inflation, where the data contains many zero val-
+ues. XGBoost addresses imbalanced distributions,
+patterns of falls, or relatively rare events. These are
+typically difficult for standard statistical models
+to handle. For example, in the insurance industry,
+the XGBoost algorithm has been used to build
+models that can predict the frequency of vehicle
+claims, where a large percentage of consumers do
+not file a claim during a given period. XGBoost
+can effectively learn patterns from this type of
+structured data and consistently provides more
+accurate predictions than traditional methods for
+capturing rare events. [10], [11].
+III. METHODOLOGY
+This research involved several steps to develop
+a predictive model based on daily transactions.
+These steps were then implemented in stages,
+starting with data integration, feature develop-
+ment, model training, and then comparing it with
+the baseline approach.
+The first step is to collect the data and then
+clean it. This process involves combining multiple
+data cells into a single structure. The data format
+is then normalized and checked to ensure data
+809
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 06,2026 at 19:30:25 UTC from IEEE Xplore.  Restrictions apply. 
+
+effectively handle potential increases in demand
+without over-preparation.
+While the model is not yet capable of highly
+accurate predictions regarding production spikes,
+identifying day-to-day periods of extremely high
+production levels still provides a good overview of
+potential operational risk points. Changes in pro-
+duction volumes. Significant changes, especially
+sudden ones, can lead to production delays. This
+significantly impacts customers because they have
+already paid before receiving the product. There-
+fore, customers have clear expectations regarding
+product timing and quality. This information forms
+the basis for planning reserve capacity, whether
+through additional staffing, shift scheduling, or
+other planning alternatives.
+Several features deemed important by the
+model, namely the 40-Day Lag, 20-Day Lag, and
+30-Day Moving Average, indicate that medium-
+term patterns play a significant role in demand
+prediction. These findings can be utilized by man-
+agement to plan production by considering the
+periodic rhythm of product demand. Furthermore,
+these results demonstrate that pre-order activity is
+not entirely random, and therefore can be lever-
+aged to improve the accuracy of raw material
+availability in inventory management and reduce
+commonly occurring adjustment costs.
+V. CONCLUSION
+The results of his research showed that the sales
+pattern of SMEs based on the pre-order system
+tends to be unstable, as seen by several days
+a week with no transactions at all, as well as
+irregular or sporadic spikes in orders. Using a
+regression-based predictive model like XGBoost,
+it turned out to be difficult for the method to
+consistently capture the dynamics of these sales
+patterns. However, other simple methods such as
+the Moving Average (MA) with a 7-day period
+showed the most stable and reliable results as
+the main basis for initial planning. However, its
+accuracy is still limited due to the sparse and
+discontinuous nature of the data. This is a major
+limitation of this study, as the daily regression
+approach is not a perfect solution when the data
+structure exhibits more of a lag pattern than a
+continuous pattern. Consequently, future research
+should consider classification methods, such as
+designing models that model the likelihood of
+orders occurring or the peak probability on a given
+day, which are considered more appropriate to the
+PO operational style.
+REFERENCES
+[1] N. Aprilia, W. T. Subroto, and N. C. Sakti, “The role of
+small and medium enterprises (smes) in supporting the
+people’s economy in indonesia,” International Journal of
+Research and Scientific Innovation, vol. XI, no. XII, pp.
+368–376, 2025.
+[2] V. Chandan, S. H. Badugu, N. Teja, A. V. N. S. Harsha,
+D. Devendra, M. A. M. Umair, and E. C. Jones, “Opti-
+mization of production and inventory control,” Interna-
+tional Supply Chain Technology Journal, vol. 8, no. 1,
+2022.
+[3] R.
+Pizzano,
+“Sales
+forecasting
+of
+products
+with
+very
+short
+life
+cycles,”
+Journal
+of
+Business
+Forecasting, vol. 30, no. 2, p. 4, 2011, retrieved
+from
+Questia
+database.
+[Online].
+Available:
+https:
+//www.questia.com/library/journal/1P3-2466731421/
+sales-forecasting-of-products-with-very-short-life
+[4] X. Xiong, Y. Li, W.-D. Yang, and H. Shen, “Data-
+driven robust dual-sourcing inventory management under
+purchase price and demand uncertainties,” Transportation
+Research Part E: Logistics and Transportation Review,
+vol. 160, p. 102671, 2022.
+[5] L. Xu, X. Liu, L. Xiao, Q. Zuo, J. Liu, and W. K. V. Chan,
+“Data-driven procurement optimization in fresh food dis-
+tribution market under demand uncertainty: A two-stage
+stochastic programming approach,” in Proceedings of the
+IEEE International Conference on Industrial Engineering
+and Engineering Management (IEEM), 2022, pp. 869–
+875.
+[6] B.
+Bedir,
+“Machine
+learning
+based
+demand
+forecast
+models
+for
+e-commerce
+industry,”
+2022,
+retrieved
+from
+ResearchGate.
+[Online].
+Avail-
+able:
+https://www.researchgate.net/profile/Bulent-Bedir/
+publication/365375831
+[7] R. Zahabiyah and A. Cakravastia, “A hybrid artificial
+neural network and logistics
+regression model for
+fashion sales strategies prediction,” in Proceedings of the
+International Conference on Industrial Engineering and
+Operations Management.
+Monterrey, Mexico: IEOM
+Society, Nov. 2021, pp. —, november 3–5, 2021.
+[Online]. Available: http://ieomsociety.org/proceedings/
+2021monterrey/377.pdf
+[8] S. B. Iqbal, “Ahar24: A modern restaurant food delivery
+management system,” Project Report, Department of
+Computer Science and Engineering, BRAC University,
+Nov. 2024, m.Sc. in Computer Science and Engineering.
+[Online]. Available: http://hdl.handle.net/10361/25401
+[9] A.-F. A. Adetula and T. Akanbi, “Beyond guesswork:
+Leveraging ai-driven predictive analytics for enhanced
+demand forecasting and inventory optimization in sme
+supply chains,” International Journal of Science and
+Research Archive, vol. 10, no. 2, pp. 1389–1406, 2023.
+[10] B. So, “Enhanced gradient boosting for zero-inflated
+insurance claims and comparative analysis of catboost,
+xgboost, and lightgbm,” Scandinavian Actuarial Journal,
+vol. 2024, no. 10, pp. 1013–1035, 2024.
+[11] N. Kollongei and F. Onyango, “Motor insurance claim
+frequency prediction using xgboost,” Asian Journal of
+Probability and Statistics, vol. 26, no. 10, pp. 155–170,
+2024.
+813
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 06,2026 at 19:30:25 UTC from IEEE Xplore.  Restrictions apply. 
+
+
+

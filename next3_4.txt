@@ -1,0 +1,1089 @@
+--- Technology_Acceptance_and_Security_Influences_on_AI_Adoption_among_Small_and_Medium_Enterprises.pdf ---
+ 
+Technology Acceptance and Security Influences on 
+AI Adoption among Small and Medium Enterprises  
+1st Yuniarty  
+Management Department, 
+BINUS Online Learning, Bina 
+Nusantara University 
+Jakarta, Indonesia  
+yuniarty@binus.ac.id  
+4th Noe Enriquez 
+Industrial Engineering Department, 
+Adamson University 
+Manila, Philippines 
+noe.enriquez@adamson.edu.ph 
+2nd Hartiwi Prabowo 
+Management Department 
+BINUS Online Learning, Bina 
+Nusantara University 
+Jakarta, Indonesia  
+hartiwi2200@binus.ac.id  
+ 
+ 
+3rd Ridho Bramulya Ikhsan 
+Management Department, 
+BINUS Online Learning, Bina 
+Nusantara University 
+Jakarta, Indonesia 
+ridho.bramulya.i@binus.ac.id  
+line 1: 6th Given Name Surname 
+line 2: dept. name of organization  
+(of Affiliation) 
+line 3: line 4: City, Country  
+Abstract—Small and Medium Enterprises (SMEs) play a 
+vital role in supporting Indonesia’s economic growth. However, 
+their adoption of Artificial Intelligence (AI) remains limited 
+despite its potential to enhance efficiency, innovation, and 
+competitiveness. This study extends the Technology Acceptance 
+Model (TAM) to explore how perceived ease of use, perceived 
+usefulness, and perceived security influence SMEs’ intention to 
+adopt AI technologies. A quantitative approach was employed 
+using survey data collected from 131 Indonesian SME owners 
+and managers. The data were analyzed using Partial Least 
+Squares–Structural Equation Modeling (PLS-SEM). The 
+findings reveal that perceived ease of use significantly shapes 
+both the perceived usefulness of AI and the intention to adopt it, 
+consistent with TAM's theoretical propositions. Interestingly, 
+perceived usefulness does not affect substantially adoption 
+intention, suggesting that functional benefits alone are 
+insufficient to drive adoption in this context. Instead, perceived 
+security emerges as a critical determinant, indicating that SMEs 
+place strong emphasis on data protection, privacy, and system 
+reliability when considering AI implementation. This study 
+contributes to refining the TAM framework by highlighting the 
+central role of security as a determinant of adoption behavior 
+and demonstrating the limited influence of perceived usefulness 
+in high-risk technological settings. The results underscore the 
+need for policymakers and technology providers to prioritize 
+secure and accessible AI solutions to foster inclusive and 
+sustainable digital transformation among Indonesian SMEs. 
+Keywords—Artificial Intelligence; Technology Acceptance 
+Model; Security; Perceived Usefulness; Perceived Ease of Use 
+I. INTRODUCTION  
+Small and Medium Enterprises (SMEs) are essential to 
+Indonesia's economic growth, as they employ the bulk of the 
+country's workforce and account for more than 60% of its 
+GDP [1]. Artificial Intelligence (AI) has become a key 
+technology that may improve competitiveness, efficiency, and 
+decision-making in the age of rapid digital transformation. 
+Adopting AI is now essential for Indonesian SMEs to prosper 
+in increasingly globalized and dynamic marketplaces, not just 
+a luxury [2]. 
+However, Indonesian SMEs continue to deploy AI 
+technologies unevenly, with several obstacles. Technology 
+acceptability, which includes managers' and entrepreneurs' 
+readiness to incorporate AI technologies into their business 
+operations, is one of the most critical elements affecting 
+adoption [3]. Perceptions of usability, compatibility with 
+current systems, and ease of use influence this adoption. 
+Security is also critical because worries about data privacy, 
+cyber risks, and regulatory compliance greatly impact trust 
+and the desire to use AI breakthroughs [4]. 
+An unusual setting for studying these processes is 
+Indonesia. Government programs like Making Indonesia 4.0 
+and the acceleration of the development of the digital 
+economy are driving the nation's rapid increases in internet 
+adoption and digital literacy [5]. SMEs' limitations may 
+hamper the implementation of AI in infrastructure, 
+knowledge, and resources. Therefore, creating strategies that 
+help SMEs leverage AI for sustained growth requires an 
+understanding of how security perceptions and technology 
+acceptability influence AI adoption behavior. 
+Recent scholarship on AI and technology adoption in 
+SMEs has identified multiple factors shaping successful 
+implementation. Within the Technology–Organization–
+Environment (TOE) framework [6], drivers such as relative 
+advantage, compatibility, human capital, market demand, and 
+government support emerge as critical, with evidence 
+suggesting that medium-sized firms benefit more strongly 
+from relative advantage than smaller firms [7]. Similarly, 
+research using the Unified Theory of Acceptance and Use of 
+Technology (UTAUT) model shows that effort expectancy 
+and social influence significantly affect behavioral intention 
+to adopt generative AI, with age and work experience 
+moderating these effects [8]. Leadership has also been shown 
+to influence AI adoption through fostering data-driven 
+cultures and enhancing employee competencies, which in turn 
+strengthen supply chain resilience [9]. Yet, in many 
+developing country contexts, SMEs continue to rely primarily 
+on basic information systems rather than advanced 
+technologies such as AI, underscoring the importance of 
+sociocultural and contextualized adoption models [10]. 
+Building upon the preceding discussion, this study offers 
+a novel contribution by examining technology acceptance and 
+security perceptions concurrently as determinants of AI 
+adoption intention among Indonesian SMEs, a sector 
+experiencing rapid digital transformation yet marked by 
+uneven technological uptake. The Technology Acceptance 
+Model (TAM) serves as the central theoretical framework for 
+elucidating user behavior toward emerging technologies, 
+providing a structured lens for understanding the underlying 
+drivers of AI adoption. 
+In this study, AI technologies refer to practical, business-
+oriented applications that support SMEs’ operational and 
+strategic activities. In Indonesia, SMEs have increasingly 
+adopted various forms of AI, including AI-driven customer 
+2025 International Conference on Informatics, Multimedia, Cyber and Information System (ICIMCIS)
+979-8-3315-7930-2/25/$31.00 ©2025 IEEE
+1643
+2025 International Conference on Informatics, Multimedia, Cyber and Information System (ICIMCIS) | 979-8-3315-7930-2/25/$31.00 ©2025 IEEE | DOI: 10.1109/ICIMCIS68501.2025.11327244
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:35:57 UTC from IEEE Xplore.  Restrictions apply. 
+
+service chatbots, e-commerce recommendation systems, 
+automated inventory and demand forecasting tools, and AI-
+based digital marketing analytics. For example, small online 
+retailers often use chatbots integrated with WhatsApp or 
+social media platforms to manage customer interactions 
+efficiently. At the same time, food and fashion SMEs rely on 
+AI algorithms for personalized product recommendations and 
+trend 
+forecasting. 
+Furthermore, 
+AI-powered 
+financial 
+management applications assist SMEs in credit scoring, 
+expense tracking, and fraud detection. These examples 
+demonstrate that security concerns, particularly those related 
+to data protection, privacy, and system reliability, are critical 
+factors in determining the extent to which SMEs trust and 
+adopt AI technologies. 
+In contrast to earlier research that predominantly focuses 
+on organizational, environmental, or leadership dimensions, 
+this study emphasizes three key constructs: perceived ease of 
+use, perceived usefulness, and perceived security. These 
+dimensions capture the practical realities and concerns of 
+SMEs operating in resource-constrained and high-risk 
+environments typical of emerging economies. Through this 
+approach, the research not only advances the existing TAM 
+framework by integrating security as a critical factor but also 
+provides context-specific evidence on how Indonesian SMEs 
+assess the opportunities and challenges of AI implementation. 
+Ultimately, this study seeks to illuminate how perceptions of 
+usability, utility, and security interact to shape adoption 
+behavior, offering actionable insights for policymakers, 
+technology developers, and SME practitioners while 
+contributing to the broader theoretical discourse on 
+technology acceptance and digital transformation. 
+Despite growing recognition of AI’s transformative 
+potential, the mechanisms through which technology 
+acceptance and security shape adoption behavior among 
+Indonesian SMEs remain insufficiently explored. This gap 
+limits policymakers' and practitioners' ability to design 
+effective strategies to address SMEs’ specific barriers to 
+digital transformation. Accordingly, this paper is structured as 
+follows: Section II reviews the theoretical foundation and 
+relevant literature; Section III outlines the research 
+methodology; Section IV presents and discusses the empirical 
+findings; and Section V concludes with implications, 
+limitations, and directions for future research. 
+II. LITERATURE REVIEW 
+Grounded in the constructs of perceived usefulness and 
+perceived ease of use, the Technology Acceptance Model 
+(TAM) provides a structured framework for understanding 
+how individuals and organizations form intentions to engage 
+with emerging technologies. When integrated with the Theory 
+of Planned Behavior, TAM has demonstrated strong 
+explanatory power, accounting for approximately 59% of the 
+variance in AI acceptance across various contexts [11]. Its 
+adaptability has been evident in multiple domains. For 
+instance, in the hospitality and tourism industry, the 
+development of an interactive TAM (iTAM) highlights the 
+critical role of perceived interactivity in shaping user attitudes 
+toward AI-enabled service robots [12]. Similarly, studies 
+combining TAM with status quo bias theory in the context of 
+AI voice assistants show that perceived ease of use and 
+perceived value positively influence user attitudes, whereas 
+switching costs and perceived risks act as barriers to adoption 
+[13]. In the education sector, TAM has been employed to 
+examine teachers’ intentions to utilize AI-based e-learning 
+platforms, revealing that perceptions of usefulness and 
+emotional 
+engagement 
+significantly 
+impact 
+adoption 
+decisions [14]. Collectively, these findings underscore TAM’s 
+relevance as a theoretical lens for exploring how perceptions 
+of utility, usability, and security interact to shape AI adoption 
+behaviors—particularly in dynamic, resource-constrained 
+environments such as SMEs. 
+Studies investigating the impact of Perceived Ease of Use 
+(PEU) on AI adoption intentions (IAI) demonstrate 
+consistently favorable correlations across several areas. In 
+accounting education, PEU serves as a mediator between 
+technological preparedness and aspirations to use AI, in 
+conjunction with perceived utility [15]. Likewise, PEU has 
+substantial positive effects on both the desire to use and the 
+actual adoption of digital technologies, such as e-wallets [16]. 
+In the realm of AI-enabled smart speakers, PEU is a pivotal 
+aspect impacting attitudes and intentions for continued usage, 
+whereas social elements such as media richness and parasocial 
+interactions shape perceptions of PEU [17]. These results 
+repeatedly validate PEU as an essential determinant in AI 
+adoption across different contexts and user demographics. 
+[18] discovered that in small and medium firms in Taiwan, 
+only perceived ease of use (PEU) had a direct impact on 
+perceived usefulness (PU), and PU was the only direct 
+predictor of system utilization. This is different from the 
+original TAM research by [19], which revealed that PU had a 
+significant effect on user intentions, whereas PEU had a 
+weaker but still significant effect that weakened over time. 
+The positive correlation between PEU and PU has been 
+consistently validated across several areas. [20] validated that 
+PEU substantially influences PU in the context of e-book 
+uptake among university students. [15] also discovered that 
+both PEU and PU act as intermediaries in the interaction 
+between technological readiness and the adoption of artificial 
+intelligence in accounting contexts, demonstrating their 
+ongoing significance in contemporary technology acceptance 
+frameworks. 
+PU acts as a bridge between students' readiness to use 
+technology and their plans to use AI [15]. In the same way, 
+studies of employees demonstrate that PU completely 
+mediates the negative link between job instability and plans to 
+use AI, and somewhat mediates the positive link between 
+habit and plans to utilize AI at work [21]. PU affects more than 
+only AI-specific applications. For example, research on the 
+adoption of e-wallets demonstrates that PU has a significant 
+beneficial impact on both usage intentions and actual adoption 
+behaviors [16]. In AI assistant-enabled smart speakers, 
+perceived usefulness (PU) is a significant factor that affects 
+how users feel about the technology and whether they plan to 
+keep using it. It works with the perceived simplicity of use to 
+encourage people to adopt the technology [22]. These results 
+consistently affirm PU as a critical factor in technology 
+adoption decisions. 
+In the realm of financial services, technical optimism 
+enhances the intention to utilize AI-driven robo-advisors, but 
+insecurity diminishes adoption intentions; conversely, 
+technological discomfort unexpectedly had good outcomes 
+[23]. In terms of security issues, insecurity makes people think 
+that AI systems are not very beneficial, especially in retail 
+settings, where being inventive and optimistic makes both 
+PEOU and PU go up [24]. These findings indicate that security 
+concerns and feelings of unease consistently act as obstacles 
+to AI adoption across diverse fields. 
+2025 International Conference on Informatics, Multimedia, Cyber and Information System (ICIMCIS)
+1644
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:35:57 UTC from IEEE Xplore.  Restrictions apply. 
+
+Models,” Management Science, vol. 35, no. 8, pp. 982–1003, 
+1989, doi: 10.1287/mnsc.35.8.982. 
+[20] 
+M. Letchumanan and B. Muniandy, “Migrating to e‐book: a study 
+on perceived usefulness and ease of use,” Library Hi Tech News, 
+vol. 30, no. 7, pp. 10–16, Sep. 2013, doi: 10.1108/LHTN-05-2013-
+0028. 
+[21] 
+A. Dabbous, K. Aoun Barakat, and M. Merhej Sayegh, “Enabling 
+organizational use of artificial intelligence: an employee 
+perspective,” Journal of Asia Business Studies, vol. 16, no. 2, pp. 
+245–266, Mar. 2022, doi: 10.1108/JABS-09-2020-0372. 
+[22] 
+S. H. Hsieh and C. T. Lee, “Hey Alexa: examining the effect of 
+perceived socialness in usage intentions of AI assistant-enabled 
+smart speaker,” Journal of Research in Interactive Marketing, vol. 
+15, no. 2, pp. 267–294, Jun. 2021, doi: 10.1108/JRIM-11-2019-
+0179. 
+[23] 
+C. Flavián, A. Pérez-Rueda, D. Belanche, and L. V. Casaló, 
+“Intention to use analytical artificial intelligence (AI) in services – 
+the effect of technology readiness and awareness,” Journal of 
+Service Management, vol. 33, no. 2, pp. 293–320, Feb. 2022, doi: 
+10.1108/JOSM-10-2020-0378. 
+[24] 
+R. Pillai, B. Sivathanu, and Y. K. Dwivedi, “Shopping intention at 
+AI-powered automated retail stores (AIPARS),” Journal of 
+Retailing and Consumer Services, vol. 57, p. 102207, Nov. 2020, 
+doi: 10.1016/j.jretconser.2020.102207. 
+[25] 
+U. Sekaran and R. Bougie, Research methods for business: A skill 
+building approach. John Wiley & Sons, 2016. 
+[26] 
+Yuniarty, Dataset Technology Acceptance and Security Influences 
+on AI Adoption among Small and Medium Enterprises. Zenodo, 
+2025. doi: https://doi.org/10.5281/zenodo.17383667. 
+[27] 
+J. F. Hair, J. J. Risher, M. Sarstedt, and C. M. Ringle, “When to 
+use and how to report the results of PLS-SEM,” European 
+Business Review, vol. 31, no. 1, pp. 2–24, Jan. 2019, doi: 
+10.1108/EBR-11-2018-0203. 
+[28] 
+J. F. Hair, W. C. Black, B. J. Babin, and R. E. Anderson, 
+“Multivariate Data Analysis,” Hampshire, United Kingdom, 2019. 
+[29] 
+G. Shmueli et al., “Predictive model assessment in PLS-SEM: 
+guidelines for using PLSpredict,” European Journal of Marketing, 
+vol. 53, no. 11, pp. 2322–2347, 2019, doi: 10.1108/EJM-02-2019-
+0189. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+2025 International Conference on Informatics, Multimedia, Cyber and Information System (ICIMCIS)
+1648
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:35:57 UTC from IEEE Xplore.  Restrictions apply. 
+
+
+
+--- Technology_Adoption_of_MSMEs_in_Food_Supply_Chain_The_Role_of_AI_in_Traceability_and_Transparency.pdf ---
+ 
+ 
+Technology Adoption of MSMEs in Food Supply 
+Chain: The Role of AI in Traceability and 
+Transparency 
+Teerarat Aree 
+Faculty of Business Administration 
+Kasetsart University 
+Bangkok, Thailand  
+teerarat.a@ku.th 
+Pittawat Ueasangkomsate 
+Faculty of Business Administration 
+Kasetsart University 
+Bangkok, Thailand 
+pittawat.u@ku.th
+ 
+ 
+Abstract— Food consumption is increasing significantly on global 
+stage due to social and economic growth, leading to higher food 
+production and development in food supply chain (FSC). Many 
+firms have been adopting artificial intelligence (AI) in FSC to deal 
+with problems. This research aims to investigate the influence of 
+AI technology adoption of micro, small, and medium enterprise 
+(MSME) FSC in aspect of traceability and transparency in 
+Thailand. As various statistical research discussed in the 
+introduction section points out that nowadays FSC still lack of 
+traceability and transparency, which affects to product 
+consumption of customers. A quantitative approach through an 
+online questionnaire is utilized to gather statistical data, along 
+with conducting the literature review from existing literatures. 92 
+of MSMEs in Thailand are used as a sample for this research then 
+linear regression is applied for data analysis. The result of the 
+study indicates that AI significantly influences firm’s performance 
+in term of traceability and transparency. AI facilitates in sourcing, 
+production, scheduling, and transportation. It provides a better 
+decision making and ensures that all processes in FSC reach 
+standards. However, there are some limitations in technology 
+adoption for MSMEs specifically in micro businesses as they still 
+lack know-how and budget for technological investment. 
+Index Terms—Food supply chain, artificial intelligence, 
+traceability, transparency, MSME 
+I. INTRODUCTION 
+Over 8.1 billion people at present globally, food production 
+and consumption have become way more significant issue 
+comparing to the past. The main goal of the food industry is to 
+provide good foods and other necessities that is suitable for the 
+diversity of human’s activities and lifestyle. In order to serve 
+the expanding population, the method of interconnected 
+activities that operate in the food supply chain (FSC) must be 
+transformed significantly [1]. FSC refers to all complex 
+networks between farm and processing activities, distributors, 
+and retailers that operate the concept of ‘farm to fork’ [2]. The 
+process begins by the raw material until final products are 
+delivered to customers. [2] employed a systematic review on 
+challenges in FSC. The result indicates the three most common 
+issues in FSC, including sustainability, food safety and quality, 
+traceability, and transparency. Among three issues, traceability 
+and transparency gains the lowest percentage of distribution in 
+term of being mentioned by articles [2], implying that 
+traceability and transparency still do not gain much attention in 
+majority comparing to other two issues, although it is an 
+important topic. FSC with a lack of traceability and 
+transparency will adversely impact the efficiency on FSC [3]. 
+Nowadays food trade becomes globalized, food chain integrity 
+is not concerning only about food safety but also with its origin 
+[4]. In most region, most academic research in firm’s 
+performance highlighted more on large firms rather than a small 
+and medium firm [5]. Although MSMEs are a core economic 
+driver in many countries, but still become neglected compared 
+to large firm. Particularly in Thailand, MSMEs play a vital role 
+in the Thai economy contributing to 35.2% of the total gross 
+domestic product (GDP). MSMEs generated GDP value as 
+amounting to 1,784,473 million baht, representing 39.97% of 
+the GDP in manufacturing sector as a whole [6]. These 
+statistical data implies that Thai MSMEs is an important part in 
+Thai economy and should be gained more attention from many 
+departments. 
+      Nowadays traceability and transparency issue, tracking and 
+tracing technology is still not widely standardized. Outdated 
+technologies and traditional manual methods can cause a lack of 
+traceability. [7] had addressed some barriers to AI adoption in 
+FSC. The challenge for AI adoption is due to lacking an 
+appropriate testing system or trial facilities of AI technology, 
+especially in the scope of our study, MSMEs. Local MSMEs still 
+do not have the readiness to become fully invested in 
+technology. Therefore, this research aims to examine the 
+influence of AI technology adoption in FSC on MSMEs’ 
+business performance in aspect of traceability and transparency, 
+along with studying the gap that may occur for the adoption. 
+II. LITERATURE REVIEW 
+A. Food Supply Chain 
+FSC is the network of several members who participate in 
+the transformation of raw materials and semi-finished products 
+to final foods delivered to consumers [8]. FSC involves in 
+combination of processes and operations which aim to 
+transform raw products from their original source to final food 
+products consumed by customers [9]. The process of FSC 
+The 2025 Technology Innovation Management and Engineering Science International Conference (TIMES-iCON2025) 
+979-8-3315-7678-3/25/$31.00 ©2025 IEEE
+2025 6th Technology Innovation Management and Engineering Science International Conference (TIMES-iCON) | 979-8-3315-7678-3/25/$31.00 ©2025 IEEE | DOI: 10.1109/TIMES-ICON67125.2025.11488133
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:34:32 UTC from IEEE Xplore.  Restrictions apply. 
+
+ 
+ 
+usually starts with the production of raw agricultural 
+ingredients from farmers in the farm sector [10]. All raw 
+ingredients are well prepared and stored before they undergo 
+manufacturing. All types of ingredients are transformed into 
+edible form as food. Products that reach the standard will be 
+transported and distributed to retail stores. Lastly, customers 
+can finally purchase final products from the retailer. In 
+Thailand, manufacturers keep improving themselves to achieve 
+world food standard and quality as well as social requirements 
+such as domestic customer, oversea customer, and the 
+government. MSMEs in Thailand play an important role mainly 
+in processed fruit and vegetable products. The Thai food 
+industry performed well in term of food export with the rank of 
+12 the world largest food exporter in 2023 and a growth rate 
+of 3.2% [11].  
+B. Food Traceability and Transparency 
+[12] defined food traceability as part of logistic 
+management which captures, stores, and transfers information 
+about food in the entire stages of FSC so that products can be 
+verified to control quality and safety, tracked forwardly, and 
+traced backwardly at any time required. Three main processes 
+are required for a tracking system in FSC, including the 
+transformation of analog data to digital data, transmission of 
+digital data from a local source to the database, lastly the user 
+assess and collaboration [13]. Transparency refers to the 
+disclosure of a product’s information, such as production 
+process, ingredients, environmental and social impacts, 
+certification, label that indicates the product’s quality and so on 
+[14]. [13] mentioned that the major cause of food 
+contamination is from lack of traceability and transparency. As 
+food takes a long path from producer to customer, food 
+contamination can occur easily at any stage of FSC leading to a 
+negative domino effect. Once it happens, it takes a long time to 
+point out the exact source and reason of contamination and 
+specifically identify the contaminated products. This issue can 
+become a crucial concern to all members in FSC, especially 
+those who are still lacking digital and technology skills [4]. 
+C. Artificial Intelligence  
+Artificial Intelligence (AI) is a sub-field of computer science 
+involving with creation of innovative machines and computer 
+systems that can perform any task which requires human 
+intelligence [15]. These innovations have the potential to 
+directly impact both the manufacturing processes and the details 
+of several products and services, with important implications for 
+productivity, employment, and competition [16].  [17] employed 
+a systematic review of AI applications in supply chain and 
+classified AI according to their techniques into four sub-fields. 
+First sub-field includes Artificial neural network and Rough set 
+theory. The second sub-field includes Machine learning, Expert 
+systems and Genetic algorithms. The third sub-field includes 
+Fuzzy logic. Lastly, forth sub-field includes Agent-based 
+systems. This study is going to highlight on the outstanding AI 
+techniques based on the result of application in the supply chain 
+and adapting to FSC for this study. According to the result from 
+[17], machine learning is the most dominant type of AI that has 
+been used throughout all processes in supply chain. Genetic 
+algorithm is the second most used type of AI which is used in 
+five out of six processes in supply chain. Artificial neural 
+network, Expert system, Fuzzy logic, and Agent-based system 
+are applied in three processes. However, only ANN is engaged 
+in purchasing and procurement, production, and inventory 
+management which are core processes that directly affect the 
+product’s quality and major management in all supply chain. 
+Therefore, this study will highlight three potential AI sub-fields, 
+including machine learning, genetic algorithm, and artificial 
+neural network 
+a) Machine Learning: Machine learning (ML) is a subset 
+of AI that facilitates the system to be capable of identifying 
+patterns and making decision by learning and improving from 
+experience and previous data set without being programmed 
+[18]. Algorithms are trained using a large collection of two data 
+groups, the training set and the testing set. The algorithm will 
+receive a set of inputs with correct outputs, known as pre-
+labeled information, to compare its actual output with correct 
+outputs and spot errors [19]. Regression is an example of 
+machine learning that will be applied to this research. 
+Regression is used to determine a relationship between the 
+independent variable and the dependent variable. It instructs a 
+model using a dataset of X and Y and uses the trained model to 
+predict the output of new input data [26].  
+b) Genetic Algorithm: Genetic algorithm (GA) refers to 
+the principle of natural selection and agorithms inspired by the 
+biological evolution of living beings [20]. The fittest 
+chromosome will survive to generate new offspring, and this 
+process is replicated for multiple generations [21]. The weaker 
+chromosome will be eliminated. This technique is used for 
+optimization problems by finding the maximum or minimum 
+value. [22]. There are five components in GA, which are 
+chromosome representation, selection, crossover, mutation, and 
+fitness function computation [23]. Selection, crossover, and 
+mutation are considered as three core operations in GA. 
+Selection is where a chromosome in the population will be in a 
+structure that hold information related to a potential solution 
+with a combination of weights [24]. Crossover is to combine 
+chromosomes of two parent to produce new offspring that is 
+phenotypically like the parents [25]. Mutation is proformed 
+intentionally to stop falling of all solution in the population to 
+an optimal level of the solved problem [21]. 
+c) Artificial Neural Network: Artificial neural network 
+(ANN) is a processing technique that imitates the working of 
+brain cell and the nervous system of humans. Its main goal is to 
+figure out the pattern in dataset and do the clustering according 
+to natural grouping in the data [26]. The neuron, a special 
+component of an ANN, plays an important role in imitating the 
+human brain to perform tasks. Neurons communicate by 
+transmitting electrical and chemical signal to neighbors through 
+a neuron’s branch called an axon, which is further segmented 
+to collaterals [27]. Neurons transfers signals to the receiving 
+end by the formation of connections between synapses, 
+neuromuscular junctions at the end of collaterals, and 
+neighboring neurons. At the receicing end, neuron’s dendrites 
+receive signals via synapses and merge them with neuron’s 
+body called the soma. Neurons with stronger synaptic 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:34:32 UTC from IEEE Xplore.  Restrictions apply. 
+
+ 
+ 
+[11] No author, “Thailand is in 12th world ranking of exporters,” 
+Thansettakij, n.d. [Online]. Available: 
+https://www.thansettakij.com/business/trade-agriculture/584974 
+[12] T. Bosana, and G. Gebresenbet, “Food traceability as an integral 
+part of logistics management in food and agricultural supply 
+chain,” Food Control 33, pp. 32-48, 2013. 
+[13] L. Dong, P.P. Jiang, and F. Xu, “Impact of traceability technology 
+adoption in food supply chain networks,”. Management Sciences, 
+2022. 
+[14] C. Hubbell, L. Monaco, and J. Lusk, “The future of traceability 
+and transparency in the food System,”. 2023. 
+[15] E. Glover, “Artificial intelligence definition,” Built-in, Jul. 2025. 
+[Online]. Available: https://builtin.com/artificial-intelligence 
+[16] I.M. Cockburn, R. Henderson, S. Stern, “The impact of artificial 
+intelligence on innovation,”. National Bureau of Economic 
+Research, pp. 115-146, 2019. 
+[17] M. Atwani, M. Hlyal, J. Elalami, “A Review of Artificial 
+Intelligence applications in Supply Chain,”. IMT Web of 
+Conferences, st ed., vol 46, 2022. 
+[18] A. Chahal, and P. Gulia, “Machine learning in deep learning, 
+International Journal of Innovative Technology and Exploring 
+Engineering,”. International Journal of Innovative Technology 
+and Exploring Engineering (IJITEE), 12th ed. , vol. 8, pp. 4910-
+4914, 2019. 
+[19] S.H. Shetty, S. Shetty, C. Singh, and A. Rao, “Supervised 
+machine learning: algorithms and applications,”. Fundamentals 
+and Methods of Machine and Deep Learning, pp. 1-16, 2022. 
+[20] H. Lingaraj, “A study on genetic algorithm and application,”. 
+International Journal of Computer Sciences and Engineering, 
+10th ed., vol. 4, pp. 139-143, 2016. 
+[21] A. Lambora, K. Gupta, and K. Chopra, “Genetic algorithm – A 
+literature review,”. International Conference on Machine 
+Learning, 
+Big 
+Data, 
+Cloud 
+and 
+Parallel 
+Computing 
+(COMITCon), pp. 380-384, 2019. 
+[22] T. Alam, S. Qamar, A. Dixit, and M. Benaida, “Genetic 
+algorithm: 
+reviews, 
+implementation, 
+and 
+applications,”. 
+International Journal of Engineering Pedagogy (iJEP), 2020. 
+[23] S. Katoch, S.S. Chauhan, and V. Kumar, “A review on genetic 
+algorithm: past, present, and future,”. Multimed Tools Appl, 5th 
+ed., vol. 80, pp. 8091-8126, 2021. 
+[24] D. Yun, “Merging multiple independently trained neural 
+networks Based on Genetic Algorithm,”. 2024. 
+[25] K. Pretorius, and N. Pillay, “Neural network crossover in genetic 
+algorithms using genetic programming,”. Genetic Programming 
+and Evolvable Machines, 2024. 
+[26] S. Naeem, S. Anam, S. Ahmed, and A. Ali, “An unsupervised 
+machine 
+learning 
+algorithms: 
+comprehensive 
+review,”. 
+International Journal of Computing and Digital Systems, 1st ed., 
+vol. 13, pp. 911-921, 2023. 
+[27] A. Vasileiadis, E. Alexandrou, L. Paschalidou, and M. 
+Chrysanthou, “Artificial neural network and its applications,”. 
+2024. 
+[28] S. Gbashi, and P.B. Njobeh, “Enhancing food integrity thorugh 
+artificial intelligence and machine learning: A Comprehensive 
+Review,”. A Comprehensive Review. Applied Sciences, 8th ed., 
+vol. 14, pp. 3421, 2024. 
+[29] Violino, S., Ortenzi, L., Antonucci, F., Pallottino, F., “An 
+Artificial Intelligence Approach for Italian EVOO Origin 
+Traceability through an Open Source IoT Spectrometer,”. Foods, 
+9th ed., vol. 6, pp. 834, 2020. 
+[30] J. Wang, H. Yue, and Z. Zhou, “An improved traceability system 
+for food quality assurance and evaluation based on fuzzy 
+classification on neural network,”. Food Control 79, pp. 363-370, 
+2017. 
+[31] M.J.I. Tutul, M. Alam, M.A.H. Wadud, “Smart food monitoring 
+system based on IoT and machine learning,”. 2023 International 
+Conference on Next-Generation Computing, IoT and Machine 
+Learning (NCIM), pp. 1-6, 2023. 
+[32] No author, Office of Small and Medium Enterprise Promotion, 
+2025. [Online]. Available: https://thaismegp.sme.go.th/smes 
+[33] No author, Food Intelligence Center, 2025. [Online]. Available:  
+https://fic.nfi.or.th/food-directory-
+list.php?company_name=&product_cate_id=19&province=&bu
+dget= 
+[34] M. Bourlakis, G. Maglaras, E. Aktas, D. Gallear, and C. 
+Fotopoulos, “Firm size and sustainable performance in food 
+supply chains: Insights from Greek SMEs,”. Production 
+Economics 152, pp. 112-130, 2014. 
+[35] I. Santoso, M. Purnomo, A.A. Sulianto, and A. Choirun, 
+“Machine learning application for sustainable agri-food supply 
+chain performance: a review,”. IOP Conference Series Earth and 
+Environmental Science, 1st ed., vol. 924, 2021. 
+[36] H. Anwar, T. Anwar , and G. Mahood, “Nourishing the future: 
+AI-driven optimization of farm-to-consumer food supply chain 
+for enhanced business performance history,”. Innovative 
+Computing Review, 3rd ed., vol. 2., 2023, pp. 15-29. 
+[37] V.L. Bravo, and F. Caniato, “Sustainability performance 
+measurement in the food supply chain: Trade-offs, institutional 
+pressures, and contextual factors,”. European Management 
+Journal, 4th ed., vol. 42, pp. 633-646, 2024. 
+[38] V. Dedeoglu, S. Malik, G. Ramachandran, S. Pal, and R. Jurdak, 
+“Chapter nine – blockchain meets edge-AI for the food supply 
+chain traceability and provenance,”. Chemistry 101, pp. 251-275, 
+2023.  
+[39] V. Baciuliene, Y. Bilan, V. Navickas, and Civin L., “The aspectes 
+of artificial intelligence in different phases of the food value and 
+supply chain,” Foods, 8th ed., vol. 23, pp. 1208 – 1654, 2023. 
+[40] M. Krstic, G.P. Agnusdei, S. Tadic, and P.P. Miglietta, 
+“Prioritization of e-traceability drivers in the agri-food supply 
+chains,”. Agricultural and Food Economics, 42nd ed., vol. 11, 
+2023.  
+[41] R.N. Mefford, “The economic value of a sustainable supply 
+chain,”. Business and Society Review, 1st ed., vol. 116, pp. 109-
+143, 2011.  
+[42] S. Sudaram, and A. Zeid, “Artificial intelligence-based smart 
+quality inspection for manufacturing,”. Micromachines, 3rd ed., 
+vol. 14, 2023. 
+[43] H. Onyeaka, P. Tamasiga, U.M. Nwauzoma, T. Miri,  U.C. Juliet, 
+O. Nwaiwu, and A.A. Akinsemolu, “Using artificial intelligence 
+to tackle food waste and enhance the circular economy: 
+maximizing resource efficiency and minimizing environmental 
+impact: A Review,”. Sustainability, 2023. 
+[44] R. Krejcie, and D. Morgan, “Determining sample size for 
+research 
+activities,”. 
+Educational 
+and 
+Psychological 
+Measurement, pp. 607-610, 1970. 
+[45] P. Chaochotechuang, and S. Mariano, “Alignment of new product 
+development and product innovation strategies: A case study of 
+Thai food and beverage SMEs,”. International Journal of 
+Globalisation and Small Business, 2nd ed., vol. 8, 2016. 
+ 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:34:32 UTC from IEEE Xplore.  Restrictions apply. 
+
+
+
+--- Weather-Integrated_Recommendations_for_Food_Choices_with_SHAP_Explanation.pdf ---
+ 
+ 
+ 
+Weather-Integrated Recommendations for Food
+Choices with SHAP Explanation 
+Nikunj Jain 
+Department of Computer Science and Engineering, 
+Amrita School of Computing, Bengaluru  
+Amrita Vishwa Vidyapeetham, India
+bl.en.u4cse21138@bl.students.amrita.edu 
+ 
+Priyanshu Jha 
+Department of Computer Science and Engineering, 
+Amrita School of Computing, Bengaluru 
+Amrita Vishwa Vidyapeetham, India 
+ bl.en.u4cse21165@bl.students.amrita.edu 
+ 
+Jawed Hawari 
+Department of Computer Science and Engineering 
+Amrita School of Computing, Bengaluru 
+Amrita Vishwa Vidyapeetham, India 
+bl.en.u4cse21073@bl.students.amrita.edu 
+ 
+K Dinesh Kumar 
+Department of Computer Science and Engineering 
+Amrita School of Computing, Bengaluru 
+Amrita Vishwa Vidyapeetham, India 
+kk_dinesh@blr.amrita.edu
+Abstract— In the context of today's rapidly evolving technological
+landscape and the urbanization of Tier 1 and Tier 2 cities, cloud
+kitchens have emerged as pivotal players, offering quick and
+convenient meals without the need for dine-in facilities. The
+demand prediction for the food has become quite tough and could
+be considered as one of the significant challenges. Cloud kitchens
+face challenges in managing stock due to the absence of in-house
+diners, potentially resulting in wasted food. Moreover, adverse
+weather conditions often hinder the seamless delivery of online.
+To address these challenges, this project employs machine
+learning techniques to predict weather patterns and correlate them
+with food preferences according to that weather. The key
+algorithms found to deal with this problem were Random Forest,
+kNN, Decision tree and Naïve Bayes and Support Vector Machine.
+This serves the first half of the statement and then for
+recommendation a suitable system was developed. The pivotal role
+of the system is to reduce the food wastages for cloud kitchens by
+fostering adaptive strategies for efficient decision making. The key
+inputs from the market were found to be that 30-40% of the
+predicted sales in food industry doesn’t meet due to various
+reasons. The ultimate goal is to empower cloud kitchen operations,
+ensuring adaptive and informed decision-making in response to
+changing weather dynamics. The union of both of these are
+explained using Interpretability tool SHAP for a convenient study. 
+Keywords: Cloud kitchens, Decision Tree, Random Forest,
+Recommendation system, SHAP, Weather pattern 
+I. INTRODUCTION 
+Weather predictions serve as a critical determinant in
+various sectors, playing an indispensable role in strategic
+decision-making, planning, and risk management. For the
+food industry, especially cloud kitchens and restaurants,
+understanding and predicting weather patterns is top.
+Unforeseen weather fluctuations significantly impact
+customer behavior and preferences, leading to variations in
+demand and sales. Predicting the weather can help businesses
+plan better for changes in customer demand and manage their
+resources efficiently. By using advanced weather forecasts
+and smart computer programs, companies can adjust their
+plans based on expected weather forecasts. This helps them
+avoid problems caused by sudden shifts in customer behavior
+due to weather changes. This active approach is especially
+helpful for cloud kitchens and restaurants. It allows them to
+organize their work better, use their resources wisely, and
+reduce food waste caused by unpredictable weather. With
+technology getting better, there are different ways to predict
+the weather. The study in this article explores at various
+methods to find the most accurate and efficient ones. 
+ 
+Throwing away food isn't just about losing meals and
+wasting it. It also means losing a lot of money for businesses
+and causing big problems for the environment. Businesses
+lose money when they can't sell the food they've prepared,
+and it costs money to get rid of the extra food. Plus, making
+food uses up a lot of resources like water and energy, and
+when food gets wasted, it's like wasting all those resources,
+too. Cloud kitchens, which are becoming more popular, have
+a hard time managing how much food they need and reducing 
+waste. Because they don't have physical customers coming
+in, things like bad weather affecting food deliveries can make
+it even harder for them. According to a report by Food and
+Agriculture Organization (FAO), for each food produced, one
+third of it goes to mere waste which eventually challenges the
+sustainability of the planet. 
+ 
+When weather forecasts and food businesses work
+together, it can really help tackle problems. For cloud
+kitchens, using these weather predictions in their planning
+can make a big difference. When they use smart systems that
+learn from the weather forecasts, they can make food better 
+with less waste and adjust their plans. This integration 
+between weather predictions and food businesses helps these
+kitchens work better, matching the changing weather and
+what customers want, making things more efficient and eco-
+friendly. 
+II. RELATED WORK 
+In [1], researchers have explored how food supply chains
+are changing. The author states that there are several digital
+ways to handle the supply chains. In [2], the author has
+designed a  complex relationship between food distribution
+and consumption. The author’s research provided valuable
+insights for policymakers, offering empirically constructed
+policy models to identify potential behavioral consequences. 
+In [3], the proposed method has integrated harnessing
+Proceedings of 2024 International Conference on Cognitive Robotics and Intelligent Systems (ICC - ROBINS 2024)
+979-8-3503-7274-8/24/$31.00 ©2024 IEEE
+486
+IEEE Xplore Part Number: CFP24UD1-ART; ISBN: 979-8-3503-7274-8
+2024 International Conference on Cognitive Robotics and Intelligent Systems (ICC - ROBINS) | 979-8-3503-7274-8/24/$31.00 ©2024 IEEE | DOI: 10.1109/ICC-ROBINS60238.2024.10533954
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+technology to create an efficient system for managing food
+wastes and predicting the right amount of food that restaurants
+should prepare by using historical data by ultimately
+minimizing the wastage. In [4], authors deal with weather
+forecasting. Many modern weather models were taken into
+account with different factors such as temperature, humidity,
+wind, and precipitation, leading to more predictions that are
+precise. 
+In [5], authors presented as case study to show how the
+Indian market for cloud kitchens is rapidly growing,
+contributing significantly to the booming online food delivery
+sector. The authors in [6] have urged U.S. restaurant leaders
+to reduce significant food waste expenses by integrating cloud
+kitchen. This research is conducted through an extensive
+review of existing literature to address a critical gap in current
+knowledge. The research proposed in [7], explored the impact
+of product recommendations on consumer buying behavior,
+particularly in the form of reviews and rankings. The paper
+goes a step further by introducing a recommendation system
+that focuses on personalized dietary advice. By employing
+deep learning and genetic algorithms, this system provides
+tailored dietary recommendations based on user experiences
+with specific products. In [8], authors examine the application
+of information technology, specifically data mining, data
+retrieval, and AI in the development of weather and climate
+prediction models and present studies with this concept of
+equality. 
+The approach outlined in [9] minimize "food loss" by
+introducing a system suggesting menus and recipes based on
+available home food items and those nearing expiry.
+Meanwhile, in [10], the study introduced a model for
+suggesting dishes based on user preferences and consumption
+history. This involved crafting a classification model to
+generate a roster of recommended dishes from the user profile.
+Subsequently, a temporal model utilized dish lists and eating
+history as inputs to enhance the variety of suggested dishes.
+To enhance accuracy, a set of ingredients was curated to refine
+the model's performance. 
+The authors in [11] proposed a new model to predict
+weather for implementing a smart IoT based irrigation-based
+system, this study portrays the potential of using techniques to
+solve real life problems. The researchers in [12] proposed an
+automated Irrigation system using the weather prediction to
+mitigate the misuse of water resources. In the study conducted
+by authors in [13] proposed a recommendation system which
+utilizes the Weather patterns using Logistic regression and big
+data analytics tools. The researchers in  [14] advises how a
+recommendation-based system advances the business and
+ease of making complex things easier. The researchers in their
+study [15] suggest weather prediction to be a fascinating
+domain ahead and weather prediction is the estimation of the
+future. The study proposed in [16] delves into the building a
+recommendation 
+system 
+which 
+enhances 
+the 
+user’s
+interpretability and shopping experience by utilizing the
+fashion recommendation using
+Neighbour Page Rank
+Algorithm. 
+The studies suggest that there are multiple challenges 
+faced by the food industry as they generate a heavy food
+wastage due to multiple circumstances. Current studies
+underscore the potential of machine learning techniques such
+as Random Forest, kNN, Decision Tree, Naïve Bayes, and
+Support Vector Machine in addressing the weather
+prediction. However, future research could delve deeper into
+the optimization of these algorithms to enhance the predictive
+accuracy and efficiency. While there is vast research in 
+weather prediction the integration of it with other food
+industry remains underdeveloped. The proposed system
+integrated weather prediction and food industry for reducing
+the wastage and improving the business. 
+III. PROPOSED METHODOLOGY 
+This section presents a method that merges advanced
+machine learning techniques with comprehensive data
+analysis methods to address the challenges of food wastage
+reduction and demand prediction in the cloud kitchen sector.
+The proposed methodology incorporates various steps of
+weather predictions using advanced machine learning
+algorithms such as Random Forest, Decision Tree, Naïve
+Bayes, and SHAP. Subsequently, this weather data is
+meticulously integrated with food industry trends and
+consumer preferences. 
+ 
+This innovative system leverages the power of current
+weather data, machine learning, and recommendation
+engines to deliver personalized meal recommendations based
+on forecasted weather conditions for Weather user-supplied
+information, preliminary data processing, product selection,
+weather forecast modeling, integration and recommendation
+process mix well, enabling rational decisions to be made
+based on expected weather conditions on. The generated food
+recommendations are presented to the user, empowering 
+them to make informed decisions about their dining choices
+based on the predicted weather. The Fig. 1 explains in detail
+about the workflow proposed. It depicts the step-by-step
+procedure which are followed in the workflow. 
+ 
+ 
+Fig. 1. Workflow of proposed methodology 
+A. Data Collection and Preprocessing 
+The dataset utilized in this study involves Machine
+Learning (ML) techniques to identify the weather and then
+Proceedings of 2024 International Conference on Cognitive Robotics and Intelligent Systems (ICC - ROBINS 2024)
+979-8-3503-7274-8/24/$31.00 ©2024 IEEE
+487
+IEEE Xplore Part Number: CFP24UD1-ART; ISBN: 979-8-3503-7274-8
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+ 
+Fig. 13 showcases the different food categories available.
+The further step for the user would be to enter the categories
+they serve in their restaurant considering a point that each
+restaurant or kitchen don’t serve everything. Taken an
+example of the restaurant serving “Maharashtrian” &
+“Waffle”, the recommendation based on those are presented
+in Fig. 14. 
+ 
+ 
+Fig. 14. Recommendations generated 
+ 
+The results from employing various machine learning
+algorithms for weather prediction and subsequent food
+recommendations demonstrated promising accuracy and
+efficiency. The models exhibited significant capabilities in
+forecasting weather patterns, enabling the system to make
+informed and adaptive food suggestions based on prevailing
+weather conditions. The removal of outliers enhanced the
+models' robustness, contributing to refined predictions. The
+evaluation of these algorithms revealed their diverse
+strengths, with each contributing uniquely to the overall
+accuracy and effectiveness of the system. 
+IV. CONCLUSION & FUTURE SCOPE 
+With forecast of weather and integrating it with the food
+preferences, the proposed work reduced the food wastage and
+optimize inventory management. For prediction of weather 5
+different algorithms were implemented to present a
+showcasing output with reduced errors and a promising
+result. However, as a future scope integration of additional
+meteorological data and exploring ensemble  methods to
+enhance prediction can be done. Also adding up the system’s
+future prospect can be on elevating the accuracy and user
+experience. Also adding up features like to adapt through
+customer trends and integration of other customer behavior
+can enhance the recommendation part. A graphical user
+interface for communication and utilization of these changes
+can enhance the end user’s experience. In conclusion, while
+the present study marks a significant step toward addressing
+food wastage challenges in the cloud kitchen industry,
+continuous research and development remain essential to
+refine and optimize the system's accuracy, responsiveness,
+and applicability in real-world scenarios. 
+REFERENCES 
+[1] Maria Carmela
+Annosi, Federica Brunetta, Francesco Bimbo,
+Marianthi Kostoula, Digitalization within food supply chains to 
+prevent food waste. Drivers, barriers and collaboration practices,
+Industrial Marketing Management, Volume 93, 2021 
+[2] Zahir Irani, Amir M. Sharif, Habin Lee, Emel Aktas, Zeynep
+Topaloğlu, Tamara van't Wout, Samsul Huda, Managing food security
+through food waste and loss: Small data to big data, Computers &
+Operations Research, Volume 98, 2018 
+[3] Vinayak Bharadi, Pavan Jadhav, Omkar Nanche, Onkar Munj, Food
+Waste Management Using Machine Learning, 2022 IJCRT, Volume
+10, Issue 4 April 2022, ISSN: 2320-2882 
+[4] H. Saima, J. Jaafar, S. Belhaouari and T. A. Jillani, "Intelligent methods
+for weather forecasting: A review," 2011 National Postgraduate
+Conference, 
+Perak, 
+Malaysia, 
+2011, 
+pp. 
+1-6, 
+doi:
+10.1109/NatPC.2011.6136289. 
+[5] Choudhary, Nita. "Strategic analysis of cloud kitchen–a case
+study." Management Today (2019). 
+[6] Blum, David. "Ways to reduce restaurant industry food waste
+costs." International 
+Journal 
+of 
+Applied 
+Management 
+and
+Technology 19.1 (2020): 1.  
+[7] Naik, Pratiksha Ashok. "Intelligent food recommendation system using
+machine learning." Nutrition 5.8 (2020). 
+[8] Saima, H., et al. "Intelligent methods for weather forecasting: A
+review." 2011 national postgraduate conference. IEEE, 2011. 
+[9] O. Takahashi and S. Sasaki, "A Dinner Menu & Recipe
+Recommendation System with Food Expiration-date Notification
+Functions," 2022 13th International Congress on Advanced Applied
+Informatics Winter (IIAI-AAI-Winter), Phuket, Thailand, 2022, pp.
+230-235, doi: 10.1109/IIAI-AAI-Winter58034.2022.00052. 
+[10] T. Mokdara, P. Pusawiro and J. Harnsomburana, "Personalized Food
+Recommendation Using Deep Neural Network," 2018 Seventh ICT
+International Student Project Conference (ICT-ISPC), Nakhonpathom,
+Thailand, 2018, pp. 1-4, doi: 10.1109/ICT-ISPC.2018.8523950. 
+[11] Rashmi, M.R., Vaithilingam, C.A., Kamalakkannan, S. and
+Narayanavaram, B., 2023, March. IoT for Agriculture System-Weather
+Prediction & Smart Irrigation System for Single Plot, Multiple Crops.
+In 2023 9th International Conference on Electrical Energy Systems
+(ICEES) (pp. 536-541). IEEE. 
+[12] Susmitha, A., Alakananda, T., Apoorva, M.L. and Ramesh, T.K., 2017,
+August. Automated Irrigation System using Weather Prediction for
+Efficient Usage of Water Resources. In IOP Conference Series:
+Materials Science and Engineering (Vol. 225, No. 1, p. 012232). IOP
+Publishing. 
+[13] Baby, S.S. and Siji Rani, S., 2022, September. A Hybrid Product
+Recommendation System Based on Weather Analysis. In Proceedings
+of the 6th International Conference on Advance Computing and
+Intelligent Engineering: ICACIE 2021 (pp. 263-273). Singapore:
+Springer Nature Singapore. 
+[14] Nair, L.S. and Cheriyan, J., 2023, January. Multi-Featured Movie
+Recommendation Using Knowledge Graph. In 2023 International
+Conference on Intelligent Data Communication Technologies and
+Internet of Things (IDCIoT) (pp. 590-594). IEEE. 
+[15] Priya, S.B., 2015. A survey on weather forecasting to predict rainfall
+using big data analytics. IJISET-International J. Innov. Sci. Eng.
+Technol, 2(10), pp.879-886. 
+[16] Sharma, Urvi, G. P. Sajeev, and S. Siji Rani. "Personalized Fashion
+Recommendation 
+Using 
+Nearest 
+Neighbor 
+PageRank
+Algorithm." 2022 International Conference on Connected Systems &
+Intelligence (CSI). IEEE, 2022. 
+[17] Weather History https://www.wunderground.com/  (Accessed on 
+December 2023)
+ 
+Proceedings of 2024 International Conference on Cognitive Robotics and Intelligent Systems (ICC - ROBINS 2024)
+979-8-3503-7274-8/24/$31.00 ©2024 IEEE
+491
+IEEE Xplore Part Number: CFP24UD1-ART; ISBN: 979-8-3503-7274-8
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:21 UTC from IEEE Xplore.  Restrictions apply. 
+
+
+

@@ -1,0 +1,26 @@
+1st 
+One Paragraph for Literature Review
+This paper presents a demand forecasting system designed for small businesses using SARIMA, DeepAR, and a hybrid forecasting approach to improve inventory management. The authors compare traditional statistical forecasting with deep learning and report that DeepAR achieved the highest forecasting accuracy of 81.0%, while SARIMA achieved 50.76% and the hybrid model 77.14%. The proposed system also provides a web interface for uploading sales data and generating demand forecasts, enabling better stock planning and reducing overstocking and stock shortages. However, the model does not incorporate external factors such as weather, holidays, or promotions. This work is closely related to our proposed system because it demonstrates the importance of affordable demand forecasting tools for small businesses, while our work further enhances this concept by using the Prophet forecasting model with external factors to generate simple restock recommendations through a mobile application.
+
+2nd 
+One Paragraph for Literature Review
+This paper proposes an AI-Driven Predictive Analytics Framework (AID-PAF) for sustainable restaurant operations by integrating a Temporal-Fusion Neural Architecture (TFNA) with a waste-aware linear programming model for inventory optimization. The forecasting model incorporates historical sales along with external factors such as weather, holidays, promotions, and social media sentiment to generate accurate demand predictions. Experimental evaluation using an AnyLogic-MATLAB digital twin simulator achieved a MAPE of 6.5%, 96.2% customer fill rate, 40% reduction in food waste, and 21% reduction in procurement costs, demonstrating significant improvements in operational efficiency and sustainability. However, the framework relies on large datasets and computationally intensive deep learning models, making it less suitable for small businesses with limited resources. This work is closely related to our proposed system because it highlights the importance of combining demand forecasting with inventory optimization to reduce food waste, while our solution focuses on providing an affordable mobile application using the Prophet forecasting model with weather and holiday data for small food businesses
+
+
+
+3rd 
+One Paragraph for Literature Review
+This paper proposes a Smart Inventory Management System for small and medium-sized enterprises (SMEs) that integrates XGBoost-based demand forecasting, QR code product identification, Raspberry Pi edge devices, IoT, and cloud storage to automate inventory monitoring and replenishment decisions. The proposed system achieved 96% classification accuracy and an R² value greater than 0.95, outperforming traditional machine learning models such as Random Forest, Linear Regression, and KNN. Real-time stock monitoring and automated alerts help reduce stockouts, overstocking, and manual errors while providing a cost-effective alternative to expensive ERP systems such as SAP and Oracle. However, the system is primarily designed for warehouse inventory management and does not incorporate external demand factors such as weather or holidays. This work is relevant to our proposed system because it highlights the benefits of AI-powered inventory management for SMEs, while our project extends this concept by focusing on small food businesses, using the Prophet forecasting model and external factors to generate accurate daily inventory and restocking recommendations. 
+Top of Form
+
+
+
+
+
+4th 
+One Paragraph for Literature Review
+This paper investigates the application of machine learning models including LSTM, XGBoost, and Random Forest for demand forecasting, inventory optimization, and food waste reduction in restaurant supply chains. Using restaurant POS data, inventory logs, and waste records collected over three months, the authors compared the performance of the three models and found that XGBoost achieved the best results with 94.3% accuracy, 95.1% fill rate, 53.8% food waste reduction, and 27.6% cost savings, outperforming LSTM and Random Forest. The study demonstrates that predictive analytics can significantly improve inventory planning, reduce waste, and enhance restaurant profitability. However, the research is limited to a comparison of machine learning models and does not evaluate Prophet or provide a lightweight mobile solution for small businesses. This work is highly relevant to our proposed system because it validates the importance of AI-driven demand forecasting for inventory optimization, while our project focuses on an affordable Prophet-based mobile application that incorporates weather and holiday information to assist small food businesses in making daily restocking decisions.
+
+
+5th 
+Bottom of Form
