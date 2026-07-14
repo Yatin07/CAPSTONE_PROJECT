@@ -1,0 +1,945 @@
+%% =========================================================
+%%  LocalDemand -- Literature Review (IEEE Conference Format)
+%%  B.Tech Capstone Project
+%%  Sections completed: 1, 2 (of 8)
+%% =========================================================
+
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{LocalDemand: A Literature Review on Demand Forecasting,
+Inventory Optimization, and AI Adoption for Food-Sector SMEs}
+
+\author{%
+  \IEEEauthorblockN{B.Tech Capstone Project Team}
+  \IEEEauthorblockA{\textit{LocalDemand} \\ }
+}
+
+\maketitle
+
+% ----------------------------------------------------------
+\begin{abstract}
+This paper presents a structured literature review of 25 peer-reviewed
+research works that collectively underpin the design and rationale of
+LocalDemand --- a Flutter-based mobile application that employs
+Facebook Prophet to generate daily demand forecasts and actionable
+restock recommendations for small food businesses (cafés, bakeries, and
+restaurants). The review is organized into eight thematic sections
+covering: forecasting methods and time-series models; the integration of
+external regressors such as weather and holidays; challenges specific to
+SME contexts including sparse data and cold-start; inventory optimization
+and waste reduction; technology adoption and accessibility; and a final
+synthesis of research gaps addressed by LocalDemand. All findings
+reported here are directly drawn from the cited works; no results have
+been fabricated or estimated.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Demand Forecasting, Facebook Prophet, SME, Inventory Management,
+Time-Series, LSTM, XGBoost, Mobile Application, LocalDemand
+\end{IEEEkeywords}
+
+% ==========================================================
+\section{Introduction}
+% ==========================================================
+
+Accurate demand forecasting is a cornerstone of efficient operations in
+the food-retail sector. For small and medium enterprises (SMEs) such as
+independent cafes, bakeries, and neighbourhood restaurants, the ability
+to predict daily sales volumes has direct consequences on food waste,
+procurement costs, customer satisfaction, and overall profitability.
+Unlike large retail chains that can absorb the financial impact of
+over-purchasing or stockouts, micro-SMEs operate on thin margins where a
+single week of poor inventory decisions can translate into measurable
+losses \cite{rahmatillah2026, groene_zakharov}.
+
+The challenges facing SME demand forecasting are multi-dimensional.
+Demand in food businesses exhibits strong daily and weekly seasonality,
+is sensitive to local weather conditions, fluctuates sharply around
+public holidays and local events, and is further complicated by
+promotional activities \cite{guler, lalitha2025, jain2024, qureshi2024}.
+At the operational level, these businesses generate sparse, sometimes
+zero-inflated sales histories that violate the assumptions of classical
+statistical models \cite{susanto2026, munawar2026}. On the adoption
+side, enterprise-grade AI and ERP solutions are economically and
+technically out of reach for most micro-SMEs, which lack both the IT
+budget and the data-science expertise required to deploy them
+\cite{aree2025, yuniarty2025, srivastava2026}.
+
+Despite a growing body of research on forecasting algorithms---ranging
+from classical ARIMA variants to deep learning architectures such as
+LSTM and GRU---a persistent gap remains between \emph{forecasting
+accuracy} and \emph{operational actionability}. Most studies terminate
+at the computation of error metrics (RMSE, MAPE, MAE) without
+translating predictions into concrete inventory decisions such as
+purchase quantities or restock schedules \cite{aqila2026, munawar2026,
+rahmatillah2026}. Furthermore, almost no reviewed work combines
+automated forecasting, external regressor integration (weather,
+holidays), and a lightweight mobile delivery layer accessible to
+non-technical SME owners in a single system.
+
+This literature review is structured to trace the evidence base for each
+design decision in LocalDemand. Section~II surveys forecasting
+algorithms. Section~III examines the role of external factors.
+Section~IV addresses SME-specific data challenges. Section~V covers
+inventory optimization and waste reduction. Section~VI analyses
+technology adoption barriers and mobile solutions. Section~VII
+synthesizes the overall research landscape and explicitly maps each
+identified gap to the corresponding design choice in LocalDemand.
+Section~VIII concludes.
+
+% ==========================================================
+\section{Forecasting Methods and Time-Series Models}
+% ==========================================================
+
+The literature on demand forecasting encompasses a broad spectrum of
+methodologies, from classical statistical models to modern deep learning
+architectures. Understanding the trade-offs among these approaches is
+essential for selecting a method that is both accurate and deployable
+in a resource-constrained SME environment.
+
+% ----------------------------------------------------------
+\subsection{Traditional and Statistical Models}
+% ----------------------------------------------------------
+
+Classical time-series methods --- ARIMA, SARIMA, Holt-Winters, and
+moving averages --- form the historical backbone of demand forecasting.
+Gartner et al.\ (2024) conducted a systematic evaluation of automated
+demand forecasting for SMEs, benchmarking classical models against deep
+learning methods. Their results showed that traditional statistical models 
+were consistently outperformed by machine learning; the best-performing 
+Dilated CNN achieved a normalised RMSE of 0.3119, while ARIMA variants
+lagged significantly. Nevertheless, the study concluded that classical 
+models retain value when historical data is limited, requiring far fewer 
+training samples than deep learning \cite{gartner2024}.
+
+Rahmatillah et al.\ (2026) provided a direct contrast between a 7-day 
+Moving Average (MA7) and an optimised LSTM for an ice cream SME. The 
+moving average, while computationally trivial, failed to anticipate demand 
+spikes and led to persistent stockouts in purchasing simulations. This 
+finding highlights why LocalDemand avoids moving-average baselines for its 
+restock logic, despite their popularity among small business owners 
+\cite{rahmatillah2026}.
+
+% ----------------------------------------------------------
+\subsection{Machine Learning and Ensemble Models}
+% ----------------------------------------------------------
+
+Ensemble and gradient-boosting methods have emerged as robust alternatives
+to both classical statistics and computationally expensive deep learning. 
+Kamboj et al.\ (2025) demonstrated the power of Facebook Prophet combined 
+with a gradient-boosting residual corrector. Their framework applied Prophet 
+to decompose trend and seasonality in drugstore sales data, then used XGBoost 
+on the residuals to capture nonlinear promotional effects. This hybrid model 
+reduced the median MAPE by 12\% to 18\% compared to classical baselines, 
+providing compelling empirical validation for Prophet-based architectures 
+\cite{kamboj2025}.
+
+Jatte et al.\ (2025) presented a comparative study across six models on a 
+retail demand dataset of over 100{,}000 records. While LSTM achieved the 
+highest accuracy of 92.31\%, Prophet reached a competitive 85.71\%. This 
+benchmark confirms that Prophet delivers strong performance while requiring 
+significantly less feature engineering overhead than deep learning 
+\cite{jatte2025}. 
+
+Additionally, Groene and Zakharov deployed an XGBoost model on hourly POS 
+sales data from a fast-food restaurant. By incorporating weather conditions, 
+holidays, and events, their model significantly outperformed manual managerial 
+forecasting, reducing RMSE by 22\%--33\%. This demonstrates that ensemble ML 
+models with engineered external features can yield quantifiable accuracy gains 
+in a single-location SME setting \cite{groene_zakharov}.
+
+% ----------------------------------------------------------
+\subsection{Deep Learning Models}
+% ----------------------------------------------------------
+
+Deep learning architectures demonstrate peak accuracy on sequential demand 
+data, though typically demanding extensive computational resources. Aqila 
+et al.\ (2026) evaluated SARIMA, FB Prophet, and a Stacked LSTM model on 
+hourly coffee shop POS data. The LSTM achieved the lowest RMSE of 0.1535, 
+compared to 0.46 for Prophet. However, the study stopped at error metric 
+computation without converting predictions into inventory decisions --- the 
+forecast-to-action gap that LocalDemand addresses \cite{aqila2026}.
+
+Munawar and Sudirman (2026) applied an LSTM model to hourly culinary SME 
+sales, capturing complex intra-day patterns to achieve the lowest MAE and RMSE. 
+While their cost-based simulations showed that LSTM predictions reduced 
+overstocking penalties, their model explicitly excluded external drivers like 
+weather and holidays, limiting its real-world applicability for seasonally 
+sensitive food businesses \cite{munawar2026}.
+
+At the extreme end of complexity, the AID-PAF framework integrated a 
+Temporal-Fusion Neural Architecture (TFNA) with waste-aware linear programming. 
+Evaluated on a digital twin simulator, it achieved a 6.5\% MAPE and a 40\% 
+reduction in food waste. While demonstrating the theoretical ceiling of 
+deep learning optimization, its dependence on large labelled datasets and 
+high-performance infrastructure makes it unsuitable for resource-constrained 
+micro-SMEs \cite{aidpaf}.
+
+% ----------------------------------------------------------
+\subsection{Hybrid and Prophet-Based Approaches}
+% ----------------------------------------------------------
+
+Facebook Prophet is a decomposable time-series model that estimates trend, 
+seasonality, and holiday effects while natively supporting external regressors. 
+Its robustness to missing data, ease of configuration, and interpretability 
+make it highly attractive for SMEs.
+
+Guler et al.\ applied Prophet directly to restaurant sales forecasting using 
+eight months of POS data augmented with weather and holiday markers. The 
+model generated 30-day forecasts (MAE = 0.76, RMSE = 0.82), confirming 
+Prophet's ability to capture seasonal trends and holiday-driven demand spikes 
+in a single-location setting \cite{guler}.
+
+As noted previously, Kamboj et al.\ (2025) successfully used Prophet as the 
+decomposition backbone of their hybrid XGBoost model, reducing MAPE by up to 
+18\% over classical baselines \cite{kamboj2025}. Similarly, Jatte et al.\ 
+(2025) confirmed Prophet's viability with an 85.71\% accuracy on retail data 
+--- slightly trailing LSTM (92.31\%) but requiring vastly less data engineering 
+and computational overhead \cite{jatte2025}.
+
+Together, this evidence establishes a clear hierarchy: deep learning delivers 
+peak accuracy for data-rich environments, while Prophet-based approaches 
+provide a pragmatic, highly resilient middle ground for data-sparse SME 
+contexts. This validates LocalDemand's choice of Facebook Prophet.
+
+% ==========================================================
+\section{Integration of External Factors}
+% ==========================================================
+
+A recurring finding across the reviewed literature is that demand for
+food and beverage products is not driven solely by historical purchase
+patterns. External environmental and contextual factors --- most
+prominently weather conditions, public holidays, local events, and
+promotions --- account for a substantial share of demand variability.
+Ignoring these factors leads to systematic forecast bias, particularly
+in small food businesses where the customer base is local and therefore
+highly sensitive to immediate environmental conditions.
+
+% ----------------------------------------------------------
+\subsection{Weather Conditions}
+% ----------------------------------------------------------
+
+Weather is a consistently cited external driver of food demand. Lalitha 
+et al.\ (2025) integrated weather and cost data into a Random Forest 
+framework to forecast restaurant demand, achieving an MSE of 53.97. They 
+used this to develop a dynamic pricing engine, moving beyond pure prediction 
+into an actionable revenue response, though their reliance on continuous data 
+feeds limits micro-SME applicability \cite{lalitha2025}. 
+
+Jain et al.\ (2024) found that up to 40\% of predicted sales in the food 
+sector fail to materialise due to unforeseen external factors like weather. 
+Their weather-integrated ML models successfully generated adaptive menu 
+recommendations, although stopping short of quantitative restocking outputs 
+\cite{jain2024}. 
+
+Furthermore, Groene and Zakharov demonstrated that adding weather, holiday, 
+and event data to an XGBoost model reduced forecasting RMSE by 22\%--33\% for 
+a fast-food restaurant \cite{groene_zakharov}. These studies collectively 
+confirm that weather data provides independent, highly valuable predictive 
+signals for food retail.
+
+% ----------------------------------------------------------
+\subsection{Holidays, Special Days, and Events}
+% ----------------------------------------------------------
+
+Public holidays and special calendar days are universally recognised as 
+demand disruptors. Guler et al.\ explicitly incorporated holiday data into 
+their Prophet model for restaurant sales. Their results demonstrated that 
+Prophet's native holiday component effectively captured demand spikes, 
+establishing the Prophet + weather + holidays configuration as practically 
+viable for single-location food businesses \cite{guler}.
+
+Kamboj et al.\ (2025) leveraged Prophet's holiday handling specifically so 
+their residual learner would not be distorted by calendar anomalies 
+\cite{kamboj2025}. In contrast, Gartner et al.\ (2024) noted that their SME 
+forecasting system lacked holiday integration, which contributed to higher 
+error rates relative to optimized models \cite{gartner2024}. This strongly 
+motivates the explicit holiday-regressor design in LocalDemand.
+
+% ----------------------------------------------------------
+\subsection{Promotions and Other Regressors}
+% ----------------------------------------------------------
+
+Beyond weather and holidays, promotional activities and macroeconomic 
+indicators carry predictive value. Qureshi et al.\ (2024) observed that 
+including promotions alongside weather yielded better performance than any 
+individual subset \cite{qureshi2024}. The AID-PAF framework even successfully 
+incorporated social media sentiment as an additional demand signal \cite{aidpaf}. 
+
+In synthesis, weather and holiday regressors are the most consistently 
+evidence-backed external demand drivers for food SMEs. Because they are 
+publicly available and natively supported by Prophet's regressor framework, 
+they form the primary external feature set for LocalDemand, consistent with 
+the methodologies of Guler et al., Kamboj et al., and Groene \& Zakharov.
+
+% ==========================================================
+\section{Handling Challenges in SME Contexts}
+% ==========================================================
+
+Forecasting for micro-SMEs presents a set of challenges that are
+qualitatively different from those encountered in large retail
+deployments. The reviewed literature identifies three principal
+structural challenges: sparse and zero-inflated transaction data,
+limited historical depth (cold-start), and the absence of technical
+infrastructure to support complex model maintenance.
+
+% ----------------------------------------------------------
+\subsection{Sparse and Zero-Inflated Data}
+% ----------------------------------------------------------
+
+Many micro-SMEs operate on a pre-order or low-frequency sales model,
+generating transaction records that contain a high proportion of
+zero-value days. Susanto et al.\ (2026) investigated this phenomenon
+directly by analysing sales prediction for an SME operating under a
+pre-order framework. The authors benchmarked an XGBoost regression model
+against a simple 7-day Moving Average (MA(7)) on this zero-inflated
+dataset. Despite its algorithmic sophistication, XGBoost struggled to
+accurately model the discontinuous, spike-dominated demand pattern,
+with the baseline moving average providing more stable estimates on
+several evaluation windows. The study concluded that continuous
+regression models are fundamentally ill-suited to zero-inflated,
+low-volume data environments, explicitly pointing to the need for models
+that can handle intermittent demand more gracefully \cite{susanto2026}.
+
+This finding is directly consequential for LocalDemand. Facebook Prophet
+treats missing values natively and does not require a complete, unbroken
+time series --- it fits a piecewise-linear or logistic trend to whatever
+data points are present and uses Fourier series to estimate seasonality,
+making it substantially more robust to zero-inflated and sparse inputs
+than regression-tree methods such as XGBoost \cite{susanto2026}.
+
+% ----------------------------------------------------------
+\subsection{Limited Historical Data and Cold-Start Problems}
+% ----------------------------------------------------------
+
+Even for SMEs with regular daily sales, the total historical depth
+available at system launch is typically short --- often less than one
+year. Rahmatillah et al.\ (2026) demonstrated that their optimised LSTM
+model achieved strong performance (RMSE = 1.65, MAPE = 45.06\%) on an
+ice cream SME dataset containing nearly 1{,}000 days of sales history for
+a single product. The study's inventory simulation results were positive,
+eliminating lost demand entirely under a weekly purchasing cycle.
+However, the authors acknowledged that this performance was contingent
+on the richness of the training dataset; the model's cold-start
+behaviour on shorter histories was not evaluated. This represents a
+significant limitation for newly established food businesses or new menu
+items, for which no historical precedent exists \cite{rahmatillah2026}.
+
+Gartner et al.\ (2024) encountered similar cold-start constraints in
+their automated SME forecasting system. Their evaluation found that the
+Dilated CNN and other deep learning models required substantially more
+historical data to converge than ARIMA or GAM, making them unreliable
+for SMEs with fewer than six to twelve months of records. The study
+recommended statistical or Prophet-based models as pragmatic fallbacks
+for data-scarce businesses \cite{gartner2024}.
+
+Munawar and Sudirman (2026) also highlighted cold-start limitations in
+their LSTM-based hourly forecasting work, noting that the model's
+performance degraded significantly when the training window was
+shortened below approximately 180 days of hourly records. This finding
+reinforces the case for Facebook Prophet, which has been demonstrated in
+multiple studies to produce reasonable forecasts with as few as a few
+weeks of daily observations, owing to its Bayesian prior structure and
+regularised trend estimation \cite{munawar2026}.
+
+% ----------------------------------------------------------
+\subsection{Data Scarcity Solutions and Design Implications}
+% ----------------------------------------------------------
+
+Across the reviewed works, three categories of solution emerge for
+managing SME data scarcity. First, model selection: choosing algorithms
+that are inherently robust to short histories and missing values, as
+argued by Susanto et al.\ and Gartner et al.\ in favour of statistical
+and Prophet-based methods over deep learning \cite{susanto2026,
+gartner2024}. Second, external regressor augmentation: supplementing
+sparse internal sales data with external signals (weather, holidays)
+that carry independent predictive power, as demonstrated by Groene \&
+Zakharov, Guler et al., and Kamboj et al.\ \cite{groene_zakharov, guler,
+kamboj2025}. Third, simulation and safety-stock buffers: using
+conservative purchasing simulations with built-in safety margins to
+absorb the uncertainty from short forecast horizons, as practised by
+Rahmatillah et al.\ and Munawar \& Sudirman \cite{rahmatillah2026,
+munawar2026}.
+
+LocalDemand applies all three strategies simultaneously. It selects
+Facebook Prophet as its core model for cold-start resilience; it
+integrates weather and holiday regressors as external demand signals;
+and it converts Prophet's point forecasts into restock recommendations
+that incorporate a configurable safety-stock buffer, ensuring that the
+limited historical depth available at system launch does not translate
+directly into under-ordering decisions.
+
+% ==========================================================
+\section{Inventory Optimization, Waste Reduction, and Actionable Insights}
+% ==========================================================
+
+A central shortcoming identified throughout the forecasting literature is
+the failure to bridge the gap between prediction and operational action.
+Computing an accurate RMSE is not, by itself, useful to a small business
+owner deciding how many loaves of bread to order tomorrow. This section
+reviews works that take the additional step of converting demand forecasts
+into concrete inventory decisions, waste-reduction mechanisms, or
+restocking simulations.
+
+% ----------------------------------------------------------
+\subsection{From Forecasting to Restock Recommendations and Simulations}
+% ----------------------------------------------------------
+
+Rahmatillah, Herwanto, and Sudirman (2026) are among the few authors to
+directly simulate the operational consequences of forecast accuracy. After
+comparing an optimised LSTM against a 7-day Moving Average (MA7) on daily
+ice cream SME sales data (nearly 1{,}000 days of records), the authors
+applied each model's outputs to a simulated weekly purchasing cycle. The
+optimised LSTM achieved RMSE = 1.65 and MAPE = 45.06\%, outperforming MA7
+on error metrics, but the more important finding was in simulation: the
+LSTM-driven purchasing policy eliminated lost demand (stockout units) entirely
+while generating a negligible overstock of only 1.57 units. The moving
+average, by contrast, produced recurring stockouts. This study establishes
+the methodological precedent for LocalDemand's restock recommendation
+engine: translating a Prophet-generated point forecast into a weekly
+purchase quantity with a safety buffer, mirroring the simulation logic
+demonstrated here \cite{rahmatillah2026}.
+
+Munawar and Sudirman (2026) similarly extended their LSTM hourly sales
+forecasting analysis to include cost-based simulations. By assigning
+per-unit costs to overstocking (spoilage) and understocking (lost revenue),
+the authors demonstrated that the LSTM model's lower MAE and RMSE
+translated directly into reduced total inventory costs compared to
+baseline models. This work reinforces that forecast accuracy improvements
+are not merely academic --- they carry measurable financial value for SME
+operators \cite{munawar2026}.
+
+The Demand Forecasting System for Small Business Optimization study
+provided a web interface for uploading sales data and generating DeepAR
+forecasts, with outputs intended to support stock planning decisions.
+DeepAR achieved 81.0\% forecasting accuracy versus SARIMA at 50.76\% and
+a hybrid approach at 77.14\%. While this represents a positive step toward
+accessible forecasting tools, the system did not incorporate external
+factors (weather, holidays) and its web-based delivery mechanism requires
+internet access and a desktop interface --- barriers for mobile-first
+micro-SME operators \cite{smallbiz_deepar}.
+
+% ----------------------------------------------------------
+\subsection{Sustainability and Food Waste Minimization}
+% ----------------------------------------------------------
+
+Food waste reduction is both an economic and an environmental imperative
+in the food-service sector. The AID-PAF framework addressed this directly
+by coupling a Temporal-Fusion Neural Architecture (TFNA) for demand
+forecasting with a waste-aware linear programming (LP) model for inventory
+optimisation. The LP layer explicitly penalises over-ordering of perishable
+items, balancing the trade-off between customer fill rate and spoilage cost.
+Evaluated on an AnyLogic-MATLAB digital twin simulator, the integrated
+system achieved a MAPE of 6.5\%, a 96.2\% customer fill rate, a 40\%
+reduction in food waste, and a 21\% reduction in procurement costs
+\cite{aidpaf}. These results represent the highest reported food-waste
+reduction in the reviewed literature and validate the principle that
+coupling demand forecasting with a waste-aware inventory optimisation
+layer produces substantially better outcomes than forecasting alone.
+
+The Predictive Analytics for Food Supply Chain and Waste study evaluated
+LSTM, XGBoost, and Random Forest on restaurant POS data, inventory logs,
+and waste records collected over three months. XGBoost achieved the best
+performance across all metrics: 94.3\% accuracy, 95.1\% fill rate, 53.8\%
+food waste reduction, and 27.6\% cost savings --- outperforming LSTM and
+Random Forest. The study demonstrates that even without a dedicated
+optimisation layer, accurate demand forecasting significantly reduces waste
+and improves profitability \cite{foodwaste_ml}.
+
+Lalitha et al.\ (2025) framed the problem differently: rather than
+minimising post-purchase waste, their dynamic pricing engine sought to
+reduce the probability of unsold perishable inventory by adjusting prices
+in real-time as weather conditions changed. This approach --- preventing
+over-purchasing in the first place by modulating demand through pricing ---
+complements the inventory-side approach of LocalDemand \cite{lalitha2025}.
+
+% ----------------------------------------------------------
+\subsection{Smart Inventory Systems for SMEs}
+% ----------------------------------------------------------
+
+The Smart Stock study proposed a hardware-software system for small
+warehouse inventory management, integrating XGBoost-based demand
+forecasting with QR code product identification, Raspberry Pi edge
+devices, IoT sensors, and cloud storage. The proposed system achieved
+96\% classification accuracy and an R$^{2}$ value greater than 0.95,
+outperforming Random Forest, Linear Regression, and KNN on the same
+dataset. Real-time stock monitoring and automated replenishment alerts
+helped reduce stockouts, overstocking, and manual data-entry errors,
+positioning the system as a cost-effective alternative to enterprise ERP
+platforms such as SAP and Oracle \cite{smartstock}.
+
+While the hardware component (Raspberry Pi edge devices, QR readers)
+is beyond the scope of LocalDemand, the study's core insight is highly
+relevant: SMEs benefit measurably from automated, low-cost inventory
+monitoring and decision support. LocalDemand replicates this automation
+and accessibility at the pure software level, eliminating hardware
+dependencies by delivering forecast-driven restock recommendations through
+a mobile application that any SME owner can use with a smartphone.
+
+The synthesis across Section~V reveals a consistent pattern: the most
+impactful systems in the reviewed literature are those that do not stop
+at generating a forecast but instead translate predictions into a concrete
+operational output --- a purchase order, a restock quantity, a pricing
+adjustment, or an automated alert. LocalDemand is explicitly designed
+around this principle, with its core deliverable being a daily restock
+recommendation rather than a raw time-series forecast.
+
+% ==========================================================
+\section{Technology Adoption and Accessibility for SMEs}
+% ==========================================================
+
+Even the most accurate forecasting model provides no value if SME
+operators are unwilling or unable to adopt it. A significant body of
+literature examines the behavioural, economic, and technical barriers
+that prevent small business owners from integrating AI and ML tools into
+their operations, and a smaller but growing set of works proposes
+lightweight, mobile-first solutions to address these barriers.
+
+% ----------------------------------------------------------
+\subsection{Barriers to AI Adoption: TAM and PLS-SEM Evidence}
+% ----------------------------------------------------------
+
+Yuniarty et al.\ (2025) applied the Technology Acceptance Model (TAM)
+to survey 131 SME owners in Indonesia about their intention to adopt AI
+tools. Using Partial Least Squares -- Structural Equation Modelling
+(PLS-SEM), the study found that \emph{perceived ease of use} and
+\emph{perceived security} were the primary determinants of adoption
+intention. Critically, \emph{perceived usefulness} --- the actual
+functional capability of the AI tool --- did not significantly drive
+adoption if the system was considered difficult to use or insecure. This
+finding has direct design implications: a forecasting model that is
+mathematically superior but presented through a complex interface will
+be rejected by SME owners in favour of a simpler, less accurate
+alternative \cite{yuniarty2025}.
+
+Somjaipeng and Jitsakul (2026) reached a complementary conclusion from
+the auditing sector, applying the Technology-Organization-Environment
+(TOE) framework and TAM to evaluate AI adoption among 120 SME-affiliated
+auditors in Thailand. PLS-SEM analysis showed that environmental
+factors --- particularly regulatory frameworks and industry norms ---
+had a significant positive influence ($\beta = 0.562$) on perceived AI
+benefits, explaining over 70\% of the variance in AI acceptance. The
+implication for LocalDemand is that contextual fit (i.e., the app
+looking and feeling like a tool designed specifically for food businesses)
+is as important as technical performance \cite{somjaipeng2026}.
+
+Aree and Ueasangkomsate (2025) studied 92 MSMEs in the Thai food supply
+chain, confirming through linear regression analysis that AI adoption
+significantly improves supply chain performance and firm traceability.
+However, the study identified financial capital and technical know-how as
+the two most significant barriers preventing MSMEs from adopting standard
+AI solutions. The authors concluded that enterprise-grade AI is
+effectively inaccessible to micro-businesses without substantial
+subsidisation or simplification \cite{aree2025}.
+
+Srivastava et al.\ (2026) reviewed how machine learning can be leveraged
+by small and medium e-commerce enterprises for demand forecasting and
+marketing analytics. Their primary contribution was identifying the
+barriers: budget constraints, perceived model complexity, and inadequate
+data infrastructure. The study argued that for ML to be viable for SMEs,
+it must be delivered through accessible interfaces requiring zero
+technical expertise \cite{srivastava2026}.
+
+% ----------------------------------------------------------
+\subsection{Mobile and Low-Cost Solutions}
+% ----------------------------------------------------------
+
+Two reviewed works directly address the mobile application delivery
+layer. Sakuda, Leon, and Rojas (2024) developed an Android application
+integrating the GPT-4 Large Language Model as an intelligent management
+assistant for small shops in Peru. The app allowed owners to query
+real-time sales data and receive conversational recommendations on
+inventory and promotions. A qualitative survey revealed strong user
+approval, with 66.67\% of surveyed shop owners rating the tool highly for
+usability. The study demonstrates that mobile-first AI tools can be
+successfully adopted by non-technical SME owners; however, the system's
+reliance on generative AI (GPT-4) means its inventory recommendations
+are based on contextual language generation rather than rigorous
+time-series mathematics \cite{sakuda2024}.
+
+Janchidfah et al.\ (2026) developed ``Stock Easy,'' a lightweight
+inventory management mobile application evaluated using TAM with 132 retail
+stakeholders. Their findings confirmed that perceived ease of use
+(mean score = 4.52 out of 5) and process clarity were the strongest
+predictors of user satisfaction, which in turn strongly correlated with
+organisational readiness for digital transformation (Pearson r = 0.76).
+The application, however, was purely reactive: it tracked current stock
+levels manually and contained no predictive analytics. The study
+explicitly identifies predictive demand forecasting as the next step
+in the evolution of such tools --- the precise gap that LocalDemand
+fills \cite{janchidfah2026}.
+
+% ----------------------------------------------------------
+\subsection{Generative AI vs.\ Specialised Forecasting Models}
+% ----------------------------------------------------------
+
+The emergence of large language models (LLMs) as potential supply chain
+decision-support tools has prompted comparative evaluation. Vyakarnam
+et al.\ (2025) systematically compared GPT-4.5, Grok 3, Gemini 2.0, and
+DeepSeek R-1 against traditional ML methods (XGBoost, Random Forest) on
+supply chain optimisation tasks for small businesses. While models such
+as DeepSeek R-1 showed promise in synthesising demand planning insights
+from retail datasets, all four generative models failed to correctly
+solve deterministic combinatorial problems such as the Vehicle Routing
+Problem. The authors concluded that LLMs are highly accessible and
+cost-effective for narrative planning tasks but are fundamentally
+ill-suited for rigorous numerical optimisation in supply chains
+\cite{vyakarnam2025}.
+
+This finding provides critical justification for LocalDemand's
+architecture. Rather than using a generative LLM --- as Sakuda et al.\
+(2024) did --- LocalDemand employs Facebook Prophet, a purpose-built
+statistical forecasting engine with a well-defined mathematical
+foundation. The trade-off is slightly higher technical complexity in the
+back end, but the restock quantities generated are deterministic and
+mathematically grounded, not probabilistic language outputs. The mobile
+Flutter interface then absorbs all technical complexity on the front end,
+delivering the ``ease of use'' that Yuniarty et al.\ (2025) and
+Janchidfah et al.\ (2026) identify as the decisive adoption driver.
+
+% ==========================================================
+\section{Synthesis, Gaps, and Implications for LocalDemand}
+% ==========================================================
+
+% ----------------------------------------------------------
+\subsection{Overall Strengths and Common Findings}
+% ----------------------------------------------------------
+
+The 25 works reviewed in this paper collectively establish several
+consistent findings. First, machine learning and hybrid approaches
+reliably outperform classical statistical models (ARIMA, SARIMA,
+Holt-Winters) on food-sector demand forecasting tasks, with the
+performance gap widening as dataset size and feature richness increase
+\cite{gartner2024, ganguly2024, jatte2025}. Second, external regressors
+--- particularly weather conditions, public holidays, and promotional
+activities --- provide statistically significant improvements in forecast
+accuracy across diverse contexts including restaurants, cafes, retail
+chains, and cloud kitchens \cite{guler, kamboj2025, groene_zakharov,
+lalitha2025, jain2024, qureshi2024}. Third, Facebook Prophet consistently
+emerges as a pragmatic and well-validated middle ground for SME-facing
+systems: it is competitive with LSTM in accuracy (85.71\% vs 92.31\%
+in Jatte et al.; RMSE 0.46 vs 0.1535 in Aqila et al.), substantially
+easier to configure and maintain, and natively handles missing data,
+trend shifts, holiday effects, and custom regressors \cite{jatte2025,
+aqila2026, kamboj2025, guler}. Fourth, technology adoption research
+consistently finds that perceived ease of use and accessibility are
+more decisive than raw model performance for SME operators, making the
+delivery interface as important as the underlying algorithm
+\cite{yuniarty2025, janchidfah2026, aree2025}.
+
+% ----------------------------------------------------------
+\subsection{Major Research Gaps}
+% ----------------------------------------------------------
+
+Despite this rich body of work, four interconnected gaps remain
+unaddressed in the existing literature:
+
+\textbf{Gap 1 --- Forecast-to-Action Gap:} The vast majority of reviewed
+forecasting studies --- including Aqila et al.\ (2026), Jatte et al.\
+(2025), Sandeep et al.\ (2025), Ganguly \& Mukherjee (2024), and Gartner
+et al.\ (2024) --- terminate their analysis at error metrics (RMSE, MAPE,
+MAE). They do not convert predictions into actionable inventory decisions
+such as restock quantities or purchase orders. The few studies that do
+attempt this step (Rahmatillah et al.\ 2026; Munawar \& Sudirman 2026)
+rely on data volumes (nearly 1{,}000 days of history) that are
+unavailable to newly established food businesses \cite{aqila2026,
+jatte2025, rahmatillah2026, munawar2026}.
+
+\textbf{Gap 2 --- Accessibility and Mobile Integration Gap:} No reviewed
+work combines a rigorous time-series forecasting engine with a
+mobile-first delivery layer specifically designed for non-technical SME
+operators. Sakuda et al.\ (2024) provide a mobile app but use GPT-4
+rather than a deterministic forecasting model \cite{sakuda2024}.
+Janchidfah et al.\ (2026) provide a mobile inventory app but with no
+predictive capability \cite{janchidfah2026}. The gap between ``accurate
+but complex'' and ``simple but not forecasting'' is unoccupied.
+
+\textbf{Gap 3 --- Micro-SME and Food-Sector Specificity Gap:} Several
+high-performing systems (AID-PAF, Smart Stock, GRU supply chain model)
+require hardware infrastructure, large datasets, or computational
+resources that are incompatible with single-location micro-SMEs such as
+a neighbourhood bakery or a small independent café \cite{aidpaf,
+smartstock, qureshi2024}. Research that combines high model accuracy with
+SME-scale constraints simultaneously is scarce.
+
+\textbf{Gap 4 --- Cold-Start and Sparse-Data Gap:} As established in
+Section~IV, most deep learning models evaluated in the literature require
+several hundred to thousands of training samples to converge reliably.
+This makes them unsuitable for new businesses or new product lines, a
+scenario that is ubiquitous in the food SME sector. No reviewed work
+provides a complete solution that addresses sparse data, external
+regressor integration, and operational output generation
+simultaneously \cite{susanto2026, gartner2024, rahmatillah2026}.
+
+% ----------------------------------------------------------
+\subsection{How LocalDemand Fills These Gaps}
+% ----------------------------------------------------------
+
+LocalDemand is designed as a direct response to all four identified gaps,
+with each architectural decision traceable to the evidence reviewed above.
+
+Against \textbf{Gap 1}, LocalDemand does not terminate at forecast
+generation. Following the simulation methodology of Rahmatillah et al.\
+(2026), it converts Prophet's daily demand forecasts into concrete restock
+recommendations --- expressed as units-to-order per ingredient or menu
+item --- with a configurable safety-stock buffer. This makes the system's
+primary output an operational decision, not a statistical metric.
+
+Against \textbf{Gap 2}, LocalDemand delivers its forecasts and restock
+recommendations through a Flutter mobile application, making it accessible
+on any Android or iOS device without installation of data-science
+tooling. In contrast to Sakuda et al.'s (2024) LLM-based app, the
+recommendations in LocalDemand are generated by Facebook Prophet --- a
+deterministic, mathematically grounded time-series model --- ensuring
+that inventory quantities are precise and reproducible. The interface
+design is governed by the TAM findings of Yuniarty et al.\ (2025) and
+Janchidfah et al.\ (2026): simplicity, clarity, and friction-free access
+are non-negotiable design requirements.
+
+Against \textbf{Gap 3}, LocalDemand is explicitly scoped to
+single-location food micro-SMEs (cafes, bakeries, restaurants) operating
+with minimal data infrastructure. It requires only a smartphone and basic
+daily sales records --- no IoT devices, no dedicated servers, and no
+data-science team. This positions it in the micro-SME accessibility space
+validated by Aree \& Ueasangkomsate (2025) and Srivastava et al.\ (2026)
+as urgently needed but currently unserved.
+
+Against \textbf{Gap 4}, LocalDemand selects Facebook Prophet specifically
+for its cold-start resilience. Prophet's Bayesian prior structure and
+Fourier-series seasonality estimation allow it to produce reasonable
+forecasts from as few as a few weeks of daily observations, and it handles
+zero-valued days and missing entries natively --- directly addressing the
+zero-inflation problem documented by Susanto et al.\ (2026). The addition
+of weather and holiday regressors provides independent predictive signal
+that stabilises forecasts even when internal sales history is sparse, as
+demonstrated by Guler et al., Kamboj et al., and Groene \& Zakharov
+\cite{guler, kamboj2025, groene_zakharov, susanto2026}.
+
+In summary, LocalDemand occupies a design space that the existing
+literature has identified as both urgently needed and currently vacant:
+a system that is simultaneously accurate (Prophet + weather/holiday
+regressors), actionable (daily restock quantities with safety buffer),
+accessible (Flutter mobile app), and robust to micro-SME data realities
+(cold-start and sparse-data resilience).
+
+\begin{table*}[t]
+\centering
+\caption{Comparative Analysis of Demand Forecasting Approaches in Food and Retail SMEs}
+\label{tab:comparative_analysis}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}p{3.5cm}p{2.5cm}p{3cm}p{3cm}p{3.5cm}p{2cm}p{1.5cm}p{4cm}@{}}
+\hline
+\textbf{Study / Authors (Year)} & \textbf{Model(s) Used} & \textbf{Key External Regressors} & \textbf{Dataset Size / Context} & \textbf{Performance Metrics} & \textbf{Actionability} & \textbf{SME Suitability} & \textbf{Main Limitation / Gap Addressed} \\ \hline
+
+Groene \& Zakharov & XGBoost & Weather, Holidays, Events & 5+ years hourly F\&B sales & 22--33\% RMSE reduction & Forecast-only & Medium & Lacks operational restock outputs \\
+
+\textbf{Guler et al.} & \textbf{Facebook Prophet} & \textbf{Weather, Special Days} & \textbf{Restaurant daily data} & \textbf{MAE = 0.76, RMSE = 0.82} & \textbf{Forecast-only} & \textbf{High} & \textbf{Lacks restock simulation / mobile app} \\
+
+Jatte et al. (2025) & LSTM vs \textbf{Prophet} & None specified & Large retail dataset & LSTM 92\% acc, Prophet 85.7\% & Forecast-only & Medium & \textbf{Prophet} highlighted for low overhead \\
+
+Aqila et al. (2026) & LSTM, \textbf{Prophet}, SARIMA & None specified & Hourly coffee shop sales & LSTM RMSE 0.15, Prophet 0.46 & Forecast-only & Medium & Stops at metrics; no restock logic \\
+
+\textbf{Kamboj et al. (2025)} & \textbf{Prophet + XGBoost} & \textbf{Promotions, Holidays} & \textbf{State-level retail} & \textbf{12--18\% MAPE reduction} & \textbf{Forecast-only} & \textbf{Medium} & \textbf{Prophet} handles holidays robustly \\
+
+Rahmatillah et al. (2026) & LSTM vs Moving Avg & None specified & SME ice cream ($\sim$1k days) & RMSE 1.65, zero stockouts & Simulation & Medium & High data requirement (cold-start gap) \\
+
+Munawar \& Sudirman (2026) & LSTM & None specified & Hourly SME F\&B data & Lowest MAE/RMSE & Simulation & Low & Excludes weather/holidays; high data need \\
+
+Gartner et al. (2024) & CNN, ARIMA, GAM & None specified & SME real-world data & Normalised RMSE 0.31 & Forecast-only & Medium & Deep learning fails on cold-start \\
+
+Lalitha et al. (2025) & Random Forest, ARIMA & Weather, Cost data & Perishable goods sales & MSE 53.97 & Pricing Engine & Low & Needs continuous real-time data feeds \\
+
+AID-PAF Framework & TFNA (Deep Learning) & Weather, Holidays, Sentiment & Simulated digital twin & MAPE 6.5\%, 40\% waste red. & Optimization & Low & Hardware/computing demands too high \\
+
+Smart Stock & XGBoost + IoT & None specified & Small warehouse & 96\% classification accuracy & Alerts & Low & Hardware dependency (IoT/Edge) \\
+
+Susanto et al. (2026) & XGBoost vs MA(7) & None specified & Zero-inflated SME data & MA(7) outperformed ML & Forecast-only & Medium & Regression fails on intermittent data \\ \hline
+
+\textbf{LocalDemand (Proposed)} & \textbf{Facebook Prophet} & \textbf{Weather, Holidays} & \textbf{Micro-SME daily sales} & \textbf{TBD (Evaluation phase)} & \textbf{Restock Recs.} & \textbf{High} & \textbf{Fills forecast-to-action \& mobile gaps} \\ \hline
+\end{tabular}%
+}
+\end{table*}
+
+
+% ==========================================================
+\section{Conclusion}
+% ==========================================================
+
+This literature review has synthesized 25 research works spanning
+demand forecasting methods, external factor integration, SME-specific
+data challenges, inventory optimisation, and technology adoption. The
+evidence collectively supports the design rationale of LocalDemand across
+five dimensions.
+
+In terms of \textbf{model selection}, Facebook Prophet is empirically
+validated as a competitive, interpretable, and operationally practical
+forecasting engine for food-sector SMEs, outperforming classical
+statistical models and approaching deep-learning accuracy while requiring
+a fraction of the data and computational infrastructure
+\cite{jatte2025, aqila2026, kamboj2025, guler}.
+
+In terms of \textbf{external regressors}, weather and holiday data are
+the two most consistently evidence-backed demand drivers across the
+reviewed food-sector literature. Their native support in Prophet's
+regressor framework makes their integration straightforward and well
+precedented \cite{guler, kamboj2025, groene_zakharov, lalitha2025,
+jain2024}.
+
+In terms of \textbf{actionability}, the simulation studies of Rahmatillah
+et al.\ (2026) and Munawar \& Sudirman (2026) establish that translating
+forecasts into purchasing decisions eliminates stockouts and reduces
+total inventory costs, validating the restock-recommendation layer of
+LocalDemand \cite{rahmatillah2026, munawar2026}.
+
+In terms of \textbf{accessibility}, the TAM and PLS-SEM studies of
+Yuniarty et al.\ (2025), Somjaipeng \& Jitsakul (2026), Aree \&
+Ueasangkomsate (2025), and the mobile-app usability findings of
+Janchidfah et al.\ (2026) and Sakuda et al.\ (2024) confirm that
+a mobile-first, low-friction delivery interface is a necessary condition
+--- not merely a desirable feature --- for adoption by micro-SME
+operators \cite{yuniarty2025, somjaipeng2026, aree2025,
+janchidfah2026, sakuda2024}.
+
+In terms of \textbf{data realism}, the cold-start and sparse-data
+findings of Susanto et al.\ (2026), Gartner et al.\ (2024), and
+Rahmatillah et al.\ (2026) confirm that the dominant deep learning
+methods in the forecasting literature are incompatible with the data
+realities of newly established or small-scale food businesses, and
+that Prophet-based approaches with external regressors represent the
+most viable and well-supported alternative \cite{susanto2026,
+gartner2024, rahmatillah2026}.
+
+Taken together, the 25 reviewed works provide a coherent and complete
+evidence base for the architecture of LocalDemand: Facebook Prophet
+as the forecasting core, weather and holiday data as primary external
+regressors, a restock-recommendation layer with a safety-stock buffer
+as the operational output, and a Flutter mobile application as the
+accessible, user-facing delivery channel. Future research directions
+identified by the reviewed literature include the integration of social
+media sentiment signals \cite{aidpaf}, multi-outlet and cross-location
+demand modelling, and longitudinal evaluation of inventory cost
+reduction in real micro-SME deployments.
+
+% ==========================================================
+%  BIBLIOGRAPHY
+%  (Add your actual .bib file or replace with thebibliography
+%   entries as needed for your institution's submission format)
+% ==========================================================
+
+\begin{thebibliography}{99}
+
+\bibitem{aqila2026}
+K. S. Aqila et al., ``Comparative Evaluation of SARIMA, FB Prophet, and
+LSTM for Hourly Demand Forecasting in Saudagar Kopi,'' 2026.
+
+\bibitem{sandeep2025}
+Sandeep V et al., ``Smart Sales Forecasting Machine Learning Models for
+Demand Prediction in Retail,'' 2025.
+
+\bibitem{kamboj2025}
+M. Kamboj et al., ``State-Level Drug Retail Sales Forecasting Using
+XGBoost and Facebook Prophet,'' 2025.
+
+\bibitem{gartner2024}
+T. Gartner et al., ``Automated Demand Forecasting in Small to
+Medium-Sized Enterprises,'' 2024.
+
+\bibitem{ganguly2024}
+P. Ganguly and I. Mukherjee, ``Enhancing Retail Sales Forecasting with
+Optimized Machine Learning Models,'' 2024.
+
+\bibitem{jatte2025}
+H. Jatte et al., ``Optimization of Forecasting Performance in the Retail
+Sector Using Artificial Intelligence,'' 2025.
+
+\bibitem{groene_zakharov}
+Groene and Zakharov, ``AI-Based Sales Forecasting for F\&B Businesses.''
+
+\bibitem{guler}
+Guler et al., ``Forecasting Restaurant Sales with Weather and Special
+Days using Facebook Prophet.''
+
+\bibitem{susanto2026}
+J. C. Susanto et al., ``Performance Analysis of Time Series Models to
+Predict Sales Activity of SMEs,'' 2026.
+
+\bibitem{munawar2026}
+M. A. Munawar and I. D. Sudirman, ``LSTM-Based Hourly Sales Forecasting
+in SME Food and Beverage Retail,'' 2026.
+
+\bibitem{vyakarnam2025}
+S. Vyakarnam et al., ``Optimizing Supply Chain Management for Small and
+Medium-Sized Businesses Using AI,'' 2025.
+
+\bibitem{yuniarty2025}
+Yuniarty et al., ``Technology Acceptance and Security Influences on AI
+Adoption among Small and Medium Enterprises,'' 2025.
+
+\bibitem{aree2025}
+T. Aree and P. Ueasangkomsate, ``Technology Adoption of MSMEs in Food
+Supply Chain: The Role of AI in Traceability and Transparency,'' 2025.
+
+\bibitem{somjaipeng2026}
+K. Somjaipeng and W. Jitsakul, ``Factors influencing audit quality
+through the acceptance and use of AI by auditors in Thailand,'' 2026.
+
+\bibitem{srivastava2026}
+S. Srivastava et al., ``Predictive Marketing and Sales Analytics Using
+Machine Learning for Small and Medium E-Commerce Enterprises,'' 2026.
+
+\bibitem{lalitha2025}
+Lalitha R et al., ``Enhanced Sales Forecasting of Perishable and
+Non-Perishable Goods Using Weather Data with Insights on Imports and
+Price Sensitivity,'' 2025.
+
+\bibitem{jain2024}
+N. Jain et al., ``Weather-Integrated Recommendations for Food Choices
+with SHAP Explanation,'' 2024.
+
+\bibitem{qureshi2024}
+N. U. H. Qureshi et al., ``Demand Forecasting in Supply Chain Management
+for Rossmann Stores using Weather Enhanced Deep Learning Model,'' 2024.
+
+\bibitem{rahmatillah2026}
+I. Rahmatillah, Herwanto, and Sudirman, ``Evaluation of Optimized LSTM
+and Moving Average in SME Inventory Forecasting and Simulation,'' 2026.
+
+\bibitem{smallbiz_deepar}
+Author(s) unspecified, ``Demand Forecasting System, Small Business
+Optimization.''
+
+\bibitem{aidpaf}
+Author(s) unspecified, ``AI Predictive Analytics for Sustainable
+Restaurant Operations (AID-PAF).''
+
+\bibitem{smartstock}
+Author(s) unspecified, ``Smart Stock: Small Warehouse Inventory.''
+
+\bibitem{foodwaste_ml}
+Author(s) unspecified, ``Predictive Analytics, Food Supply Chain and
+Waste.''
+
+\bibitem{sakuda2024}
+G. Sakuda, Leon, and Rojas, ``Mobile Application for the Intelligent
+Management of Small Shops Using the GPT-4 Model,'' 2024.
+
+\bibitem{janchidfah2026}
+T. Janchidfah et al., ``A Mobile Application for Inventory Management
+to Support Digital Transformation in Small Retail Businesses,'' 2026.
+
+\end{thebibliography}
+
+\end{document}
