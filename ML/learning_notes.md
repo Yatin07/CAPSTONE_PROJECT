@@ -135,3 +135,32 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
    - **Syntax Breakdown:**
      - `df_train.merge(df_store, on='Store', how='left')`: A standard left outer join resolving referential integrity between fact and dimension tables.
      - `df[df['Open'] != 0]`: A boolean mask to drop structurally constrained non-demand days prior to modeling.
+
+---
+
+## Task 5: Prophet Model Initialization, Fitting, and Forecasting
+
+**What we did:** We implemented a complete time-series training and prediction script (`model.py`) using Facebook Prophet. This script reads the processed bakery dataset, splits the series chronologically, fits the additive model, and predicts future values.
+
+### Technical Breakdown: Forecasting Workflow
+
+1. **Chronological Splitting:**
+   - **What it is:** Slicing a time-series dataset into non-overlapping training and testing intervals based on a date boundary.
+   - **Why it is used:** Random cross-validation violates temporal ordering and causes data leakage (future information influencing past predictions). Splitting chronologically ensures the model's out-of-sample evaluation mirrors real-world forecasting conditions.
+   - **Syntax Breakdown:**
+     - `limit_date = df_subset['ds'].max() - pd.Timedelta(days=30)`: Computes the temporal cutoff boundary 30 days prior to the last observation.
+     - `train_data = df_subset[df_subset['ds'] < limit_date]`: Filters out the historical training slice.
+     - `test_data = df_subset[df_subset['ds'] >= limit_date]`: Isolates the out-of-sample evaluation slice.
+
+2. **Model Instantiation and Training:**
+   - **What it is:** Constructing the Prophet object and fitting it via optimization.
+   - **Why it is used:** Prophet fits an additive regression model consisting of trend, seasonality, and holiday components. Fitting the model computes these parameters using Bayesian MAP estimation.
+   - **Syntax Breakdown:**
+     - `model = Prophet()`: Instantiates the forecasting model with default piecewise linear trend and additive seasonality components.
+     - `model.fit(train_data)`: Fits the internal model parameters (trend changepoints, seasonal Fourier coefficients) to the training data.
+
+3. **Inference (Prediction):**
+   - **What it is:** Generating predictions on a target dataset using the trained parameters.
+   - **Why it is used:** To evaluate model accuracy against the actual out-of-sample values (`y`).
+   - **Syntax Breakdown:**
+     - `forecast = model.predict(test_data)`: Executes the forecasting pipeline on the dates specified in `test_data` and returns the forecasted target (`yhat`) alongside components like trend, seasonality, and uncertainty intervals (`yhat_lower` and `yhat_upper`).
