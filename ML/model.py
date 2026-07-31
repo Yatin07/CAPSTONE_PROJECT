@@ -7,8 +7,8 @@ from prophet import Prophet
 
 df = pd.read_csv("data/processed/processed_bakery.csv")
 
-# df_subset = df[["ds", "y"]].copy()
-df_subset = df[["ds", "y", "is_weekend"]].copy()
+df_subset = df[["ds", "y"]].copy()
+# df_subset = df[["ds", "y", "is_weekend"]].copy()
 
 
 # print(df_subset.head())
@@ -23,7 +23,7 @@ test_data = df_subset[df_subset['ds'] >= limit_date]
 # print(test_data)
 
 # model = Prophet()
-model = Prophet(changepoint_prior_scale=0.1)
+model = Prophet(changepoint_prior_scale=0.01)
 
 # model.add_regressor('is_weekend')
 model.fit(train_data)
@@ -35,15 +35,15 @@ forecast_subset= forecast[['ds','yhat', 'yhat_lower', 'yhat_upper']]
 # print(forecast_subset.head())
 
 mse = mean_squared_error(test_data['y'], forecast_subset['yhat'])
-
 print(mse)
 
-mae = mean_absolute_error(test_data['y'], forecast_subset['yhat'])
+rmse = np.sqrt(mse)
+print(f"RMSE: {rmse}")
 
+mae = mean_absolute_error(test_data['y'], forecast_subset['yhat'])
 print(mae)
 
 mape = mean_absolute_percentage_error(test_data['y'], forecast_subset['yhat'])
-
 print(mape)
 
 fig1 = model.plot(forecast)

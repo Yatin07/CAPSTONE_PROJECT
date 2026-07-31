@@ -221,3 +221,19 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
      - `model = Prophet(changepoint_prior_scale=0.1)`: Instantiates the model with a higher flexibility than the default (`0.05`). 
 2. **Empirical Outcome (Overfitting):**
    - By increasing the scale to `0.1` (without the redundant regressor), the MAE increased from `1041.70` (the default baseline) to `1129.28`. This indicates that giving the model *more* freedom to bend its trend actually caused it to overfit the training data, ultimately performing worse on the unseen test set.
+
+---
+
+## Task 9: Achieving Generalization (Reducing Flexibility)
+
+**What we did:** We reduced the `changepoint_prior_scale` hyperparameter down to `0.01` to make the Prophet trend more rigid and prevent overfitting.
+
+### Technical Breakdown: Generalization
+
+1. **Combating Overfitting:**
+   - **What it is:** By lowering the prior scale, we enforce a strong regularization penalty on trend changes. The model is forced to ignore local fluctuations and capture only the global structural movement of the time series.
+   - **Syntax Breakdown:**
+     - `model = Prophet(changepoint_prior_scale=0.01)`: Instantiates the model with highly restricted trend flexibility.
+2. **Empirical Outcome (Massive Improvement):**
+   - The MAE plummeted from the baseline of `1041.70` all the way down to **`448.89`**. 
+   - By stopping the model from chasing noise in the training set, it generalized significantly better to the unseen 30-day test set. This proves that for this specific bakery dataset, the long-term trend is very stable, and high flexibility is detrimental.
