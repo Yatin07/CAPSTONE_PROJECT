@@ -159,8 +159,65 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
      - `model = Prophet()`: Instantiates the forecasting model with default piecewise linear trend and additive seasonality components.
      - `model.fit(train_data)`: Fits the internal model parameters (trend changepoints, seasonal Fourier coefficients) to the training data.
 
-3. **Inference (Prediction):**
-   - **What it is:** Generating predictions on a target dataset using the trained parameters.
+3. **Inference (Prediction) and Output Metrics:**
+   - **What it is:** Generating predictions on a target dataset using the trained parameters and extracting the forecast outputs.
    - **Why it is used:** To evaluate model accuracy against the actual out-of-sample values (`y`).
    - **Syntax Breakdown:**
-     - `forecast = model.predict(test_data)`: Executes the forecasting pipeline on the dates specified in `test_data` and returns the forecasted target (`yhat`) alongside components like trend, seasonality, and uncertainty intervals (`yhat_lower` and `yhat_upper`).
+     - `forecast = model.predict(test_data)`: Executes the forecasting pipeline on the dates specified in `test_data` and returns a DataFrame containing the forecasted estimates and components.
+   - **Prophet Output Column Schema Definition:**
+     - **`yhat` ($\hat{y}$):** The predicted or estimated value of the target variable $y$ at a given time step $t$. In statistical notation, the circumflex ("hat") indicates an estimator or predicted variable rather than an observed ground-truth value.
+     - **`yhat_lower` & `yhat_upper`:** The lower and upper bounds of the model's uncertainty interval (by default, a posterior predictive interval set at 80%). These bounds quantify uncertainty from trend changes (via changepoint simulation) and seasonal fluctuations, indicating the range in which the true value is expected to fall based on historical variance.
+
+---
+
+## Task 6: Prophet Forecast Visualization
+
+**What we did:** We implemented native visualization pipelines for the fitted Prophet model, exporting the primary forecast plot and the components breakdown plot as static image files (`bakery_forecast.png` and `bakery_components.png`).
+
+### Technical Breakdown: Visualization Methods
+
+1. **Forecast Plotting:**
+   - **What it is:** Generating a scatter-and-line plot representing historical observations, predicted values, and uncertainty bounds.
+   - **Why it is used in an engineering context:** To perform qualitative inspections of forecast alignment, seasonality fit, and trend changes.
+   - **Syntax Breakdown:**
+     - `fig1 = model.plot(forecast)`: Returns a matplotlib `Figure` containing the historical actual points (black dots), the forecasted trend (`yhat` line in blue), and the uncertainty intervals (`yhat_lower` to `yhat_upper` shaded region).
+     - `fig1.savefig('bakery_forecast.png')`: Serializes the figure object directly to disk as a static image without needing to call `plt.show()`, avoiding thread blocking in headless environments.
+
+2. **Components Decomposition:**
+   - **What it is:** Splitting the additive forecast equation ($y(t) = g(t) + s(t) + h(t) + \epsilon_t$) into its individual sub-plots: trend ($g(t)$) and seasonal effects ($s(t)$).
+   - **Why it is used:** To analyze and present business-centric insights, such as determining which days of the week experience peak sales (weekly seasonality).
+   - **Syntax Breakdown:**
+     - `fig2 = model.plot_components(forecast)`: Generates subplots showing the isolated trend component and any active seasonal components (weekly/yearly).
+     - `fig2.savefig('bakery_components.png')`: Saves the components figure to disk.
+
+---
+
+## Task 7: Injecting Exogenous Regressors
+
+**What we did:** We modified the Prophet model to accept an external boolean regressor (`is_weekend`) in an attempt to improve the forecast accuracy by providing explicit day-type information.
+
+### Technical Breakdown: Regressor Integration
+
+1. **Feature Engineering and Regressor Addition:**
+   - **What it is:** Supplying additional independent variables ($X$) alongside the temporal index ($t$) to explain variance in the target variable ($y$).
+   - **Why it is used:** Base Prophet relies solely on auto-regressive time dynamics (trend + seasonality). Exogenous regressors allow the model to account for external shocks, promotions, price elasticity, or structural events (like holidays/weekends) that aren't purely functions of time.
+   - **Syntax Breakdown:**
+     - `model.add_regressor('is_weekend')`: Registers the column name within the Prophet object. This must be invoked prior to the `.fit()` method. The specified column must exist in both the training DataFrame and the future prediction DataFrame.
+2. **Empirical Outcome (Redundancy):**
+   - Adding `is_weekend` marginally *increased* the Mean Absolute Error (MAE) from ~1041.70 to ~1054.09. Prophet's default configuration automatically computes a `weekly` seasonal Fourier series, which inherently captures the variance between weekdays and weekends. Injecting a redundant, explicit boolean regressor causes slight overfitting and distortion of the model's natural seasonal smoothing.
+
+---
+
+## Task 8: Hyperparameter Tuning (Trend Flexibility)
+
+**What we did:** We modified the `changepoint_prior_scale` hyperparameter in Prophet to control the flexibility of the trend component.
+
+### Technical Breakdown: `changepoint_prior_scale`
+
+1. **Hyperparameter Configuration:**
+   - **What it is:** Adjusting the internal parameter that determines how much the trend is allowed to change at automatically detected "changepoints".
+   - **Why it is used:** To balance the bias-variance tradeoff. If the trend is too rigid (low scale), the model underfits. If the trend is too flexible (high scale), the model overfits to historical noise and fails to generalize to future data.
+   - **Syntax Breakdown:**
+     - `model = Prophet(changepoint_prior_scale=0.1)`: Instantiates the model with a higher flexibility than the default (`0.05`). 
+2. **Empirical Outcome (Overfitting):**
+   - By increasing the scale to `0.1` (without the redundant regressor), the MAE increased from `1041.70` (the default baseline) to `1129.28`. This indicates that giving the model *more* freedom to bend its trend actually caused it to overfit the training data, ultimately performing worse on the unseen test set.
