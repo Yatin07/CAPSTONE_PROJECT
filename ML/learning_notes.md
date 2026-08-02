@@ -237,3 +237,19 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 2. **Empirical Outcome (Massive Improvement):**
    - The MAE plummeted from the baseline of `1041.70` all the way down to **`448.89`**. 
    - By stopping the model from chasing noise in the training set, it generalized significantly better to the unseen 30-day test set. This proves that for this specific bakery dataset, the long-term trend is very stable, and high flexibility is detrimental.
+
+---
+
+## Task 10: Multi-Series Data Filtering (Rossmann)
+
+**What we did:** We transitioned from single-series forecasting (Bakery) to multi-series forecasting (Rossmann dataset: 1,115 stores). We learned that a global dataframe containing mixed time-series data must be filtered to a single grain (one store) before fitting an auto-regressive model.
+
+### Technical Breakdown: Data Segregation
+
+1. **The Multi-Series Flaw:**
+   - **What it is:** Passing a dataframe with multiple distinct entities (e.g., 1,115 stores) for the same dates directly into Prophet.
+   - **Why it is disastrous:** Time series models expect one contiguous sequence of observations over time ($y_t$). If multiple stores share the same date $t$, the model interprets this as massive, impossible variance within a single entity, destroying the integrity of the forecast.
+2. **Boolean Masking (Filtering):**
+   - **What it is:** Extracting a single logical entity from the global dataset.
+   - **Syntax Breakdown:**
+     - `df_store = df[df['Store'] == 1].copy()`: Applies a boolean mask to return only the rows belonging to Store 1. We also use `.copy()` on the subsetting step to instantiate a new object in memory, preventing Pandas `SettingWithCopyWarning` when modifying the data later.
