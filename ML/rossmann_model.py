@@ -23,9 +23,9 @@ model = Prophet(changepoint_prior_scale=0.01)
 
 # model = Prophet()
 
-model.fit(df_subset);
+# model.fit(df_subset);
 
-# model.fit(train_data)
+model.fit(train_data)
 
 forecast = model.predict(test_data)
 
