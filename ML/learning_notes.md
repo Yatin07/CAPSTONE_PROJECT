@@ -251,5 +251,19 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
    - **Why it is disastrous:** Time series models expect one contiguous sequence of observations over time ($y_t$). If multiple stores share the same date $t$, the model interprets this as massive, impossible variance within a single entity, destroying the integrity of the forecast.
 2. **Boolean Masking (Filtering):**
    - **What it is:** Extracting a single logical entity from the global dataset.
-   - **Syntax Breakdown:**
      - `df_store = df[df['Store'] == 1].copy()`: Applies a boolean mask to return only the rows belonging to Store 1. We also use `.copy()` on the subsetting step to instantiate a new object in memory, preventing Pandas `SettingWithCopyWarning` when modifying the data later.
+
+---
+
+## Task 11: Multi-Series Automation (For-Loops)
+
+**What we did:** We encapsulated the single-store Prophet logic inside a Python `for` loop to automatically train, predict, and evaluate models for multiple unique entities (Stores 1, 2, and 3) in a single script execution.
+
+### Technical Breakdown: Iterative Modeling
+
+1. **Loop Structure:**
+   - **What it is:** Using `for store_id in [1, 2, 3]:` to iterate over a list of unique identifiers.
+   - **Why it is used in an engineering context:** Scalability. Instead of manually writing 1,115 scripts for 1,115 stores, the pipeline dynamically filters the data, instantiates a fresh Prophet object, fits it, and evaluates it for each store sequentially.
+2. **Metric Aggregation (Dictionaries):**
+   - **What it is:** Initializing an empty dictionary (`store_metrics = {}`) outside the loop and populating it dynamically inside the loop (`store_metrics[store_id] = rmse`).
+   - **Why it is used:** To collect isolated evaluation metrics (like RMSE) for hundreds of independent models, allowing for programmatic comparison or aggregation (e.g., calculating the global average RMSE across all stores) after the loop terminates.
