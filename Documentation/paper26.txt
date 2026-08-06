@@ -1,0 +1,370 @@
+979-8-3315-1024-4/24/$31.00 ©2024 IEEE Mobile application for the intelligent management 
+of small shops using the GPT-4 model 
+Gonzalo Sakuda  
+Faculty of Engineering  
+Universidad Peruana de Ciencias 
+Aplicadas 
+Lima, Perú 
+u20191d928@upc.edu.pe 
+ Jack Leon 
+Faculty of Engineering  
+Universidad Peruana de Ciencias 
+Aplicadas 
+Lima, Perú 
+u20191125@upc.edu.pe 
+ Royer Rojas 
+Faculty of Engineering  
+Universidad Peruana de Ciencias 
+Aplicadas 
+Lima, Perú 
+pcisrroj@upc.edu.pe 
+Abstract — Small shops and retail stores in Peru face 
+significant challenges in efficient management due to limited 
+access to technological resources, often relying on  error-prone 
+manual processes. This study presents the developme nt of a 
+mobile application powered by the GPT-4 model, desi gned to 
+provide personalized recommendations and optimize k ey 
+operations such as inventory management and sales f orecasting. 
+By leveraging GPT-4’s advanced natural language pro cessing 
+capabilities, the application acts as an intelligen t assistant, 
+enabling shop owners to make informed decisions, au tomate 
+routine tasks, and enhance business performance. Ke y features 
+include product and sales management, dashboards, 
+personalized recommendations, alerts, and other ope rational 
+tools. A survey conducted with 15 shop owners revea led positive 
+results, with over 66.7% rating the application bet ween 4 and 5 
+on a Likert scale (1-5), indicating its effectivene ss in improving 
+small shop management with the support of GPT-4.  
+Keywords— GPT-4, Management, Small Shops, Chatbot, 
+Assistant 
+I.  INTRODUCTION  
+In recent years, the management of small-scale reta il 
+establishments, such as small shops and stores, has  posed 
+significant challenges in the Peruvian context. The se 
+challenges stem from several factors, including lim ited access 
+to technological resources, leading to a reliance o n manual 
+processes for inventory management, decision making , and 
+performance evaluation [1]. The absence of efficien t 
+technological solutions exposes shop owners to erro rs in 
+calculations, uninformed decision making, and subop timal 
+business performance [2]. This generates operationa l 
+problems that negatively affect their performance, such as 
+performing error-prone manual calculations for rout ine tasks, 
+inventory control using rudimentary methods, and st rategic 
+decision making hampered by the lack of reliable da ta and 
+analytical tools [3], [4], [5]. These limitations p revent small 
+shop owners from realizing the full potential of th eir business 
+and making informed decisions to improve their prof itability 
+and competitiveness in the marketplace.  
+This research aims to explore the potential of AI-d riven 
+approaches to improve the management of small shops  in 
+Peru. By leveraging the capabilities of GPT-4, the goal is to 
+develop a mobile application that serves as an inte lligent 
+management tool for shop owners to manage their bus inesses, 
+make informed decisions, and optimize their busines s 
+operations. In that sense, with the integration of GPT-4, the 
+application will provide personalized recommendatio ns based 
+on data from the small shop and an intelligent chat bot that 
+provides instant access to information from the sma ll shop, as 
+well as serving as a management assistant. II.  LITERATURE REVIEW  
+A.  GPT and Large Language Model 
+The capabilities that AI technology contains are us eful for 
+various domains, in the case of the research focuse s on the use 
+of GPT's LLM model. For example, GPT demonstrates a  
+robust ability to understand and generate natural l anguage 
+fluently. This is achieved thanks to its architectu re of attention 
+neural networks or "transformers" and the pre-train ing of 1 
+trillion parameters as in GPT-4 [6]. On the other h and, 
+according to Keng-Boon's study, generative AI is be ing used 
+in retail, so that it enables customers to have fas ter service and 
+improved employee productivity [7]. In addition, Ku rnia 
+Muludi considers GPT as one of the best LLM models [8], 
+because of the results she obtained in her research . Also, 
+according to Amos Azaria, he highlights its ability  to be used 
+in scientific research, mathematics, programming, e ducation 
+and health care [9].  
+On the other hand, there are many LLM models, which  can 
+be open source or closed source. Each of these is t rained with 
+different data sizes, so the accuracy differs in ea ch one.  For 
+this reason, Samuel Kernan's study compares differe nt LLM 
+models using different performance criteria [10]. T hese 
+criteria are Factuality which refers to whether the  generated 
+answers are correct according to the context, Compl eteness 
+which refers to whether the answers contain all the  relevant 
+information of the question and Hallucinations whic h refers to 
+whether the answer is coherent according to the que stion. The 
+study concludes that GPT-4 shows the best performan ce 
+compared to other models. However, open-source mode ls 
+such as StableBeluga2 also show similar performance s. 
+B.  GPT applications for recommendation 
+GPT has various applications in the health sector. For 
+instance, Ismael Dergaa's study utilized OpenAI's G PT-4 
+model to generate exercise routines tailored to ind ividual 
+goals. While the routines effectively supported fit ness, they 
+lacked deeper personalization [4]. Another notable use of GPT 
+is in early disease detection. A study employing Ch atGPT for 
+the preliminary diagnosis of dengue fever reported highly 
+satisfactory results [11]. Similarly, Li's research  developed a 
+chatbot leveraging GPT agents to evaluate responses  to 
+questions about traumatic brain injury rehabilitati on [12]. 
+Finally, Pash's study demonstrated how a GPT-powere d 
+chatbot, using patient-provided information, accura tely 
+identified the appropriate area of care [13].  
+The manufacturing sector has also benefited from th e 
+application of GPT. For example, in Kahiomba's stud y, a web 
+application was developed to process data from prod uction 
+machines, enabling GPT to generate responses that h elp 
+technicians identify issues quickly, thereby reduci ng 2024 IEEE 4th International Conference on Advanced Learning Technologies on Education & Research (ICALTER) | 979-8-3315-1024-4/24/$31.00 ©2024 IEEE | DOI: 10.1109/ICALTER65499.2024.10819203
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
+downtime [14]. Similarly, Wang's research pre-train ed GPT 
+on manufacturing datasets to create a system capabl e of 
+addressing various tasks across different scenarios  [15]. 
+Additionally, GPT facilitates the generation of pro gramming 
+code for building graphs or models. Jackson's study  
+demonstrates this by using GPT-3.5 to create simula tion 
+models of logistics systems in Python based on natu ral 
+language prompts [3]. Likewise, Maddigan's research  
+developed a web application powered by GPT-4 that n ot only 
+generates Python code to construct graphs but also interprets 
+and analyzes them through user queries [16]. 
+III.  EXPERIMENTATION  
+A.  Materials 
+The project aims to showcase the potential of a GPT -4-
+powered chatbot assistant for optimizing the manage ment of 
+small shops. To achieve this, an Android applicatio n will be 
+developed, enabling shop owners to efficiently hand le their 
+businesses through intelligent recommendations and 
+strategies generated by GPT-4. The app will facilit ate key 
+tasks such as product creation, supplier management , sales 
+and purchase tracking, employee management, and das hboard 
+visualization. 
+By leveraging data provided by shop owners and the GPT-
+4 model, the application will deliver personalized queries and 
+responses, addressing topics such as shop performan ce and 
+app usage. Additionally, GPT-4 will generate tailor ed 
+business recommendations, including suggested produ cts, 
+offers, and discounts, empowering shop owners with 
+actionable insights to gain a competitive edge in t heir markets. 
+The application will utilize MongoDB, a non-relatio nal 
+database, to store large volumes of data efficientl y and with 
+optimal latency. A REST API will be developed using  NestJS, 
+a Node.js framework that employs TypeScript and off ers 
+modular architecture, ensuring scalability and main tainability. 
+Furthermore, the application will integrate externa l 
+services such as Cloudflare R2, OpenAI API, AWS SES , and 
+Firebase Cloud Messaging for tasks like static file  storage and 
+push notifications. Cloud services will also be emp loyed to 
+host the API and database, specifically using Googl e Cloud’s 
+Compute Engine and MongoDB Atlas. To evaluate the application's impact, a qualitative  analysis 
+will be conducted through a user survey involving 1 5 shop 
+owners. This survey aims to assess the user experie nce and 
+determine the application’s effectiveness in improv ing shop 
+management. Additionally, it will demonstrate the r ole of the 
+GPT-4 model in enhancing business decision-making a nd 
+operational efficiency. 
+B.  Methodology 
+The project follows a clear methodology to implemen t the 
+mobile application. The application, developed in J ava 8, 
+interacts with end users to manage various tasks su ch as 
+creating products, managing suppliers, and tracking  sales. The 
+REST API, developed with NestJS, handles the busine ss logic 
+of the application and communicates with both the d atabase 
+and external services. MongoDB is used to store the  data, and 
+the OpenAI API interacts with the GPT-4 model to pr ovide 
+personalized recommendations and responses based on  the 
+shop’s context. 
+The GPT-4 model contributes significantly to the re search 
+by enabling the creation of dynamic, context-aware 
+recommendations for shop owners. When a user querie s the 
+system, the model processes the relevant data retri eved from 
+the database, such as product sales and inventory d etails, and 
+generates responses to help improve decision-making . The 
+assistant’s ability to interpret the data and provi de tailored 
+advice is critical for achieving the research objec tive of 
+enhancing small shop management through artificial 
+intelligence. 
+Additionally, Fig. 1 describes the process in which  a user 
+interacts with a GPT-based assistant. It begins whe n the user 
+asks a question. The relevant data is retrieved fro m the 
+database and saved, with a JSON file containing the  obtained 
+data. Then, a vector store is created, and the JSON  file is 
+uploaded to the vector store. A thread is created w ith the user's 
+message, and the assistant executes the thread to p rocess the 
+query. If the response is satisfactory, the process  ends; if not, 
+the user can make another query, and the process re peats.  
+Fig. 1. Flowchart of user interaction and the GPT-4  model. 
+ 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
+A survey was conducted through Google forms to find  out 
+the perception of the shop owners about the propose d 
+application. Fifteen shop owners participated in th e survey and 
+were provided with a link to download the applicati on. The 
+survey evaluated users' comfort and satisfaction wi th the 
+application and GPT-4 chatbot. The results of the s urvey 
+provided valuable information on the perceptions an d 
+experiences of the shop owners, which will enable t he 
+application to be improved and adapted to achieve g reater 
+acceptance and use in this market segment. The rati ng is based on a qualitative scale of 1 to 5, 1 "Strongly Disag ree", 2 
+"Disagree", 3 "Neutral", 4 "Agree" and 5 "Strongly Agree". 
+C.  Results 
+The initial page of the application is shown in Fig . 2, where 
+the login process takes place. After the shop owner  logs in, the 
+"Home" page is displayed, showing the current day's  sales 
+data, including "Sales" and "Total" in soles. A sma ll 
+recommendation generated by the GPT-4 model, based on the 
+shop's current data, is also provided to assist in decision-
+making. Additionally, options to manage employees, 
+suppliers, offers and discounts, and purchases are available. 
+TABLE I.  QUESTIONS AND RESPONSES OF THE SURVEY  
+No Questions Scale of responses 
+1 2 3 4 5 
+1 Is the application easy to navigate and find the de sired functions? 0.0% 13.3% 33.3% 33.3% 20.0% 
+2 Does the application provide clear and concise info rmation on inventory levels and stock 
+status? 0.0% 13.3% 46.7% 33.3% 6.7% 
+3 Does the application generate accurate and timely r eports on inventory movement and 
+sales trends? 0.0% 6.7% 20.0% 40.0% 33.3% 
+4 Is the application's user interface intuitive and  easy to use for small shop personnel? 0.0% 0.0% 13 .3% 66.7% 20.0% 
+5 Does the application help to identify and prevent  shortages and oversupply situations? 0.0% 33.3% 40 .0% 26.7% 0.0% 
+6 Is product registration easy to perform?   0.0% 0 .0% 6.7% 33.3% 60.0% 
+7 Do you consider the application useful to manage your small shop? 0.0% 0.0% 6.7% 60.0% 33.3% 
+8 Do you think that more data should be entered in the product registration?   0.0% 40% 46.7% 13.3% 0. 0% 
+9 Is the application easy and user-friendly to inst all? 0.0% 0.0% 0.0% 20.0% 80.0% 
+10 Does the customer feel that their attention is f aster because of the use of the application? 0.0% 1 3.3% 66.7% 20.0% 0.0% 
+11 Do you consider that making a sale is easy and f riendly to do? 0.0% 0.0% 13.3% 53.3% 33.3% 
+12 Do you consider that you waste less time using t he application when making a sale? 0.0% 0.0% 13.3% 46.7% 40.0% 
+13 Do you find the dashboard and graph sections where you can see how your small shop 
+is performing useful? 0.0% 13.3% 60.0% 20.0% 6.7% 
+14 Do you consider the chatbot assistant useful? 0. 0% 0.0% 0.0% 20.0% 80.0% 
+15 Do you feel that the chatbot's responses are acc urate for your needs? 0.0% 0.0.% 0.0% 33.3% 66.7% 
+     
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
+The chatbot can be accessed by swiping left from th e right 
+side of the screen, as shown in Fig. 3. Shop owners  can use 
+the chat to ask questions about their store or the application, 
+as illustrated in Fig. 4. 
+Fig. 5 shows the new product registration view, whi ch 
+includes fields for name, purchase price, stock, pr ice, unit, 
+category, subcategory, supplier, image, and barcode . 
+Barcodes are obtained from packaged products, while  codes 
+for unprocessed foods are generated and assigned. 
+Other modules in the application include dashboards , 
+employee management, product management, supplier 
+management, purchase management, offers and discoun ts, 
+sales creation, profile management, password recove ry, user 
+registration, and recommendations. 
+All questions and responses are tabulated in Table 1. 
+According to the survey, 8.89% of the results were in the 1-2 
+range, 24.44% were in the 3 range, and 66.67% were in the 4-
+5 range. These results indicate that the developed system is 
+useful for shop owners. Question number 3 received 33.3%, 
+which could be due to the complexity of an ERP (Ent erprise 
+Resource Planning). Additionally, GPT-4 has proven to be 
+valuable in streamlining processes, improving decis ion-
+making, and providing actionable insights, which fu rther 
+enhances the system’s utility for the shop owners. 
+IV.  CONCLUSIONS  
+In this paper, the design and development of a mobi le 
+application for the intelligent management of small  shops 
+using the GPT-4 model has been presented. During th e study, 
+the system architecture was proposed and a detailed  flow of 
+interaction with the GPT-4 model was elaborated. 
+According to the survey of 15 shop owners and emplo yees, 
+the application proved to be useful, interactive, a nd easy to 
+use. The GPT-4 model has enabled shop owners to que ry their 
+shop data in an efficient and interactive way, sign ificantly 
+improving data accessibility and providing quick, a ccurate 
+responses. The intuitive user interface has enhance d the user 
+experience, reducing training time and boosting pro ductivity. 
+The chatbot's data accessibility and ease of use ha ve been key 
+factors in its success, promoting rapid adoption an d efficient 
+utilization. 
+In terms of limitations, our study was based on a l imited 
+number of small shops and operational scenarios. Wh ile the 
+results were promising, the diversity of the shops evaluated 
+does not fully represent all possible variations in  the industry. 
+Additionally, the application evaluation period was  short, 
+which may not have captured all the seasonal and op erational 
+variations a small shop may experience over time. 
+For future implications, incorporating IoT devices could 
+improve product tracking and process automation in small 
+shops, revolutionizing inventory management and log istics. 
+REFERENCES  
+ 
+[1]  Schlaich, T., & Hoberg, K. (2024). When is the next  order? Nowcasting 
+channel inventories with Point-of-Sales data to pre dict the timing of 
+retail orders. European Journal of Operational Rese arch, 315(1), 35–
+49. https://doi.org/10.1016/j.ejor.2023.10.038  
+[2]  Nakano, S. (2023). Customer demand concentration in  online grocery 
+retailing: Differences between online and physical store shopping baskets. Electronic Commerce Research and Applicati ons, 62, 101336. 
+https://doi.org/10.1016/j.elerap.2023.101336  
+[3]  Jackson, I., Jesus Saenz, M., & Ivanov, D. (2024). From natural 
+language to simulations: applying AI to automate si mulation modelling 
+of logistics systems. International Journal of Prod uction Research, 
+62(4), 1434–1457. https://doi.org/10.1080/00207543. 2023.2276811  
+[4]  Dergaa, I., ben Saad, H., el Omri, A., Glenn, J., C lark, C., Washif, J., 
+Guelmami, N., Hammouda, O., Al-Horani, R., Reynoso- Sánc 
+hez, L., Romdhani, M., Paineiras-Domingos, L., Vanc ini, R., Taheri, 
+M., Mataruna-Dos-Santos, L., Trabelsi, K., Chtourou , H., Zghibi, M., 
+Eken, Ö., … Chamari, K. (2024). Using artificial int elligence for 
+exercise prescription in personalised health promot ion: A critical 
+evaluation of OpenAI’s GPT-4 model. Biology of Spor t, 41(2), 221–
+241. https://doi.org/10.5114/biolsport.2024.133661  
+[5]  Aye, G.C., Balcilar, M., Gupta, R., & Majumdar, A. (2015). 
+Forecasting aggregate retail sales: the case of Sou th Africa. 
+International Journal of Production Economics, 160,  66-79. 
+[6]  Hassija, V., Chakrabarti, A., Singh, A., Chamola, V ., & Sikdar, B. 
+(2023). Unleashing the Potential of Conversational AI: Amplifying 
+Chat-GPT’s Capabilities and Tackling Technical Hurd les. IEEE 
+Access, 11, 143657–143682. 
+https://doi.org/10.1109/ACCESS.2023.3339553 
+[7]  Ooi, K.-B., Tan, G. W.-H., Al-Emran, M., Al-Sharafi , M. A., Capatina, 
+A., Chakraborty, A., Dwivedi, Y. K., Huang, T.-L., Kar, A. K., Lee, 
+V.-H., Loh, X.-M., Micu, A., Mikalef, P., Mogaji, E ., Pandey, N., 
+Raman, R., Rana, N. P., Sarker, P., Sharma, A., … Wo ng, L.-W. 
+(2023). The Potential of Generative Artificial Inte lligence Across 
+Disciplines: Perspectives and Future Directions. Jo urnal of Computer 
+Information Systems, 1–32. 
+https://doi.org/10.1080/08874417.2023.2261010 
+[8]  Muludi, K., Fitria, K. M., Triloka, J., & -, S. (20 24). Retrieval-
+Augmented Generation Approach: Document Question An swering 
+using Large Language Model. International Journal o f Advanced 
+Computer Science and Applications, 15(3). 
+https://doi.org/10.14569/IJACSA.2024.0150379 
+[9]  Azaria, A., Azoulay, R., & Reches, S. (2024). ChatG PT is a 
+Remarkable Tool—For Experts. Data Intelligence, 6(1 ), 240–296. 
+https://doi.org/10.1162/dint_a_00235 
+[10]  Kernan Freire, S., Wang, C., Foosherian, M., Wellsa ndt, S., Ruiz-
+Arenas, S., & Niforatos, E. (2024). Knowledge shari ng in 
+manufacturing using LLM-powered tools: user study a nd model 
+benchmarking. Frontiers in Artificial Intelligence,  7. 
+https://doi.org/10.3389/frai.2024.1293084 
+[11]  Jáuregui-Velarde, R., Hernández Celis, D., Molina-V elarde, P., 
+Yactayo-Arias, C., & Andrade-Arenas, L. (2024). Eva luation of a 
+Chatbot Powered by ChatGPT for the Preliminary Diag nosis of 
+Dengue. International Journal of Online and Biomedi cal Engineering 
+(IJOE), 20(01), 58–73. https://doi.org/10.3991/ijoe .v20i01.45029 
+[12]  Zhenzhu, L., Jingfeng, Z., Wei, Z., Jianjun, Z., & Yinshui, X. (2024). 
+GPT-agents based on medical guidelines can improve the 
+responsiveness and explainability of outcomes for t raumatic brain 
+injury rehabilitation. Scientific Reports, 14(1), 7 626. 
+https://doi.org/10.1038/s41598-024-58514-9 
+[13]  Paslı, S., Şahin, A. S., Beşer, M. F., Topçuoğlu, H ., Yadigaroğlu, M., 
+& İmamoğlu, M. (2024). Assessing the precision of a rtificial 
+intelligence in ED triage decisions: Insights from a study with 
+ChatGPT. Americ 
+an Journal of Emergency Medicine, 78, 170-175. 
+[14]  Kiangala, K. S., & Wang, Z. (2024). An experimental  hybrid 
+customized AI and generative AI chatbot human machi ne interface to 
+improve a factory troubleshooting downtime in the c ontext of Industry 
+5.0. The International Journal of Advanced Manufact uring 
+Technology. 
+[15]  Wang, H., Liu, M., & Shen, W. (2023). Industrial‐ge nerative pre‐ 
+trained transformer for intelligent manufacturing s ystems. IET 
+Collaborative Intelligent Manufacturing, 5(2). 
+https://doi.org/10.1049/cim2.12078 
+[16]  Maddigan, P., & Susnjak, T. (2023). Chat2VIS: Gener ating Data 
+Visualizations via Natural Language Using ChatGPT, Codex and GPT-
+3 Large Language Models. IEEE Access, 11, 45181–451 93. 
+https://doi.org/10.1109/ACCESS.2023.3274199 
+ 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 11,2026 at 18:31:29 UTC from IEEE Xplore.  Restrictions apply. 
