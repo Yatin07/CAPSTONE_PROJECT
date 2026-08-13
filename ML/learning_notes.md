@@ -267,3 +267,24 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 2. **Metric Aggregation (Dictionaries):**
    - **What it is:** Initializing an empty dictionary (`store_metrics = {}`) outside the loop and populating it dynamically inside the loop (`store_metrics[store_id] = rmse`).
    - **Why it is used:** To collect isolated evaluation metrics (like RMSE) for hundreds of independent models, allowing for programmatic comparison or aggregation (e.g., calculating the global average RMSE across all stores) after the loop terminates.
+
+
+---
+
+## Task 12: Architectural Roadmap and ML Pipeline Planning
+
+**What we did:** Formulated a rigorous 6-phase development roadmap (`ML_Development_Plan.md`) to transition from standalone univariate Prophet models to a production-grade forecasting pipeline utilizing a Prophet-XGBoost hybrid architecture, adaptive routing heuristics, and deterministic inventory reconciliation logic.
+
+### Technical Breakdown: System Architecture Planning
+
+1. **Hybrid Residual Correction Architecture:**
+   - **What it is:** A sequential ensemble methodology where a primary temporal model (Prophet) fits global trends and seasonality, while a secondary gradient-boosted tree model (XGBoost) fits the resulting residual errors ($y - \hat{y}$) against high-dimensional exogenous feature spaces (weather, holidays).
+   - **Why it is utilized:** To overcome Prophet's inability to natively capture complex, non-linear interactions between external regressors without assuming strict additivity. XGBoost excels at isolating non-linear structural shocks in the residual space, thereby minimizing the global Mean Absolute Percentage Error (MAPE).
+
+2. **Adaptive Branching Heuristics:**
+   - **What it is:** A programmatic routing layer that evaluates the temporal depth ($N_{days}$) and sparsity (zero-inflation ratio) of an incoming target vector before model assignment.
+   - **Why it is utilized:** Standard auto-regressive models fail mathematically on cold-start items (insufficient degrees of freedom) or highly sparse vectors (singular matrices during optimization). Implementing deterministic routing prevents pipeline failure by gracefully degrading to naive category-level priors for non-stationary or unobserved data streams.
+
+3. **Deterministic Inventory Reconciliation:**
+   - **What it is:** The mathematical transformation of a continuous point forecast ($D_{pred}$) into a discrete supply chain action ($Q_{restock}$), factoring in variance-based safety buffers ($Z \times \sigma$) and on-hand states ($I_{current}$).
+   - **Why it is utilized:** Predictive accuracy (RMSE) is functionally useless in operations management without conversion to actionable procurement metrics. The bridging equation $Q = \max(0, D_{pred} + SS - I_{current})$ ensures bounded, financially safe inventory acquisition.
