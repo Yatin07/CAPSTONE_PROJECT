@@ -288,3 +288,41 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 3. **Deterministic Inventory Reconciliation:**
    - **What it is:** The mathematical transformation of a continuous point forecast ($D_{pred}$) into a discrete supply chain action ($Q_{restock}$), factoring in variance-based safety buffers ($Z \times \sigma$) and on-hand states ($I_{current}$).
    - **Why it is utilized:** Predictive accuracy (RMSE) is functionally useless in operations management without conversion to actionable procurement metrics. The bridging equation $Q = \max(0, D_{pred} + SS - I_{current})$ ensures bounded, financially safe inventory acquisition.
+
+
+---
+
+## Task 13: Architectural Revision and Pipeline Rectification
+
+**What we did:** Completely superseded the initial machine learning roadmap by explicitly defining a 9-phase architecture (`ML_Development_Plan.md`). This revision rectifies fundamental structural flaws in the prior iteration, most notably the integration of an Inventory Simulator (to generate requisite $I_{current}$ states), the formalization of the 3-phase progressive-confidence cold-start routing, and the introduction of a dedicated Waste Action Engine utilizing intraday pace mechanics.
+
+### Technical Breakdown: System Architecture Rectification
+
+1. **Inventory Simulator (Phase 3 Integration):**
+   - **What it is:** A programmatic environment that simulates the daily lifecycle of perishable and non-perishable stock ($I_{t+1} = \max(0, I_t + Q_{restock} - S_{actual})$) prior to pipeline execution.
+   - **Why it is utilized:** Machine learning models forecast continuous demand variables, not discrete inventory positions. Without a functional simulator carrying forward $I_{current}$, any downstream restock formula ($Q = D + SS - I_{current}$) is mathematically untestable on historical datasets.
+
+2. **Waste Action Engine (Intraday Heuristics):**
+   - **What it is:** An auxiliary logic layer that calculates a `sales_pace_ratio` ($S_{actual\_so\_far} / D_{predicted\_so\_far}$) and triggers dynamic, price-elasticity calibrated interventions (e.g., discounting) if the ratio breaches a defined lower bound (e.g., $< 0.6$).
+   - **Why it is utilized:** Standard forecasting only addresses the $T+1$ procurement phase. For highly perishable SME environments, mitigating sunk-cost waste during interval $T$ is equally critical to margin protection.
+
+3. **Generalization Holdout Validation (India Dataset):**
+   - **What it is:** A strict, isolated evaluation protocol utilizing a geographically and demographically distinct dataset (e.g., Indian SME data) to quantify the model's out-of-distribution (OOD) performance degradation.
+   - **Why it is utilized:** To empirically measure the generalization gap of a hybrid model trained on Western (FR/DE) data distributions, ensuring intellectual honesty regarding the model's immediate deployment viability in non-native markets without localized fine-tuning.
+
+
+---
+
+## Task 14: Comprehensive ML Roadmap Documentation & Evidence Integration
+
+**What we did:** Completely overhauled the `ML_Development_Plan.md` to serve as a singular, comprehensive master document encompassing both the 9-phase execution roadmap and the rigorous, evidence-backed justifications (Parts A, B, and C). This ensures that every architectural decision—especially regarding dynamic pricing interventions and out-of-distribution holdout validation—is grounded in empirical literature and documented explicitly.
+
+### Technical Breakdown: Evidence-Based Architecture Formalization
+
+1. **Waste Reduction Mechanism Formalization (Part A):**
+   - **What it is:** The programmatic integration of intraday markdown logic driven by a `sales_pace_ratio`, substituting theoretical waste prevention with empirical dynamic pricing tactics (discounting perishable stock mid-day based on elasticity modeling).
+   - **Why it is utilized:** Standard predictive inventory models solely mitigate future stockouts/over-ordering. Formalizing intraday markdown heuristics addresses the immediate physical decay of active inventory, mirroring real-world margin recovery strategies validated by external academic studies.
+
+2. **Feature Engineering & Generalization Validation (Parts B & C):**
+   - **What it is:** The explicit directive to construct non-linear residual features (lag structures, rolling statistical moments) for the XGBoost ensemble, coupled with a strict mandate to utilize geographically native holiday calendars (FR/DE/US).
+   - **Why it is utilized:** To prevent temporal data leakage and structural mismatch. Furthermore, isolating an Indian SME dataset strictly as a Phase 8 holdout—completely sequestered from the hyperparameter tuning and feature selection phases—guarantees a scientifically valid measurement of the model's true out-of-distribution generalization capability, rather than an artificially inflated in-distribution validation score.
