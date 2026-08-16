@@ -13,6 +13,22 @@ df_subset = df[["ds", "y"]].copy()
 
 df_subset['ds'] = pd.to_datetime(df_subset['ds'])
 
+# --- STEP 1: FEATURE ENGINEERING FOR XGBOOST ---
+# Sort by date just to be safe
+df_subset = df_subset.sort_values('ds')
+# Time-based featuresS
+df_subset['day_of_week'] = df_subset['ds'].dt.dayofweek
+df_subset['month'] = df_subset['ds'].dt.month
+# Lag features (What happened yesterday? What happened exactly a week ago?)
+df_subset['lag_1'] = df_subset['y'].shift(1)
+df_subset['lag_7'] = df_subset['y'].shift(7)
+# Rolling average (What was the average over the last week?)
+# We shift by 1 first so we don't accidentally include TODAY's sales in the average (Data Leakage!)
+df_subset['rolling_7day_avg'] = df_subset['y'].shift(1).rolling(window=7).mean()
+# Drop the first 7 rows because they will have "NaN" (empty) values from the shifting
+df_subset = df_subset.dropna().reset_index(drop=True)
+
+
 limit_date = df_subset['ds'].max() - pd.Timedelta(days=30)
 train_data = df_subset[df_subset['ds'] < limit_date]
 test_data = df_subset[df_subset['ds'] >= limit_date]
