@@ -80,3 +80,49 @@ This is the exact sequence in which the UI should be built, using the Stitch scr
 
 ## 📌 For the Frontend Team
 We will be utilizing the Stitch UI generator to scaffold these screens in Flutter. Ensure that all generated components map perfectly to the "Warm Tech" design tokens defined above.
+
+
+---
+
+## 🏗 System Architecture & Stack
+
+*   **Database & Auth:** **Firebase** (Firestore & Firebase Auth). Flutter connects directly to Firebase for real-time UI updates and seamless authentication.
+*   **Backend API:** **Python FastAPI**. It acts as the bridge for our Machine Learning. FastAPI will use the `firebase-admin` SDK to read daily sales from Firestore, run the Prophet forecasting models, and push the forecasted results back to Firestore.
+*   **UI Scaffolding:** **Stitch MCP**. 
+
+---
+
+## 🧑‍💻 Teammate Onboarding & Setup
+
+### For the Frontend (Flutter) Developer
+**1. Flutter Environment Check:**
+Open a terminal in this `APP` folder and verify your setup before writing code:
+```bash
+flutter doctor      # Ensure there are no red Xs for Android/Flutter
+flutter pub get     # Install all package dependencies
+flutter run         # Launch the app on your Android Emulator
+```
+
+**2. Accessing Stitch AI Designs:**
+You do **NOT** need the project owner's API key. 
+1. Ensure the owner has invited your Google account email to the Stitch project online.
+2. In your AI-powered IDE, authorize the Stitch MCP server with your own Google account.
+3. Prompt your AI: *"Read the RestockIQ project from Stitch MCP and build the Main Dashboard screen in Flutter."*
+
+---
+
+## 🏃 Parallel Development Plan (3 Phases)
+
+To ensure Frontend and Backend don't block each other, follow this phased approach:
+
+### Phase 1: The Foundation (Mock Data)
+*   **Frontend:** Build the App Shell, Navigation, and the **Item Setup Screen**. *This is critical so we can define items as Perishable vs Non-Perishable.*
+*   **Backend:** Set up the Firestore schema and FastAPI routes. **DO NOT** run ML models yet. Serve "fake" hardcoded JSON forecasts so the frontend can build the UI visually.
+
+### Phase 2: The Core ML Loop
+*   **Frontend:** Build the **Main Dashboard** and the **End-of-Day Input** screen using the Stitch design system.
+*   **Backend:** Integrate the Prophet/XGBoost models into FastAPI. Read the real items from Firebase, run the predictions, and serve the actual raw forecasted numbers. 
+
+### Phase 3: The "Brain" (LLM Polish)
+*   **Frontend:** Build the **Waste Action Alerts** and display the LLM text summaries.
+*   **Backend:** Integrate the OpenAI/Gemini API to analyze the Prophet forecasts and generate plain-text advice (e.g., "Order 15 extra croissants due to rain").
