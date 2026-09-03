@@ -1,67 +1,44 @@
 import pandas as pd 
 import numpy as np 
-from sklearn.metrics import mean_squared_error,mean_absolute_error,mean_absolute_percentage_error 
-import matplotlib.pyplot as plt
 from prophet import Prophet
+from prophet.diagnostics import cross_validation, performance_metrics
+import itertools
+import logging
+logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 
 df = pd.read_csv("data/processed/processed_bakery.csv")
-
 df_subset = df[["ds", "y"]].copy()
-# df_subset = df[["ds", "y", "is_weekend"]].copy()
-
-# print(df_subset.head())
-
 df_subset['ds'] = pd.to_datetime(df_subset['ds'])
 
-# --- STEP 1: FEATURE ENGINEERING FOR XGBOOST ---
-# Sort by date just to be safe
-df_subset = df_subset.sort_values('ds')
-# Time-based featuresS
-df_subset['day_of_week'] = df_subset['ds'].dt.dayofweek
-df_subset['month'] = df_subset['ds'].dt.month
-# Lag features (What happened yesterday? What happened exactly a week ago?)
-df_subset['lag_1'] = df_subset['y'].shift(1)
-df_subset['lag_7'] = df_subset['y'].shift(7)
-# Rolling average (What was the average over the last week?)
-# We shift by 1 first so we don't accidentally include TODAY's sales in the average (Data Leakage!)
-df_subset['rolling_7day_avg'] = df_subset['y'].shift(1).rolling(window=7).mean()
-# Drop the first 7 rows because they will have "NaN" (empty) values from the shifting
-df_subset = df_subset.dropna().reset_index(drop=True)
+# --- STEP 4: GRID SEARCH ON BAKERY DATA ---
+print("Starting Grid Search on Bakery Data...")
+param_grid = {  
+    'changepoint_prior_scale': [0.01, 0.05, 0.1, 0.5],
+    'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
+}
 
+# Generate all combinations of parameters
+all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
+rmses = []
 
-limit_date = df_subset['ds'].max() - pd.Timedelta(days=30)
-train_data = df_subset[df_subset['ds'] < limit_date]
-test_data = df_subset[df_subset['ds'] >= limit_date]
+for params in all_params:
+    # print(f"Testing params: {params}")
+    m = Prophet(**params)
+    m.fit(df_subset)
+    
+    # Cross validate
+    df_cv = cross_validation(m, initial='180 days', period='30 days', horizon='30 days')
+    df_p = performance_metrics(df_cv, rolling_window=1)
+    
+    rmses.append(df_p['rmse'].values[0])
 
-# print(train_data)
-# print(test_data)
+# Find the best parameters
+tuning_results = pd.DataFrame(all_params)
+tuning_results['rmse'] = rmses
 
-# model = Prophet()
-model = Prophet(changepoint_prior_scale=0.01)
-
-# model.add_regressor('is_weekend')
-model.fit(train_data)
-
-forecast = model.predict(test_data)
-
-forecast_subset= forecast[['ds','yhat', 'yhat_lower', 'yhat_upper']]
-
-# print(forecast_subset.head())
-
-mse = mean_squared_error(test_data['y'], forecast_subset['yhat'])
-print(mse)
-
-rmse = np.sqrt(mse)
-print(f"RMSE: {rmse}")
-
-mae = mean_absolute_error(test_data['y'], forecast_subset['yhat'])
-print(mae)
-
-mape = mean_absolute_percentage_error(test_data['y'], forecast_subset['yhat'])
-print(mape)
-
-fig1 = model.plot(forecast)
-fig1.savefig('bakery_forecast.png')
-
-fig2 = model.plot_components(forecast)
-fig2.savefig('bakery_components.png')
+best_params = all_params[np.argmin(rmses)]
+print("\n==================================")
+print("GRID SEARCH COMPLETE")
+print(f"Best parameters: {best_params}")
+print(f"Minimum Cross-Validated RMSE: {min(rmses):.2f}")
+print("==================================")
