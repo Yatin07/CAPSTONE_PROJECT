@@ -1,43 +1,35 @@
 ﻿import pandas as pd 
 import numpy as np 
 from prophet import Prophet
-from prophet.diagnostics import cross_validation, performance_metrics
-import itertools
+import matplotlib.pyplot as plt
 import logging
 logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 
+print('Loading dataset...')
 df = pd.read_csv('data/processed/processed_bakery.csv')
 df_subset = df[['ds', 'y']].copy()
 df_subset['ds'] = pd.to_datetime(df_subset['ds'])
 
-# --- STEP 4: GRID SEARCH ON BAKERY DATA ---
-print('Starting Grid Search on Bakery Data...')
-param_grid = {  
-    'changepoint_prior_scale': [0.01, 0.05, 0.1, 0.5],
-    'seasonality_prior_scale': [0.01, 0.1, 1.0, 10.0],
-}
+print('Training Final Prophet Model...')
+# Initialize with the winning grid-search parameters
+model = Prophet(changepoint_prior_scale=0.05, seasonality_prior_scale=0.1)
 
-# Generate all combinations of parameters
-all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
-rmses = []
+# Fit on the FULL dataset (No test split, because this is our production model)
+model.fit(df_subset)
 
-for params in all_params:
-    m = Prophet(**params)
-    m.fit(df_subset)
-    
-    # Cross validate
-    df_cv = cross_validation(m, initial='180 days', period='30 days', horizon='30 days')
-    df_p = performance_metrics(df_cv, rolling_window=1)
-    
-    rmses.append(df_p['rmse'].values[0])
+# Ask Prophet to predict the past (the exact days it just trained on)
+print('Generating historical predictions to find the residual errors...')
+historical_forecast = model.predict(df_subset)
 
-# Find the best parameters
-tuning_results = pd.DataFrame(all_params)
-tuning_results['rmse'] = rmses
+# Merge the actual sales (y) with the predicted sales (yhat)
+df_residuals = pd.merge(df_subset, historical_forecast[['ds', 'yhat']], on='ds')
 
-best_params = all_params[np.argmin(rmses)]
-print('\n==================================')
-print('GRID SEARCH COMPLETE')
-print(f'Best parameters: {best_params}')
-print(f'Minimum Cross-Validated RMSE: {min(rmses):.2f}')
-print('==================================')
+# Calculate the Residual (What Prophet missed!)
+df_residuals['residual'] = df_residuals['y'] - df_residuals['yhat']
+
+print('Prophet Model Complete! Here is a preview of the residuals:')
+print(df_residuals[['ds', 'y', 'yhat', 'residual']].tail())
+
+# Save this for the XGBoost layer
+df_residuals.to_csv('data/processed/bakery_residuals.csv', index=False)
+print('\nSaved residuals to data/processed/bakery_residuals.csv')
