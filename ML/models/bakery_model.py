@@ -1,35 +1,58 @@
-﻿import pandas as pd 
-import numpy as np 
+import pandas as pd
+import numpy as np
 from prophet import Prophet
-import matplotlib.pyplot as plt
+from prophet.diagnostics import cross_validation, performance_metrics
 import logging
+
 logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 
-print('Loading dataset...')
-df = pd.read_csv('data/processed/processed_bakery.csv')
-df_subset = df[['ds', 'y']].copy()
-df_subset['ds'] = pd.to_datetime(df_subset['ds'])
+# 1. Load the new item-level primary dataset
+df = pd.read_csv('data/processed/primary_items.csv')
+df['ds'] = pd.to_datetime(df['ds'])
 
-print('Training Final Prophet Model...')
-# Initialize with the winning grid-search parameters
-model = Prophet(changepoint_prior_scale=0.05, seasonality_prior_scale=0.1)
+all_residuals = []
 
-# Fit on the FULL dataset (No test split, because this is our production model)
-model.fit(df_subset)
+# 2. Loop through all 35 primary items
+unique_items = df['article'].unique()
 
-# Ask Prophet to predict the past (the exact days it just trained on)
-print('Generating historical predictions to find the residual errors...')
-historical_forecast = model.predict(df_subset)
+print(f'Starting Prophet training and Out-of-Fold residual generation for {len(unique_items)} items...')
 
-# Merge the actual sales (y) with the predicted sales (yhat)
-df_residuals = pd.merge(df_subset, historical_forecast[['ds', 'yhat']], on='ds')
+for item in unique_items:
+    try:
+        print(f'\nProcessing: {item}')
+        
+        # Filter for just this item
+        df_item = df[df['article'] == item].copy()
+        
+        # Initialize the model (using baseline defaults since full tuning is pending)
+        model = Prophet(changepoint_prior_scale=0.05, seasonality_prior_scale=0.1)
+        model.fit(df_item)
+        
+        # 3. Generate OUT-OF-FOLD predictions
+        df_cv = cross_validation(model, initial='180 days', period='30 days', horizon='30 days', disable_tqdm=True)
+        
+        # Calculate metrics for logging
+        df_p = performance_metrics(df_cv, rolling_window=1)
+        rmse = df_p['rmse'].values[0]
+        mae = df_p['mae'].values[0]
+        print(f'[{item}] Success - RMSE: {rmse:.2f} | MAE: {mae:.2f}')
+        
+        # Calculate the true out-of-fold residual
+        df_cv['residual'] = df_cv['y'] - df_cv['yhat']
+        df_cv['article'] = item
+        
+        # Keep only the columns we need for XGBoost
+        df_cv_clean = df_cv[['ds', 'article', 'y', 'yhat', 'residual']]
+        all_residuals.append(df_cv_clean)
+        
+    except Exception as e:
+        print(f'[{item}] FAILED: {str(e)}')
+        continue
 
-# Calculate the Residual (What Prophet missed!)
-df_residuals['residual'] = df_residuals['y'] - df_residuals['yhat']
-
-print('Prophet Model Complete! Here is a preview of the residuals:')
-print(df_residuals[['ds', 'y', 'yhat', 'residual']].tail())
-
-# Save this for the XGBoost layer
-df_residuals.to_csv('data/processed/bakery_residuals.csv', index=False)
-print('\nSaved residuals to data/processed/bakery_residuals.csv')
+# 4. Combine all items into one massive dataset
+if all_residuals:
+    final_residuals_df = pd.concat(all_residuals, ignore_index=True)
+    final_residuals_df.to_csv('data/processed/bakery_residuals.csv', index=False)
+    print(f'\nSuccess! Out-of-fold residuals saved to data/processed/bakery_residuals.csv for {len(all_residuals)} items.')
+else:
+    print('\nError: No residuals were generated.')
