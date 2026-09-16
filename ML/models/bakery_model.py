@@ -26,6 +26,7 @@ for item in unique_items:
         
         # Initialize the model (using baseline defaults since full tuning is pending)
         model = Prophet(changepoint_prior_scale=0.05, seasonality_prior_scale=0.1)
+        model.add_country_holidays(country_name="FR")
         model.fit(df_item)
         
         # 3. Generate OUT-OF-FOLD predictions
