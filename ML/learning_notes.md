@@ -326,3 +326,43 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 2. **Feature Engineering & Generalization Validation (Parts B & C):**
    - **What it is:** The explicit directive to construct non-linear residual features (lag structures, rolling statistical moments) for the XGBoost ensemble, coupled with a strict mandate to utilize geographically native holiday calendars (FR/DE/US).
    - **Why it is utilized:** To prevent temporal data leakage and structural mismatch. Furthermore, isolating an Indian SME dataset strictly as a Phase 8 holdout—completely sequestered from the hyperparameter tuning and feature selection phases—guarantees a scientifically valid measurement of the model's true out-of-distribution generalization capability, rather than an artificially inflated in-distribution validation score.
+
+---
+
+## Task 15: Prophet Architecture Refinement (Methodological Falsification)
+
+**What we did:** We diagnosed a structural failure in our baseline Prophet model when forecasting the French Bakery dataset, specifically its inability to mathematically resolve a massive, consistent step-change in July/August sales volume (a 3x summer tourist spike) followed by a sharp September crash. We rectified this by transitioning to multiplicative seasonality, extending the cross-validation initial window to 365 days (ensuring the model trains on at least one full yearly cycle before evaluating), and injecting a dedicated, explainable Boolean regressor (is_tourist_season) to handle the block-level variance.
+
+### Technical Breakdown: Explainable Interventions vs. Tuning
+
+1.  **Multiplicative Seasonality vs. Additive Seasonality:**
+    -   **What it is:** Transitioning the foundational Prophet equation from y(t) = g(t) + s(t) to y(t) = g(t) * (1 + s(t)).
+    -   **Why it is used:** Additive seasonality assumes that the magnitude of seasonal fluctuations (e.g., weekend spikes) remains constant regardless of the baseline trend. Multiplicative seasonality assumes that seasonal fluctuations scale proportionally with the baseline trend. In our dataset, a 3x baseline shift during summer naturally resulted in wider absolute weekend spikes; multiplicative seasonality correctly modeled this proportional scaling, marginally reducing global error.
+
+2.  **Explainable Boolean Regressors for Known Step-Changes:**
+    -   **What it is:** Injecting model.add_regressor('is_tourist_season') to mathematically account for the 60-day summer tourist block.
+    -   **Why it is used in an engineering context:** Prophet utilizes Fourier series to map smooth, continuous seasonal curves. It is mathematically incapable of modeling abrupt, sustained step-changes (like a sudden 3x multiplier from July 1 to August 31) using Fourier terms. By mapping the known tourist window to a discrete Boolean regressor, Prophet treats it as a static external shock (a multiplier), instantly snapping the forecast baseline up on July 1 and immediately crashing it back down on September 1, completely resolving the severe lag errors originally observed during the September crash.
+
+3.  **Cross-Validation Integrity (initial='365 days'):**
+    -   **What it is:** Enforcing a strict 1-year minimum training boundary prior to out-of-fold evaluation.
+    -   **Why it is used:** Evaluating a time-series model on seasonal patterns it has never encountered in training (e.g., evaluating Summer 2021 when the model was only trained on Jan-May 2021) guarantees failure and skews the aggregate error metrics. By mandating a 365-day initial window, we ensure every fold evaluated has successfully observed the complete cyclical variance of a calendar year.
+
+---
+
+## Task 16: The Failed Hybrid Falsification (XGBoost Residual Engine Validation)
+
+**What we did:** We implemented Phase 3 of the ML Roadmap by feeding Prophet's out-of-fold residuals into an XGBoost Regressor (specifically HistGradientBoostingRegressor) utilizing complex temporal lags and calendar features. We executed a strict out-of-sample temporal split (training prior to June 2022, evaluating post-June 2022) to determine if the hybrid model could outperform the explainable Prophet baseline.
+
+### Technical Breakdown: The Limits of Machine Learning
+
+1.  **Residual Feature Engineering:**
+    -   **What it is:** Constructing autoregressive lag features (y_lag_1, y_lag_7, y_rolling_7_mean) mathematically isolated by entity (df.groupby('article').shift(1)) to avoid cross-item data leakage.
+    -   **Why it is used:** To provide the gradient-boosted tree with historical memory, allowing it to detect non-linear autocorrelations within the residual space that Prophet's linear assumptions missed.
+
+2.  **The Falsification Verdict (Why the Hybrid Failed):**
+    -   **Empirical Outcome:** While XGBoost successfully reduced the error for the single highest-volume item (Traditional Baguette, selling 266 units/day) by ~5%, it objectively *worsened* the error for nearly every other item, resulting in a **volume-weighted performance loss of 1.26%** across the primary business. 
+    -   **The Scientific Diagnosis (Permutation Importance):** By extracting the feature importances from the XGBoost model, we observed that the is_tourist_season interaction was assigned a weight of exactly 0.0000. Prophet's domain-specific regressor (implemented in Task 15) had already extracted 100% of the true structural variance. Consequently, the remaining residuals contained insufficient exploitable signal relative to the daily noise.
+    -   **Overfitting the Noise:** Without true structural signal remaining, the gradient-boosted tree simply latched onto the immediate preceding error (esidual_lag_1) and attempted to extrapolate it. While this randomly succeeded on the June evaluation split, shifting the evaluation split back to May caused a complete collapse in accuracy, proving the XGBoost layer was merely memorizing noise rather than capturing genuine out-of-sample patterns.
+
+3.  **The Capstone Conclusion (Volume Dictates Complexity):**
+    -   This falsification explicitly proves that a meticulously configured statistical baseline (Prophet with domain regressors) definitively outperforms a complex black-box hybrid in high-variance, moderate-volume retail environments. The hybrid approach is structurally unjustified unless the underlying sales volume is massive enough to insulate structural residuals from random daily noise.
