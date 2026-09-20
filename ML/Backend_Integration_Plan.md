@@ -5,11 +5,11 @@ This document outlines the requirements and action plan for integrating our stan
 ---
 
 ## 📂 1. ML Model Paths
-We have successfully developed two baseline models using Facebook Prophet. These scripts currently live here:
-*   **Single-Item Model (Bakery):** `e:\CAP\ML\models\bakery_model.py`
-*   **Multi-Store/Multi-Item Loop (Rossmann):** `e:\CAP\ML\models\rossmann_model.py`
+We have successfully developed the core baseline and hybrid models using Facebook Prophet and XGBoost. The scripts currently live here:
+*   **Global Pooled Model Pipeline (Primary Items):** `e:\CAP\ML\global_model_verification.py` / `global_model.py`
+*   *(Legacy/Baseline)* **Single-Item Model (Bakery):** `e:\CAP\ML\models\bakery_model.py`
 
-*Note: Currently, these are standalone scripts that read from CSVs. They must be refactored into callable functions.*
+*Note: Currently, these are standalone scripts that read from CSVs. The final architecture relies on the Pooled Global Model, which must be refactored into a callable inference function.*
 
 ---
 
@@ -37,13 +37,14 @@ The backend team should follow this exact sequence to ensure the frontend team i
     *   Instead of `pd.read_csv`, the function must accept a Pandas DataFrame passed from Firestore.
     *   Example signature: `def generate_forecast(historical_data: pd.DataFrame, days_ahead: int = 1) -> float:`
 
-### Phase 3: Connect FastAPI to Prophet (REAL DATA)
-*   **Task:** Update the `/forecast` endpoint to run the real ML model.
+### Phase 3: Connect FastAPI to the Global Pooled Model (REAL DATA)
+*   **Task:** Update the `/forecast` endpoint to run the real ML pipeline.
 *   **Action:** When the endpoint is hit, FastAPI should:
-    1. Fetch the last 30+ days of sales for that item from Firestore.
-    2. Convert it into a Pandas DataFrame (`ds`, `y`).
-    3. Pass it to the refactored Prophet function.
-    4. Return the predicted `yhat` to the Flutter app.
+    1. Fetch the historical sales data for the required items from Firestore.
+    2. Convert it into a Pandas DataFrame (`ds`, `y`, `article`).
+    3. Generate Prophet components (`trend`, `weekly`, `yearly`, `is_tourist_season`) per item, then engineer lag features (`lag_1`, `rolling_7_mean`).
+    4. Pass the combined features into the globally trained XGBoost model.
+    5. Return the final predicted `y` to the Flutter app.
 
 ### Phase 4: The LLM "Brain" (Postponed for later)
 *   **Task:** Generate plain-text advice.

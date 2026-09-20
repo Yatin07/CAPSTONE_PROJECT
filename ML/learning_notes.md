@@ -345,24 +345,43 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 
 3.  **Cross-Validation Integrity (initial='365 days'):**
     -   **What it is:** Enforcing a strict 1-year minimum training boundary prior to out-of-fold evaluation.
-    -   **Why it is used:** Evaluating a time-series model on seasonal patterns it has never encountered in training (e.g., evaluating Summer 2021 when the model was only trained on Jan-May 2021) guarantees failure and skews the aggregate error metrics. By mandating a 365-day initial window, we ensure every fold evaluated has successfully observed the complete cyclical variance of a calendar year.
+    -   **Why it is used:** Evaluating a time-series model on seasonal patterns it has never encountered in training (e.g., evaluating Summer 2021 when the model was only trained on Jan-May 2021) guarantees failure and skews the aggregate error metrics. By mandating a 365-day initial window, we ensure every fold evaluated has successfully observed the complete cyclical variance of a calendar## Task 16: The Failed Hybrid Falsification (Per-Item XGBoost Residual Engine)
+
+**What we did:** We implemented Phase 3 of the ML Roadmap by feeding Prophet's out-of-fold residuals into an XGBoost Regressor (specifically HistGradientBoostingRegressor) utilizing complex temporal lags and calendar features. We executed a strict out-of-sample temporal split (training prior to June 2022, evaluating post-June 2022) to determine if the per-item hybrid model could outperform the explainable Prophet baseline.
+
+### Technical Breakdown: The Limits of Machine Learning on Sparse Data
+
+1.  **Residual Feature Engineering:**
+    -   **What it is:** Constructing autoregressive lag features (`y_lag_1`, `y_lag_7`, `y_rolling_7_mean`) mathematically isolated by entity (`df.groupby('article').shift(1)`) to avoid cross-item data leakage.
+    -   **Why it is used:** To provide the gradient-boosted tree with historical memory, allowing it to detect non-linear autocorrelations within the residual space that Prophet's linear assumptions missed.
+
+2.  **The Falsification Verdict (Why the Per-Item Hybrid Failed):**
+    -   **Empirical Outcome:** While XGBoost successfully reduced the error for the single highest-volume item (Traditional Baguette, selling 266 units/day) by ~5%, it objectively *worsened* the error for nearly every other item, resulting in a **volume-weighted performance loss of 1.26%** across the primary business. 
+    -   **The Scientific Diagnosis:** By extracting the feature importances, we observed that Prophet's domain-specific regressor had already extracted 100% of the true structural seasonal variance. Consequently, the remaining residuals contained insufficient exploitable signal relative to the daily noise.
+    -   **Data Starvation & Overfitting:** A gradient-boosted tree trained on merely ~500 rows of a single item's daily history cannot learn robust non-linear patterns. It simply latched onto the immediate preceding error (`residual_lag_1`) and memorized the training noise. When evaluated on an earlier split (May 1st), the accuracy collapsed entirely, proving it failed to generalize.
 
 ---
 
-## Task 16: The Failed Hybrid Falsification (XGBoost Residual Engine Validation)
+## Task 17: The Pooled Global Model (M5 Walmart Architecture)
 
-**What we did:** We implemented Phase 3 of the ML Roadmap by feeding Prophet's out-of-fold residuals into an XGBoost Regressor (specifically HistGradientBoostingRegressor) utilizing complex temporal lags and calendar features. We executed a strict out-of-sample temporal split (training prior to June 2022, evaluating post-June 2022) to determine if the hybrid model could outperform the explainable Prophet baseline.
+**What we did:** We abandoned the per-item residual hybrid and redesigned the architecture based on the winning methodology of the M5 Walmart competition. Instead of training one XGBoost model per item on residuals, we trained **one single, globally-aware HistGradientBoostingRegressor** across all 35 primary items simultaneously. We fed it the raw sales `y` as the target, and used Prophet's decomposed structure (trend, weekly, yearly, tourist_season) as input features alongside the lag structures.
 
-### Technical Breakdown: The Limits of Machine Learning
+### Technical Breakdown: Cross-Learning and Structural Verification
 
-1.  **Residual Feature Engineering:**
-    -   **What it is:** Constructing autoregressive lag features (y_lag_1, y_lag_7, y_rolling_7_mean) mathematically isolated by entity (df.groupby('article').shift(1)) to avoid cross-item data leakage.
-    -   **Why it is used:** To provide the gradient-boosted tree with historical memory, allowing it to detect non-linear autocorrelations within the residual space that Prophet's linear assumptions missed.
+1.  **Pooled Cross-Learning vs. Per-Item Isolation:**
+    -   **What it is:** Concatenating all 35 items into a single long-format DataFrame and training one unified tree model, treating the `article` identifier as a categorical feature.
+    -   **Why it works:** Data starvation is solved. Instead of 500 rows, the model now trains on 500 × 35 ≈ 17,500 rows. It has enough combined data to learn robust shared behaviors across the entire catalog (e.g., "when lag_1 is low but Prophet trend is high, scale down the prediction").
 
-2.  **The Falsification Verdict (Why the Hybrid Failed):**
-    -   **Empirical Outcome:** While XGBoost successfully reduced the error for the single highest-volume item (Traditional Baguette, selling 266 units/day) by ~5%, it objectively *worsened* the error for nearly every other item, resulting in a **volume-weighted performance loss of 1.26%** across the primary business. 
-    -   **The Scientific Diagnosis (Permutation Importance):** By extracting the feature importances from the XGBoost model, we observed that the is_tourist_season interaction was assigned a weight of exactly 0.0000. Prophet's domain-specific regressor (implemented in Task 15) had already extracted 100% of the true structural variance. Consequently, the remaining residuals contained insufficient exploitable signal relative to the daily noise.
-    -   **Overfitting the Noise:** Without true structural signal remaining, the gradient-boosted tree simply latched onto the immediate preceding error (esidual_lag_1) and attempted to extrapolate it. While this randomly succeeded on the June evaluation split, shifting the evaluation split back to May caused a complete collapse in accuracy, proving the XGBoost layer was merely memorizing noise rather than capturing genuine out-of-sample patterns.
+2.  **Prophet as a Feature Extractor (Not a Baseline):**
+    -   **What it is:** Prophet is fitted on the training split to extract its structural components (`trend`, `weekly`, `yearly`, `is_tourist_season`). These are fed as columns into XGBoost.
+    -   **Why it works:** XGBoost struggles with long-term trend extrapolation. By feeding it Prophet's mathematical trend, we give it a structural baseline, which it then dynamically adjusts using its superior short-term autoregressive capabilities (`lag_1`).
 
-3.  **The Capstone Conclusion (Volume Dictates Complexity):**
-    -   This falsification explicitly proves that a meticulously configured statistical baseline (Prophet with domain regressors) definitively outperforms a complex black-box hybrid in high-variance, moderate-volume retail environments. The hybrid approach is structurally unjustified unless the underlying sales volume is massive enough to insulate structural residuals from random daily noise.
+3.  **Strict Leakage Audit and Out-of-Sample Falsification:**
+    -   **The Leakage Check:** We verified that Prophet was fitted *only* on the training split (`< split_date`) before projecting its components across the test set. If Prophet is fitted on the full dataset, its components secretly leak test-period knowledge to the XGBoost model.
+    -   **The Empirical Win:** On a strict out-of-sample split (June 1st), the Pooled Global Model achieved a **22.75%** volume-weighted WAPE, drastically outperforming the true Prophet baseline of **29.43%** (a 6.68% absolute improvement). The falsification split (May 1st) confirmed this, dropping the baseline from 32.46% to 24.02% (an 8.44% improvement).
+
+4.  **The Brioche Proof (Damping the Multiplicative Overshoot):**
+    -   Prophet (using multiplicative seasonality) wildly overshot on low-volume items like Brioche during the summer, predicting 8-11 units on days that only sold 1-4 units.
+    -   The Pooled Global Model mathematically corrected this. By cross-referencing Prophet's aggressive trend against the recent actual sales (`lag_1`, `rolling_7_mean`), XGBoost learned to clamp down on the seasonal overshoot, shaving off over 100 units of absolute error on Brioche alone in the 3-month test window.
+
+**Final Architectural Lock:** For high-volume primary items (>10 units/day), the correct ML architecture is a **Prophet Decomposition + Pooled Global Gradient-Boosting Model**. For sparse items (<10 units/day), pure statistical/Bayesian methods (Phase 1/2 Cold-Start) must be utilized.

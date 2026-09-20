@@ -1,0 +1,61 @@
+﻿import json
+
+categories = {
+    'Breads & Baguettes': [
+        'BAGUETTE APERO', 'BAGUETTE GRAINE', 'BOULE POLKA', 'DEMI PAIN', 
+        'PAIN DE MIE', 'PAIN GRAINES', 'PAIN NOIR', 'PAIN S/SEL', 
+        'SPECIAL BREAD KG', 'VIK BREAD', 'DIVERS BOULANGERIE'
+    ],
+    'Viennoiserie': [
+        'BRIOCHE DE NOEL', 'BRIOCHETTE', 'CHOU CHANTILLY', 'GACHE', 
+        'PAIN SUISSE PEPITO', 'PALMIER', 'SACHET DE VIENNOISERIE', 
+        'SACHET VIENNOISERIE', 'VIENNOISE', 'DIVERS VIENNOISERIE'
+    ],
+    'Holiday Specialty': [
+        'BUCHE 4PERS', 'BUCHE 6PERS', 'BUCHE 8PERS',
+        'GAL FRANGIPANE 4P', 'GAL FRANGIPANE 6P', 
+        'GAL POIRE CHOCO 4P', 'GAL POIRE CHOCO 6P', 
+        'GAL POMME 4P', 'GAL POMME 6P', 'GALETTE 8 PERS'
+    ],
+    'Patisserie / Desserts': [
+        '12 MACARON', 'ARMORICAIN', 'BOTTEREAU', 'BROWNIES', 'CAKE', 
+        'CARAMEL NOIX', 'CHOCOLAT', 'CRUMBLE', 'CRUMBLECARAMEL OU PISTAE', 
+        'DELICETROPICAL', 'DOUCEUR D HIVER', 'ECLAIR FRAISE PISTACHE', 
+        'ENTREMETS', 'FINANCIER', 'FLAN', 'FLAN ABRICOT', 'FONDANT CHOCOLAT', 
+        'FRAISIER', 'FRAMBOISIER', 'GD FAR BRETON', 'GD KOUIGN AMANN', 
+        'GD NANTAIS', 'GRAND FAR BRETON', 'MACARON', 'MERINGUE', 
+        'MILLES FEUILLES', 'NANTAIS', 'NID DE POULE', 'NOIX JAPONAISE', 
+        'PAILLE', 'PALET BRETON', 'PARIS BREST', 'PLAQUE TARTE 25P', 
+        'PT NANTAIS', 'REDUCTION SUCREES 12', 'REDUCTION SUCREES 24', 
+        'RELIGIEUSE', 'ROYAL', 'ROYAL 4P', 'ROYAL 6P', 'SABLE F  P', 
+        'SAVARIN', 'ST HONORE', 'TARTE FINE', 'TARTE FRAISE 4PER', 
+        'TARTE FRAISE 6P', 'TARTE FRUITS 4P', 'TARTE FRUITS 6P', 
+        'TARTELETTE CHOC', 'TARTELETTE COCKTAIL', 'TARTELETTE FRAISE', 
+        'TRIANGLES', 'TROIS CHOCOLAT', 'TROPEZIENNE', 'TROPEZIENNE FRAMBOISE', 
+        'TULIPE', 'DIVERS PATISSERIE'
+    ],
+    'Savory Food / Lunch': [
+        'FORMULE PATE', 'FORMULE PLAT PREPARE', 'GD PLATEAU SALE', 'PATES', 
+        'PLAT', 'PLAT 6.50E', 'PLAT 7.00', 'PLAT 7.60E', 'PLAT 8.30E', 
+        'PLATPREPARE5,50', 'PLATPREPARE6,00', 'PLATPREPARE6,50', 
+        'PLATPREPARE7,00', 'PT PLATEAU SALE', 'SAND JB', 'TRAITEUR', 
+        'DIVERS SANDWICHS'
+    ],
+    'Beverages & Sweets': [
+        'DIVERS BOISSONS', 'GRANDE SUCETTE', 'SUCETTE', 'THE', 'DIVERS CONFISERIE'
+    ],
+    'Data Artifacts (Drop)': [
+        '.', 'ARTICLE 295', 'GUERANDAIS', 'SACHET DE CROUTON'
+    ]
+}
+
+# Invert for fast lookup
+item_to_category = {}
+for cat, items in categories.items():
+    for item in items:
+        item_to_category[item] = cat
+
+with open('E:/CAP/ML/data/processed/sparse_categories.json', 'w') as f:
+    json.dump(categories, f, indent=4)
+
+print("Categories saved to sparse_categories.json")

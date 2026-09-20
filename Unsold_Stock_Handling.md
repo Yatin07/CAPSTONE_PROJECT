@@ -30,15 +30,15 @@ However, the AI is not stupid—it learns from the waste, which brings us to the
 
 ---
 
-## 2. Machine Learning Feedback Loop (XGBoost Residuals)
-If food is not selling, the historical sales data (`y`) being fed back into the Prophet + XGBoost model drops. 
+## 2. Machine Learning Feedback Loop (Pooled Global XGBoost & Lags)
+If food is not selling, the historical sales data (`y`) being fed back into the ML pipeline drops. 
 
-1. **Trend Correction (Prophet):** Prophet will detect that the overall trend for that item is dropping and will automatically lower the baseline prediction for the following weeks.
-2. **Shock Correction (XGBoost):** This is where XGBoost shines. If the food didn't sell because of an external shock (e.g., a sudden thunderstorm or a public holiday where the cafe was empty), XGBoost analyzes that weather/holiday data. The next time a thunderstorm is predicted, XGBoost will aggressively slash the Prophet forecast (the "residual correction" mentioned on Slide 9), ensuring the owner bakes significantly less food that day.
+1. **Trend Extraction (Prophet):** Prophet acts as our structural baseline. It will detect that the overall long-term trend for that item is dropping and will mathematically lower the seasonal curve for the following weeks.
+2. **Immediate Shock Correction (Global XGBoost):** This is where the pooled global gradient-boosting model shines. It does not just look at Prophet's long-term trend; it cross-references it against yesterday's actual sales (`lag_1`) and the 7-day rolling average (`rolling_7day_mean`). Because it is trained globally across all items, it has learned a robust rule: *if Prophet predicts a massive seasonal spike, but `lag_1` is very low, ignore the seasonal spike.* If the food didn't sell due to a sudden shock (like a thunderstorm), the XGBoost layer detects the drop in the lag features and aggressively clamps down on Prophet's forecast for the next day, ensuring the owner bakes significantly less food until the actual sales velocity recovers.
 
 ---
 
 ## Summary for the Panel / Viva
 If the panel asks you this question, here is your 30-second script:
 
-*"That is exactly why we built the **Restock Logic** layer instead of just giving the user the raw AI prediction. The AI predicts the demand, but our deterministic Python logic takes that demand and subtracts the **Current Inventory on Hand**. If we ordered 50 cakes yesterday and sold zero, the system sees 50 cakes on the shelf and recommends ordering zero today. Furthermore, those zero sales are fed back into our XGBoost model, which learns the negative trend and lowers all future predictions, ensuring the waste doesn't happen again."*
+*"That is exactly why we built the **Restock Logic** layer instead of just giving the user the raw AI prediction. The AI predicts the demand, but our deterministic Python logic takes that demand and subtracts the **Current Inventory on Hand**. If we ordered 50 cakes yesterday and sold zero, the system sees 50 cakes on the shelf and recommends ordering zero today. Furthermore, those low sales are fed back into our ML model as lag features. The pooled XGBoost engine sees the low sales from yesterday, learns the negative shock, and mathematically suppresses Prophet's future predictions, ensuring the waste doesn't compound."*

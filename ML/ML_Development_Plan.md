@@ -6,11 +6,11 @@
 
 ## The 9-Phase Execution Plan
 
-### Phase 1: Prophet + XGBoost Hybrid Engine
-*   **Base Prophet Training** — train on historical `y` (sales) per dataset to capture trend + weekly seasonality; generate in-sample `yhat`.
-*   **Residual Calculation** — `Residual = Actual Sales (y) − Prophet Prediction (yhat)`.
-*   **XGBoost Training** — target = `Residual`; features = `lag_1`, `lag_7`, `rolling_7day_avg`, `day_of_week`, `is_weekend`, `month`, `promo` (Rossmann only), `is_holiday`.
-*   **Hybrid Inference** — `Forecast = Prophet_Prediction + XGBoost_Predicted_Residual`.
+### Phase 1: Prophet Decomposition + Pooled Global Gradient-Boosting Engine (M5 Architecture)
+*   **Base Prophet Training (Per Item)** — train on historical `y` (sales) per item using strict out-of-sample discipline. Extract structural components: `trend`, `weekly`, `yearly`, `is_tourist_season`, `holidays`.
+*   **Data Pooling** — combine all 35 primary items into a single long-format dataset, assigning `article` as a categorical feature.
+*   **Global XGBoost Training** — target = `y` (actual sales, NOT residuals); features = `article`, `lag_1`, `lag_7`, `rolling_7day_avg`, plus Prophet's extracted components (`trend`, `weekly`, `is_tourist_season`, etc.).
+*   **Inference** — the single globally-trained XGBoost model predicts the final sales figure for all items.
 
 ### Phase 2: Holiday Feature Integration
 *   **Holiday flags** — per-dataset-correct calendars, not one generic call:
@@ -50,11 +50,10 @@
 
 ### Phase 7: Evaluation & Benchmarking
 *   **Metrics** — RMSE, MAE, MAPE, computed identically across:
-    *   Model A: Standalone XGBoost
-    *   Model B: Standalone Prophet (current baseline)
-    *   Model C: Custom Hybrid
+    *   Model A: Standalone Prophet (current baseline)
+    *   Model B: Pooled Global XGBoost with Prophet Features
 *   **Time-series split only** — no random shuffling; last 15–20% chronologically as test set, per dataset.
-*   **Report the actual result.** No pre-set target percentage — the improvement (or lack of it) over Model B is measured, not decided in advance. If Model C underperforms on any dataset, report that honestly.
+*   **Report the actual result.** No pre-set target percentage — the improvement (or lack of it) over Model A is measured, not decided in advance. If Model B underperforms on any dataset, report that honestly.
 
 ### Phase 8: Final Holdout Validation — Indian Dataset
 *Separate from Phases 1–7. Purpose: test generalization of a model trained on non-Indian data.*
@@ -85,7 +84,7 @@ Dynamic/markdown pricing on perishables — reducing price as the item approache
 ---
 
 ## Part B: Model Accuracy Roadmap
-1. **Feature Engineering:** Prophet+XGBoost hybrids outperform standalone Prophet specifically because XGBoost captures non-linear patterns Prophet's trend/seasonality misses — but only with good features (`lag_1`, `lag_7`, `lag_14`, `rolling_7day_avg`, `rolling_7day_std`, `day_of_week`, `is_weekend`, `month`).
+1. **Feature Engineering & Architecture:** A per-item XGBoost residual hybrid fails due to data starvation (overfitting noise on sparse 500-row histories). The correct architecture leverages the M5 Walmart competition winning strategy: extracting Prophet's trend/seasonality components as features, then training **one pooled global gradient-boosting model** across all items simultaneously. This enables robust cross-item learning and allows XGBoost's short-term lags to successfully damp Prophet's occasional mathematical overshoots on low-volume items.
 2. **India-Specific Calendar:** Prophet supports India natively (`model.add_country_holidays(country_name='IN')`). However, adding this to French/German data is scientifically wrong. The India holiday layer is a *deployment-readiness feature*, not a training-data feature. Document it as: "the system is built to support Indian festival/holiday effects when deployed on real Indian café data".
 3. **Model/Ensemble Technique:** Use time-series cross-validation (walk-forward), never random k-fold (which leaks future data). Tune XGBoost hyperparameters via Bayesian optimization (e.g., Optuna) rather than manual guessing.
 
