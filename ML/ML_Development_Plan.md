@@ -28,11 +28,13 @@
 *   **Perishable flag:** if perishable, `leftover → 0` next day (thrown away); if non-perishable, leftover carries forward as next day's `current_inventory`.
 *   **Output:** total demand, total sales, total restock ordered, total waste — this becomes the backtest proof that restock logic prevents compounding over-ordering.
 
-### Phase 4: Adaptive Cold-Start Branching
-*Use the 3-phase progressive-confidence model:*
-*   **Day 1–13:** category-level prior (e.g., category moving average) — insufficient history for Prophet/XGBoost to be reliable.
-*   **Day 14–30:** blended forecast (weighted mix of category prior and emerging item-level Prophet signal).
-*   **Day 30+:** fully user-trained Prophet+XGBoost hybrid.
+### Phase 4: Adaptive Cold-Start Branching (Sparse Items)
+*Use a 3-phase progressive-confidence model designed for zero-inflated retail data:*
+*   **Day 1–13:** Category-Day Prior (90th Percentile). Instead of `mean + std` (which breaks on skewed sparse data), use the 90th percentile of historical category sales for that specific day of the week. 
+    *   *Design Consideration (The "Zero-Forever" Trap):* For highly sparse categories where the 90th percentile is 0, the system must enforce a minimal trial-stocking heuristic (e.g., forcing a floor of 1 unit every 2-3 days) to prevent a self-fulfilling prophecy where an item never sells because it is never stocked.
+*   **Day 14–30:** Bayesian Credibility Weighting. Blend the category prior with the item's emerging history using $W = n / (n + k)$, where $n$ is the number of days of item history.
+    *   *The Constant $k$:* $k$ is derived per category based on its historical variance. Noisier categories receive a higher $k$, meaning they require more real-world days before the item's own noisy data is trusted over the category prior.
+*   **Day 30+:** Fully item-driven. The item graduates to the standard Prophet Decomposition + Pooled Global XGBoost pipeline.
 
 ### Phase 5: Deterministic Restock Logic Layer
 *   **Safety stock** — `1.65 * std_dev(demand)` as the dynamic buffer.

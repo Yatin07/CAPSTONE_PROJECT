@@ -385,3 +385,24 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
     -   The Pooled Global Model mathematically corrected this. By cross-referencing Prophet's aggressive trend against the recent actual sales (`lag_1`, `rolling_7_mean`), XGBoost learned to clamp down on the seasonal overshoot, shaving off over 100 units of absolute error on Brioche alone in the 3-month test window.
 
 **Final Architectural Lock:** For high-volume primary items (>10 units/day), the correct ML architecture is a **Prophet Decomposition + Pooled Global Gradient-Boosting Model**. For sparse items (<10 units/day), pure statistical/Bayesian methods (Phase 1/2 Cold-Start) must be utilized.
+
+---
+
+## Task 18: Cold-Start Logic for Sparse Items
+
+**What we did:** We developed the routing heuristic for 114 low-volume/sparse items that cannot be modeled by the pooled global model due to massive data sparsity. We grouped these items into logical buckets (Breads, Patisserie, Savory, etc.) and calculated statistical category priors to serve as fallback predictions.
+
+### Technical Breakdown: Bayesian Priors and Sparsity
+
+1.  **The Flaw of `Mean + Std` on Zero-Inflated Data:**
+    -   Initially, we considered using `mean + 1 std` to compute a safe category prior. However, empirical analysis showed that standard deviation vastly exceeded the mean for almost all sparse categories.
+    -   **Why it breaks:** `Mean + Std` assumes a normal (bell-curve) distribution. Sparse sales are right-skewed and zero-inflated (the mode is 0, with rare spikes to 8-10). Applying a normal distribution formula to zero-inflated data yields nonsensical/fractional negative boundaries and vastly misrepresents the 84% coverage confidence interval.
+    -   **The Fix (Actual Percentiles):** We explicitly backfilled non-sales days with `y=0` and computed the **90th percentile** of the raw daily observations. This provides a mathematically sound rule: "This restock quantity covers actual historical demand 9 times out of 10." For categories like Savory Food, the 90th percentile is exactly 0, which correctly reflects that these items almost never sell.
+
+2.  **The "Zero-Forever" Cold-Start Trap:**
+    -   If the 90th percentile for a category is 0, the system will recommend stocking 0. If 0 are stocked, 0 are sold. The historical data remains 0, creating a self-fulfilling prophecy.
+    -   **Design Consideration:** The system must enforce a trial-stocking heuristic (e.g., forcing a floor of 1 unit every 2-3 days for brand new items in sparse categories) to allow demand discovery.
+
+3.  **Bayesian Credibility Weighting (The Blend):**
+    -   For items transitioning out of a pure category prior (Days 14-30), we abandoned a flat linear fade in favor of actuarial Credibility Weighting: $W = \frac{n}{n + k}$ (where $n$ is days of item history).
+    -   **Why it works:** A linear fade assumes all items graduate to trustworthiness at the same speed. Credibility weighting derives $k$ from the category's historical variance. Highly volatile/noisy categories receive a higher $k$, meaning they require exponentially more real-world days of history before the item's own noisy signal is trusted over the stable category prior.
