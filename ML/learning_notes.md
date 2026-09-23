@@ -405,4 +405,4 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 
 3.  **Bayesian Credibility Weighting (The Blend):**
     -   For items transitioning out of a pure category prior (Days 14-30), we abandoned a flat linear fade in favor of actuarial Credibility Weighting: $W = \frac{n}{n + k}$ (where $n$ is days of item history).
-    -   **Why it works:** A linear fade assumes all items graduate to trustworthiness at the same speed. Credibility weighting derives $k$ from the category's historical variance. Highly volatile/noisy categories receive a higher $k$, meaning they require exponentially more real-world days of history before the item's own noisy signal is trusted over the stable category prior.
+    -   **Why it works:** A linear fade assumes all items graduate to trustworthiness at the same speed. Credibility weighting derives $k$ from the category's historical variance. Highly volatile/noisy categories receive a higher $k$, meaning they require proportionally more real-world days of history before the item's own noisy signal is trusted over the stable category prior.
