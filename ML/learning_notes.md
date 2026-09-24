@@ -406,3 +406,16 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 3.  **Bayesian Credibility Weighting (The Blend):**
     -   For items transitioning out of a pure category prior (Days 14-30), we abandoned a flat linear fade in favor of actuarial Credibility Weighting: $W = \frac{n}{n + k}$ (where $n$ is days of item history).
     -   **Why it works:** A linear fade assumes all items graduate to trustworthiness at the same speed. Credibility weighting derives $k$ from the category's historical variance. Highly volatile/noisy categories receive a higher $k$, meaning they require proportionally more real-world days of history before the item's own noisy signal is trusted over the stable category prior.
+
+---
+
+## Task 19: TSB-HB Evaluation for Sparse Items
+
+**What we did:** We evaluated whether the TSB-HB method (Bai & Chu, 2025) could replace our manual two-step approach (TSB forecast + Bayesian credibility weighting blend) for the 100 sparse items. 
+
+1.  **The Theoretical Method:** We identified TSB-HB as a theoretical unification of our approach. It models demand occurrence with a Beta-Binomial distribution and demand size with a Log-Normal distribution, using hierarchical priors so sparse items automatically borrow strength from their category.
+2.  **Implementation Constraint:** Full implementation of true TSB-HB requires MCMC (Markov Chain Monte Carlo) hierarchical Bayesian inference, which is unavailable in our current library stack and out of scope given timeline constraints. 
+3.  **The Proxy Test:** We tested a lightweight Empirical Bayes conjugate approximation as a proxy. 
+4.  **The Result:** Our Empirical Bayes proxy did not outperform our existing nonparametric blend. The proxy achieved a Global MAE of `0.71`, while our existing blend achieved `0.68` (a modest ~4.5% relative difference). Applying a `0.05` unit minimum-difference threshold, 50 out of the 100 items were statistical ties, with our existing blend keeping a slight edge on the rest.
+
+**Final Sparse Engine Lock:** Because the conjugate proxy showed approximately equivalent performance with our existing model holding a slight edge, we formally reject the proxy. Our current **TSB + credibility-weighting blend stays locked** as the final sparse-item engine (Phase 1/2). Full hierarchical MCMC implementation of TSB-HB remains identified as future work.
