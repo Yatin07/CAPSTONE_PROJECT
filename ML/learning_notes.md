@@ -326,3 +326,96 @@ Opting for Google Colaboratory circumvents local provisioning requirements throu
 2. **Feature Engineering & Generalization Validation (Parts B & C):**
    - **What it is:** The explicit directive to construct non-linear residual features (lag structures, rolling statistical moments) for the XGBoost ensemble, coupled with a strict mandate to utilize geographically native holiday calendars (FR/DE/US).
    - **Why it is utilized:** To prevent temporal data leakage and structural mismatch. Furthermore, isolating an Indian SME dataset strictly as a Phase 8 holdout—completely sequestered from the hyperparameter tuning and feature selection phases—guarantees a scientifically valid measurement of the model's true out-of-distribution generalization capability, rather than an artificially inflated in-distribution validation score.
+
+---
+
+## Task 15: Prophet Architecture Refinement (Methodological Falsification)
+
+**What we did:** We diagnosed a structural failure in our baseline Prophet model when forecasting the French Bakery dataset, specifically its inability to mathematically resolve a massive, consistent step-change in July/August sales volume (a 3x summer tourist spike) followed by a sharp September crash. We rectified this by transitioning to multiplicative seasonality, extending the cross-validation initial window to 365 days (ensuring the model trains on at least one full yearly cycle before evaluating), and injecting a dedicated, explainable Boolean regressor (is_tourist_season) to handle the block-level variance.
+
+### Technical Breakdown: Explainable Interventions vs. Tuning
+
+1.  **Multiplicative Seasonality vs. Additive Seasonality:**
+    -   **What it is:** Transitioning the foundational Prophet equation from y(t) = g(t) + s(t) to y(t) = g(t) * (1 + s(t)).
+    -   **Why it is used:** Additive seasonality assumes that the magnitude of seasonal fluctuations (e.g., weekend spikes) remains constant regardless of the baseline trend. Multiplicative seasonality assumes that seasonal fluctuations scale proportionally with the baseline trend. In our dataset, a 3x baseline shift during summer naturally resulted in wider absolute weekend spikes; multiplicative seasonality correctly modeled this proportional scaling, marginally reducing global error.
+
+2.  **Explainable Boolean Regressors for Known Step-Changes:**
+    -   **What it is:** Injecting model.add_regressor('is_tourist_season') to mathematically account for the 60-day summer tourist block.
+    -   **Why it is used in an engineering context:** Prophet utilizes Fourier series to map smooth, continuous seasonal curves. It is mathematically incapable of modeling abrupt, sustained step-changes (like a sudden 3x multiplier from July 1 to August 31) using Fourier terms. By mapping the known tourist window to a discrete Boolean regressor, Prophet treats it as a static external shock (a multiplier), instantly snapping the forecast baseline up on July 1 and immediately crashing it back down on September 1, completely resolving the severe lag errors originally observed during the September crash.
+
+3.  **Cross-Validation Integrity (initial='365 days'):**
+    -   **What it is:** Enforcing a strict 1-year minimum training boundary prior to out-of-fold evaluation.
+    -   **Why it is used:** Evaluating a time-series model on seasonal patterns it has never encountered in training (e.g., evaluating Summer 2021 when the model was only trained on Jan-May 2021) guarantees failure and skews the aggregate error metrics. By mandating a 365-day initial window, we ensure every fold evaluated has successfully observed the complete cyclical variance of a calendar## Task 16: The Failed Hybrid Falsification (Per-Item XGBoost Residual Engine)
+
+**What we did:** We implemented Phase 3 of the ML Roadmap by feeding Prophet's out-of-fold residuals into an XGBoost Regressor (specifically HistGradientBoostingRegressor) utilizing complex temporal lags and calendar features. We executed a strict out-of-sample temporal split (training prior to June 2022, evaluating post-June 2022) to determine if the per-item hybrid model could outperform the explainable Prophet baseline.
+
+### Technical Breakdown: The Limits of Machine Learning on Sparse Data
+
+1.  **Residual Feature Engineering:**
+    -   **What it is:** Constructing autoregressive lag features (`y_lag_1`, `y_lag_7`, `y_rolling_7_mean`) mathematically isolated by entity (`df.groupby('article').shift(1)`) to avoid cross-item data leakage.
+    -   **Why it is used:** To provide the gradient-boosted tree with historical memory, allowing it to detect non-linear autocorrelations within the residual space that Prophet's linear assumptions missed.
+
+2.  **The Falsification Verdict (Why the Per-Item Hybrid Failed):**
+    -   **Empirical Outcome:** While XGBoost successfully reduced the error for the single highest-volume item (Traditional Baguette, selling 266 units/day) by ~5%, it objectively *worsened* the error for nearly every other item, resulting in a **volume-weighted performance loss of 1.26%** across the primary business. 
+    -   **The Scientific Diagnosis:** By extracting the feature importances, we observed that Prophet's domain-specific regressor had already extracted 100% of the true structural seasonal variance. Consequently, the remaining residuals contained insufficient exploitable signal relative to the daily noise.
+    -   **Data Starvation & Overfitting:** A gradient-boosted tree trained on merely ~500 rows of a single item's daily history cannot learn robust non-linear patterns. It simply latched onto the immediate preceding error (`residual_lag_1`) and memorized the training noise. When evaluated on an earlier split (May 1st), the accuracy collapsed entirely, proving it failed to generalize.
+
+---
+
+## Task 17: The Pooled Global Model (M5 Walmart Architecture)
+
+**What we did:** We abandoned the per-item residual hybrid and redesigned the architecture based on the winning methodology of the M5 Walmart competition. Instead of training one XGBoost model per item on residuals, we trained **one single, globally-aware HistGradientBoostingRegressor** across all 35 primary items simultaneously. We fed it the raw sales `y` as the target, and used Prophet's decomposed structure (trend, weekly, yearly, tourist_season) as input features alongside the lag structures.
+
+### Technical Breakdown: Cross-Learning and Structural Verification
+
+1.  **Pooled Cross-Learning vs. Per-Item Isolation:**
+    -   **What it is:** Concatenating all 35 items into a single long-format DataFrame and training one unified tree model, treating the `article` identifier as a categorical feature.
+    -   **Why it works:** Data starvation is solved. Instead of 500 rows, the model now trains on 500 × 35 ≈ 17,500 rows. It has enough combined data to learn robust shared behaviors across the entire catalog (e.g., "when lag_1 is low but Prophet trend is high, scale down the prediction").
+
+2.  **Prophet as a Feature Extractor (Not a Baseline):**
+    -   **What it is:** Prophet is fitted on the training split to extract its structural components (`trend`, `weekly`, `yearly`, `is_tourist_season`). These are fed as columns into XGBoost.
+    -   **Why it works:** XGBoost struggles with long-term trend extrapolation. By feeding it Prophet's mathematical trend, we give it a structural baseline, which it then dynamically adjusts using its superior short-term autoregressive capabilities (`lag_1`).
+
+3.  **Strict Leakage Audit and Out-of-Sample Falsification:**
+    -   **The Leakage Check:** We verified that Prophet was fitted *only* on the training split (`< split_date`) before projecting its components across the test set. If Prophet is fitted on the full dataset, its components secretly leak test-period knowledge to the XGBoost model.
+    -   **The Empirical Win:** On a strict out-of-sample split (June 1st), the Pooled Global Model achieved a **22.75%** volume-weighted WAPE, drastically outperforming the true Prophet baseline of **29.43%** (a 6.68% absolute improvement). The falsification split (May 1st) confirmed this, dropping the baseline from 32.46% to 24.02% (an 8.44% improvement).
+
+4.  **The Brioche Proof (Damping the Multiplicative Overshoot):**
+    -   Prophet (using multiplicative seasonality) wildly overshot on low-volume items like Brioche during the summer, predicting 8-11 units on days that only sold 1-4 units.
+    -   The Pooled Global Model mathematically corrected this. By cross-referencing Prophet's aggressive trend against the recent actual sales (`lag_1`, `rolling_7_mean`), XGBoost learned to clamp down on the seasonal overshoot, shaving off over 100 units of absolute error on Brioche alone in the 3-month test window.
+
+**Final Architectural Lock:** For high-volume primary items (>10 units/day), the correct ML architecture is a **Prophet Decomposition + Pooled Global Gradient-Boosting Model**. For sparse items (<10 units/day), pure statistical/Bayesian methods (Phase 1/2 Cold-Start) must be utilized.
+
+---
+
+## Task 18: Cold-Start Logic for Sparse Items
+
+**What we did:** We developed the routing heuristic for 114 low-volume/sparse items that cannot be modeled by the pooled global model due to massive data sparsity. We grouped these items into logical buckets (Breads, Patisserie, Savory, etc.) and calculated statistical category priors to serve as fallback predictions.
+
+### Technical Breakdown: Bayesian Priors and Sparsity
+
+1.  **The Flaw of `Mean + Std` on Zero-Inflated Data:**
+    -   Initially, we considered using `mean + 1 std` to compute a safe category prior. However, empirical analysis showed that standard deviation vastly exceeded the mean for almost all sparse categories.
+    -   **Why it breaks:** `Mean + Std` assumes a normal (bell-curve) distribution. Sparse sales are right-skewed and zero-inflated (the mode is 0, with rare spikes to 8-10). Applying a normal distribution formula to zero-inflated data yields nonsensical/fractional negative boundaries and vastly misrepresents the 84% coverage confidence interval.
+    -   **The Fix (Actual Percentiles):** We explicitly backfilled non-sales days with `y=0` and computed the **90th percentile** of the raw daily observations. This provides a mathematically sound rule: "This restock quantity covers actual historical demand 9 times out of 10." For categories like Savory Food, the 90th percentile is exactly 0, which correctly reflects that these items almost never sell.
+
+2.  **The "Zero-Forever" Cold-Start Trap:**
+    -   If the 90th percentile for a category is 0, the system will recommend stocking 0. If 0 are stocked, 0 are sold. The historical data remains 0, creating a self-fulfilling prophecy.
+    -   **Design Consideration:** The system must enforce a trial-stocking heuristic (e.g., forcing a floor of 1 unit every 2-3 days for brand new items in sparse categories) to allow demand discovery.
+
+3.  **Bayesian Credibility Weighting (The Blend):**
+    -   For items transitioning out of a pure category prior (Days 14-30), we abandoned a flat linear fade in favor of actuarial Credibility Weighting: $W = \frac{n}{n + k}$ (where $n$ is days of item history).
+    -   **Why it works:** A linear fade assumes all items graduate to trustworthiness at the same speed. Credibility weighting derives $k$ from the category's historical variance. Highly volatile/noisy categories receive a higher $k$, meaning they require proportionally more real-world days of history before the item's own noisy signal is trusted over the stable category prior.
+
+---
+
+## Task 19: TSB-HB Evaluation for Sparse Items
+
+**What we did:** We evaluated whether the TSB-HB method (Bai & Chu, 2025) could replace our manual two-step approach (TSB forecast + Bayesian credibility weighting blend) for the 100 sparse items. 
+
+1.  **The Theoretical Method:** We identified TSB-HB as a theoretical unification of our approach. It models demand occurrence with a Beta-Binomial distribution and demand size with a Log-Normal distribution, using hierarchical priors so sparse items automatically borrow strength from their category.
+2.  **Implementation Constraint:** Full implementation of true TSB-HB requires MCMC (Markov Chain Monte Carlo) hierarchical Bayesian inference, which is unavailable in our current library stack and out of scope given timeline constraints. 
+3.  **The Proxy Test:** We tested a lightweight Empirical Bayes conjugate approximation as a proxy. 
+4.  **The Result:** Our Empirical Bayes proxy did not outperform our existing nonparametric blend. The proxy achieved a Global MAE of `0.71`, while our existing blend achieved `0.68` (a modest ~4.5% relative difference). Applying a `0.05` unit minimum-difference threshold, 50 out of the 100 items were statistical ties, with our existing blend keeping a slight edge on the rest.
+
+**Final Sparse Engine Lock:** Because the conjugate proxy showed approximately equivalent performance with our existing model holding a slight edge, we formally reject the proxy. Our current **TSB + credibility-weighting blend stays locked** as the final sparse-item engine (Phase 1/2). Full hierarchical MCMC implementation of TSB-HB remains identified as future work.

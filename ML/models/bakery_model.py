@@ -1,67 +1,57 @@
-import pandas as pd 
-import numpy as np 
-from sklearn.metrics import mean_squared_error,mean_absolute_error,mean_absolute_percentage_error 
-import matplotlib.pyplot as plt
+﻿import pandas as pd
+import numpy as np
 from prophet import Prophet
+from prophet.diagnostics import cross_validation, performance_metrics
+import logging
 
-df = pd.read_csv("data/processed/processed_bakery.csv")
+logging.getLogger('cmdstanpy').setLevel(logging.WARNING)
 
-df_subset = df[["ds", "y"]].copy()
-# df_subset = df[["ds", "y", "is_weekend"]].copy()
+df = pd.read_csv('data/processed/primary_items.csv')
+df['ds'] = pd.to_datetime(df['ds'])
 
-# print(df_subset.head())
+# Add the tourist season flag (July and August)
+df['is_tourist_season'] = df['ds'].dt.month.isin([7, 8])
 
-df_subset['ds'] = pd.to_datetime(df_subset['ds'])
+all_residuals = []
+unique_items = df['article'].unique()
 
-# --- STEP 1: FEATURE ENGINEERING FOR XGBOOST ---
-# Sort by date just to be safe
-df_subset = df_subset.sort_values('ds')
-# Time-based featuresS
-df_subset['day_of_week'] = df_subset['ds'].dt.dayofweek
-df_subset['month'] = df_subset['ds'].dt.month
-# Lag features (What happened yesterday? What happened exactly a week ago?)
-df_subset['lag_1'] = df_subset['y'].shift(1)
-df_subset['lag_7'] = df_subset['y'].shift(7)
-# Rolling average (What was the average over the last week?)
-# We shift by 1 first so we don't accidentally include TODAY's sales in the average (Data Leakage!)
-df_subset['rolling_7day_avg'] = df_subset['y'].shift(1).rolling(window=7).mean()
-# Drop the first 7 rows because they will have "NaN" (empty) values from the shifting
-df_subset = df_subset.dropna().reset_index(drop=True)
+print(f"Starting Prophet training (Multiplicative + Tourist Season + 365d initial) for {len(unique_items)} items...")
 
+for item in unique_items:
+    try:
+        # print(f"Processing: {item}")
+        
+        df_item = df[df['article'] == item].copy()
+        
+        model = Prophet(
+            changepoint_prior_scale=0.05, 
+            seasonality_prior_scale=0.1,
+            seasonality_mode='multiplicative'
+        )
+        model.add_country_holidays(country_name='FR')
+        
+        # Claude is right: Prophet should handle known patterns. 
+        # A regressor acts as a perfect mathematical step-change (multiplier) for the tourist block.
+        model.add_regressor('is_tourist_season')
+        
+        model.fit(df_item)
+        
+        # 365 days initial window so Prophet has seen 1 full cycle
+        df_cv = cross_validation(model, initial='365 days', period='30 days', horizon='30 days', disable_tqdm=True)
+        
+        df_cv['residual'] = df_cv['y'] - df_cv['yhat']
+        df_cv['article'] = item
+        
+        df_cv_clean = df_cv[['ds', 'article', 'y', 'yhat', 'residual']]
+        all_residuals.append(df_cv_clean)
+        
+    except Exception as e:
+        print(f"[{item}] FAILED: {str(e)}")
+        continue
 
-limit_date = df_subset['ds'].max() - pd.Timedelta(days=30)
-train_data = df_subset[df_subset['ds'] < limit_date]
-test_data = df_subset[df_subset['ds'] >= limit_date]
-
-# print(train_data)
-# print(test_data)
-
-# model = Prophet()
-model = Prophet(changepoint_prior_scale=0.01)
-
-# model.add_regressor('is_weekend')
-model.fit(train_data)
-
-forecast = model.predict(test_data)
-
-forecast_subset= forecast[['ds','yhat', 'yhat_lower', 'yhat_upper']]
-
-# print(forecast_subset.head())
-
-mse = mean_squared_error(test_data['y'], forecast_subset['yhat'])
-print(mse)
-
-rmse = np.sqrt(mse)
-print(f"RMSE: {rmse}")
-
-mae = mean_absolute_error(test_data['y'], forecast_subset['yhat'])
-print(mae)
-
-mape = mean_absolute_percentage_error(test_data['y'], forecast_subset['yhat'])
-print(mape)
-
-fig1 = model.plot(forecast)
-fig1.savefig('bakery_forecast.png')
-
-fig2 = model.plot_components(forecast)
-fig2.savefig('bakery_components.png')
+if all_residuals:
+    final_residuals_df = pd.concat(all_residuals, ignore_index=True)
+    final_residuals_df.to_csv('data/processed/bakery_residuals.csv', index=False)
+    print(f"\nSuccess! Out-of-fold residuals saved to data/processed/bakery_residuals.csv for {len(all_residuals)} items.")
+else:
+    print("\nError: No residuals were generated.")

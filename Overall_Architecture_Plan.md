@@ -4,7 +4,7 @@ This document outlines the end-to-end development roadmap for the RestockIQ syst
 
 ## 1. Machine Learning Core (The Brain)
 *Ref: `e:\CAP\ML\ML_Development_Plan.md`*
-*   **Engine:** Prophet + XGBoost hybrid architecture to capture seasonality and correct residuals.
+*   **Engine:** Prophet Decomposition + Pooled Global XGBoost model. Prophet extracts structural trend/seasonality per item, which feeds into a single global gradient-boosting model trained across all items to correct low-volume overshoots using shared lag data.
 *   **Inventory Simulator:** A required step to generate "Current Inventory" states and measure waste vs. stockouts over time.
 *   **Adaptive Branching:** 3-phase progressive routing (Category Prior → Blended → Full Hybrid) based on item history depth.
 *   **Waste Action Engine:** Intraday logic to flag slow-moving stock for discounts (calibrated via elasticity data) or donation.
