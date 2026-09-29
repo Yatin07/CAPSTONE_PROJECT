@@ -86,8 +86,9 @@ We will be utilizing the Stitch UI generator to scaffold these screens in Flutte
 
 ## 🏗 System Architecture & Stack
 
-*   **Database & Auth:** **Firebase** (Firestore & Firebase Auth). Flutter connects directly to Firebase for real-time UI updates and seamless authentication.
-*   **Backend API:** **Python FastAPI**. It acts as the bridge for our Machine Learning. FastAPI will use the `firebase-admin` SDK to read daily sales from Firestore, run the Prophet forecasting models, and push the forecasted results back to Firestore.
+*   **Auth:** **Firebase Auth** is used exclusively for user authentication.
+*   **Database:** **MongoDB** is the primary, master database. It stores everything: users, roles, items, daily sales, and pre-computed forecasts. Flutter connects to FastAPI (which wraps MongoDB), not directly to a NoSQL cloud database.
+*   **Backend API:** **Python FastAPI**. It acts as the bridge for our Machine Learning and Database. FastAPI will read daily sales from MongoDB, run the models (via the batch job), and serve the forecasted results from MongoDB.
 *   **UI Scaffolding:** **Stitch MCP**. 
 
 ---
@@ -117,11 +118,11 @@ To ensure Frontend and Backend don't block each other, follow this phased approa
 
 ### Phase 1: The Foundation (Mock Data)
 *   **Frontend:** Build the App Shell, Navigation, and the **Item Setup Screen**. *This is critical so we can define items as Perishable vs Non-Perishable.*
-*   **Backend:** Set up the Firestore schema and FastAPI routes. **DO NOT** run ML models yet. Serve "fake" hardcoded JSON forecasts so the frontend can build the UI visually.
+*   **Backend:** Set up the MongoDB collections and FastAPI routes. **DO NOT** run ML models yet. Serve "fake" hardcoded JSON forecasts so the frontend can build the UI visually.
 
 ### Phase 2: The Core ML Loop
 *   **Frontend:** Build the **Main Dashboard** and the **End-of-Day Input** screen using the Stitch design system.
-*   **Backend:** Integrate the Prophet/XGBoost models into FastAPI. Read the real items from Firebase, run the predictions, and serve the actual raw forecasted numbers. 
+*   **Backend:** Integrate the Prophet + pooled HistGradientBoostingRegressor (for primary items) and the TSB + category-prior engine (for sparse items) into a nightly Python batch job. Read the real items from MongoDB, run the predictions, and serve the actual raw forecasted numbers. 
 
 ### Phase 3: The "Brain" (LLM Polish)
 *   **Frontend:** Build the **Waste Action Alerts** and display the LLM text summaries.
