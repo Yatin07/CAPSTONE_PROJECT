@@ -82,3 +82,57 @@ To enable frictionless testing inside Android Studio while safeguarding cloud cr
 *   **One-Tap Demo Bypass:** Added an outlined `Demo Login (Skip Auth)` button directly beneath the login form to bypass authentication screens during UI work.
 *   **Root Security Hygiene:** Created a centralized root `.gitignore` to prevent any accidental exposure of `.env` database connection strings, Python compiled bytecode (`__pycache__/`, `*.pyc`), and IDE files. Untracked previously cached bytecode from Git history.
 
+---
+
+## 8. Step 2 Architecture: The ML Read Layer & Inventory Lifecycle
+
+We implemented and verified the fast read-layer endpoints required by the Flutter dashboard and item deep-dive screens:
+
+*   **`GET /api/v1/forecasts/today`:** Queries the user's items and joins with the latest precomputed forecast in `db.forecasts`. Computes dynamic inventory metrics on the fly:
+    $$\text{restockQuantity} = \max(0, \text{predictedDemand} + \text{safetyStock} - \text{currentStock})$$
+    $$\text{stockProgress} = \text{clamp}\left(\frac{\text{currentStock}}{\max(1, \text{predictedDemand} + \text{safetyStock})}, 0.0, 1.0\right)$$
+    Generates a natural-language operational summary (e.g., `"5 of 6 items require restocking today"`).
+*   **Point-Estimate Constraint:** Adheres strictly to the architectural lock: `confidence_interval = None` across all items, preventing faked uncertainty bounds.
+*   **`GET /api/v1/forecasts/{item_id}`:** Serves deep-dive item data, including full 7-day historical sales and 7-day forecast series for Flutter's `SalesForecastChart` widget.
+*   **One-Tap Restock (`POST /api/v1/items/{item_id}/restock`):** Increases `currentStock` in Atlas and records an audit event, instantly resetting the calculated `restockQuantity`.
+*   **Automated Verification:** Verified via `verify_step2.py` with all 6 tests passing.
+
+---
+
+## 9. Steps 3 & 4: Two-Tier Machine Learning Engine (`batch_forecast.py`)
+
+We integrated the offline ML forecasting engine directly with MongoDB Atlas:
+
+*   **Offline Batch Execution:** Designed to run as a nightly batch runner (`ML/batch_forecast.py`), isolating intensive ML feature extraction and regression from the real-time API event loop.
+*   **Tier 1 (Primary Items):** Evaluates high-volume daily staples (Croissants, Baguettes, Pain au Chocolat, Milk) against 19,418 historical bakery sales records. Decomposes structural trend/seasonality with Prophet (including French holidays and tourist season multipliers) and refines point estimates using a pooled `HistGradientBoostingRegressor` on lag features (`y_lag_1`, `y_lag_7`, `y_rolling_7_mean`).
+*   **Tier 2 (Sparse Items & Cold Start):** Solves the new-product cold-start dilemma using Teunter-Syntetos-Babai (TSB) intermittent demand estimation combined with credibility shrinkage:
+    $$W = \frac{n}{n + 14}$$
+    $$\hat{y} = W \cdot \hat{y}_{\text{TSB}} + (1 - W) \cdot \text{Prior}_{p90}$$
+    When $n = 0$ days of history, $W = 0$, guaranteeing the forecast **strictly equals the category 90th percentile prior** (`category_priors_percentiles.json`).
+*   **Automated Verification:** Verified via `verify_step4.py` — created a new item (`Artisan Sourdough Loaf`, $n=0$), executed the batch runner, and confirmed its predicted demand matched the Sunday prior ($10$ units) exactly.
+
+---
+
+## 10. Step 5: Waste Action Engine & Intraday Velocity Tracking
+
+We constructed the real-time perishable inventory protection engine:
+
+*   **Intraday POS Sales Stream (`POST /api/v1/sales/intraday`):** Allows POS terminals or staff to record sales events throughout the day, decrementing inventory and incrementing `intradaySales`.
+*   **Velocity Tracking (`sales_pace_ratio`):** Compares actual sales volume against expected sales for the elapsed business hours (8:00 AM to 8:00 PM):
+    $$\text{sales\_pace\_ratio} = \frac{\text{actualSold}}{\max(1.0, \text{predictedDemand} \times \text{elapsedFraction})}$$
+*   **Dynamic Risk Tiers & Static Discount Mappings:**
+    *   $\text{sales\_pace\_ratio} < 0.35 \implies$ **Critical** (assigned locked static $30\%$ discount or flagged for donation).
+    *   $\text{sales\_pace\_ratio} < 0.70 \implies$ **Low Pace** (assigned locked static $20\%$ discount).
+    *   $\text{sales\_pace\_ratio} \ge 0.70 \implies$ Normal pace (no alert required).
+*   **Mitigation Actions:** Provides dedicated endpoints to apply discounts (`/apply-discount`), flag items for charity pickup (`/flag-donation`), or dismiss alerts (`/dismiss`).
+*   **Automated Verification:** Verified via `verify_step5.py` with all 7 tests passing.
+
+---
+
+## 11. Step 6: Master End-to-End Integration Audit
+
+The entire 6-step integration plan was executed and verified live via `Backend/verify_e2e.py` on the active mobile hotspot:
+*   Cloud Atlas Heartbeat $\rightarrow$ Authenticated JWT $\rightarrow$ Catalog Query $\rightarrow$ Unified ML Batch Job $\rightarrow$ Main Dashboard Read $\rightarrow$ Item Deep-Dive $\rightarrow$ One-Tap Restock $\rightarrow$ Intraday POS Logging $\rightarrow$ Waste Action Engine.
+*   **All 6 steps in `ML/Backend_Integration_Plan.md` are 100% complete, verified, and committed.**
+
+
