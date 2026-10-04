@@ -8,8 +8,7 @@ This document dictates the strict sequential build plan to construct the FastAPI
 
 Before writing any code, we aligned the backend architecture precisely with the UI expectations and ML realities:
 
-- **Database:** **MongoDB Atlas (Cloud)** is the master database. Stores items, sales, inventory state, and forecasts.
-- **Auth:** **Firebase Auth** (JWTs are verified by FastAPI). No data is stored in Firestore.
+- **Database & Auth:** **MongoDB Atlas (Cloud)** is the master database for everything. It stores user credentials (passwords hashed), roles, items, sales, inventory state, and forecasts. There is no Firebase; FastAPI handles native JWT authentication.
 - **ML Execution:** **Nightly Python Batch Job**. The FastAPI layer does NOT run ML inference on the fly; it acts as an ultra-fast read-layer for precomputed JSON in MongoDB.
 - **API Payload & Contract Fixes:**
   - `unit` is formally added to the item schema (e.g., "Units", "LBS") rather than being hardcoded.
@@ -24,17 +23,17 @@ Before writing any code, we aligned the backend architecture precisely with the 
 
 This build plan is ordered strictly by dependency. A step cannot start until the previous step is verified.
 
-### Step 1: MongoDB Scaffolding & FastAPI Mocks (Unblock Chinmay)
-*   **What gets built:** A MongoDB Atlas cluster (free tier), basic database schemas (`sales`, `items`, `inventory`, `forecasts`), and a FastAPI shell with mock endpoints returning hardcoded JSON matching the Flutter contract exactly.
+### Step 1: MongoDB Operations & Native Auth (Production Grade)
+*   **What gets built:** The actual MongoDB connection (`motor` or `pymongo`) inside FastAPI. We will build the `users` collection for authentication (login/register endpoints returning JWTs) and the `items` collection (real CRUD, `POST /api/v1/items`).
 *   **Depends on:** Nothing.
-*   **Verification:** FastAPI serves the mock JSON locally via Swagger/cURL.
-*   **Unblocks:** **Chinmay (Frontend)**. He can immediately wire the Flutter HTTP calls to these endpoints and finish all UI state management.
+*   **Verification:** We can successfully register a user, log in to get a token, create an item via API, and fetch it back.
+*   **Unblocks:** Flutter frontend can wire up real authentication and real item creation.
 
-### Step 2: FastAPI to MongoDB CRUD (The Operations Layer)
-*   **What gets built:** The actual MongoDB connection (`motor` or `pymongo`) inside FastAPI. The mock endpoints are replaced with real MongoDB reads/writes. Specifically, `POST /api/v1/items` is wired up.
+### Step 2: The ML Read Layer
+*   **What gets built:** FastAPI routes (`/api/v1/forecasts`) that read the actual pre-computed forecasts from MongoDB to serve the Flutter dashboard.
 *   **Depends on:** Step 1.
-*   **Verification:** We can successfully create an item via API, and it appears in MongoDB Atlas. We can fetch it back via `GET`.
-*   **Unblocks:** The ML Engine. We now have a real database to read history from and write forecasts to.
+*   **Verification:** Fetching the dashboard endpoint returns actual data structures from the MongoDB cluster.
+*   **Unblocks:** The ML Engine Batch Jobs.
 
 ### Step 3: ML Batch Job - Primary Items (Prophet + XGBoost)
 *   **What gets built:** A standalone Python script (`batch_forecast.py`). It ports the locked Primary Item ML pipeline (Prophet feature extraction + pooled `HistGradientBoostingRegressor`), reads yesterday's sales from MongoDB, and writes the forecast objects to the `forecasts` collection.

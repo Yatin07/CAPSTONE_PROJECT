@@ -18,15 +18,8 @@ Before writing the mock API, we ran an alignment audit against the Flutter UI ex
 *   **The `unit` Field:** We discovered the frontend expected a `unit` string (like "Units", "LBS", "GAL"). Instead of hardcoding the UI to assume everything is sold by count, we formally added this to the MongoDB schema. This prevents technical debt when the bakery wants to sell flour by weight.
 *   **The `description` Field:** The UI expects a natural language explanation per item on the dashboard. Because integrating the OpenAI/Gemini LLM is slated for Phase 3, we opted to serve a hardcoded `"LLM analysis pending"` placeholder. This unblocks the frontend team completely without leaking fake or misleading data during demo testing.
 
-## 3. The "Mock First" Strategy (Step 1 Complete)
-Instead of attempting to build the entire MongoDB connection, CRUD operations, and ML integration at once, we utilized a "Mock First" strategy.
-
-**What we did:**
-1. Created the `main.py` FastAPI app with all required routes (`/api/v1/forecasts/today`, `/api/v1/waste-alerts`, etc.).
-2. Hardcoded Python dictionaries (`MOCK_FORECASTS`, `MOCK_WASTE_ALERTS`) that perfectly match the locked JSON contract.
-3. Spun up the FastAPI server via Uvicorn.
-
-**The Result:** The frontend developer (Chinmay) is now **100% unblocked**. He can replace his local Dart mocks with real HTTP calls to `localhost:8000`. By doing this, we established a clear contract: as long as the frontend works with the mock endpoints, the backend team can safely rip out the mocks and wire up the real MongoDB database (Step 2) without ever breaking the UI.
-
----
-*Document will be updated as we progress through the real MongoDB CRUD wiring and ML Batch Job scripts.*
+## 3. The Shift to Direct Production-Grade Architecture
+Initially, we considered a "Mock-First" strategy to unblock the frontend and planned to use Firebase for Auth. However, we have made a definitive pivot:
+**Total Control & Single Source of Truth:**
+1. **No Mocks:** We are bypassing dummy data entirely. The backend is being built directly to production standards. The frontend (Flutter running in Android Studio) will connect directly to real, live FastAPI endpoints querying real MongoDB collections from Day 1.
+2. **MongoDB as the Single Source of Truth:** We officially dropped Firebase Auth. MongoDB is now handling *everything* — user authentication (via custom JWTs), item inventory, and ML forecasts. This centralizes our entire data ecosystem into one robust NoSQL environment, giving us total architectural control without third-party dependencies.

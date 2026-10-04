@@ -16,8 +16,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(text: 'admin@test.com');
+  final _passwordController = TextEditingController(text: '123456');
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -43,16 +43,19 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // Simulate network delay for authenticating
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     if (!mounted) return;
 
-    final email = _emailController.text.trim();
+    final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
 
-    // Demo credentials verification
-    if (email.toLowerCase() == 'manager@cafe.com' && password == 'password123') {
+    // Easy credentials verification (also registered in live MongoDB Atlas)
+    final isValid = (email == 'admin@test.com' && password == '123456') ||
+        (email == 'admin@admin.com' && password == '123456') ||
+        (email == 'manager@cafe.com' && password == 'password123');
+
+    if (isValid) {
       setState(() {
         _isLoading = false;
       });
@@ -77,6 +80,16 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+  }
+
+  // One-tap demo bypass — skips auth for Android Studio testing
+  void _handleDemoLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ItemSetupScreen(),
+      ),
+    );
   }
 
   @override
@@ -225,6 +238,26 @@ class _LoginScreenState extends State<LoginScreen> {
                         icon: Icons.login_rounded,
                         isLoading: _isLoading,
                         onPressed: _handleLogin,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Demo Login — one-tap bypass for Android Studio testing
+                      OutlinedButton.icon(
+                        onPressed: _handleDemoLogin,
+                        icon: const Icon(
+                          Icons.play_circle_outline_rounded,
+                          size: 18,
+                        ),
+                        label: const Text('Demo Login (Skip Auth)'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                          shape: const StadiumBorder(),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
                       ),
                     ],
                   ),

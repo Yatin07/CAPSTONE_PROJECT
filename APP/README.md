@@ -84,12 +84,50 @@ We will be utilizing the Stitch UI generator to scaffold these screens in Flutte
 
 ---
 
-## 🏗 System Architecture & Stack
-
-*   **Auth:** **Firebase Auth** is used exclusively for user authentication.
-*   **Database:** **MongoDB** is the primary, master database. It stores everything: users, roles, items, daily sales, and pre-computed forecasts. Flutter connects to FastAPI (which wraps MongoDB), not directly to a NoSQL cloud database.
+*   **Auth & Database:** **MongoDB** is the single, master database for the entire project. It stores everything: user credentials, roles, items, daily sales, and pre-computed forecasts. FastAPI handles all JWT authentication directly. There is no Firebase.
 *   **Backend API:** **Python FastAPI**. It acts as the bridge for our Machine Learning and Database. FastAPI will read daily sales from MongoDB, run the models (via the batch job), and serve the forecasted results from MongoDB.
 *   **UI Scaffolding:** **Stitch MCP**. 
+
+---
+
+## 📂 Codebase Architecture & Directory Analysis (`lib/`)
+
+The Flutter frontend codebase is highly organized into a modular, feature-based architecture, utilizing the `Provider` pattern for state management. Here is a detailed breakdown of what currently exists in the `lib/` directory:
+
+### 1. `models/` (Data Structures)
+This folder defines the strongly-typed Dart classes that map directly to our MongoDB/FastAPI schemas.
+*   **`inventory_item.dart`**: The core model for bakery items, tracking `isPerishable`, current stock, category, and `unit` (e.g., LBS vs Units).
+*   **`stock_check_entry.dart`**: Models the end-of-day leftover counts.
+*   **`waste_alert.dart`**: Defines the structure for intraday waste warnings (e.g., triggering a 20% discount on slow-moving perishable items).
+
+### 2. `providers/` (State Management)
+We use the `provider` package to manage app state globally and decouple business logic from the UI. 
+*   **`inventory_provider.dart`**: Manages the list of items and their forecasts. Currently holding mock data, this provider will be the one responsible for making HTTP GET/POST calls to the FastAPI `items` and `forecasts` endpoints.
+*   **`stock_check_provider.dart`**: Handles the logic for the end-of-day inventory submission (pushing actual leftovers vs expected leftovers).
+*   **`waste_alerts_provider.dart`**: Listens for and manages the list of active markdown alerts.
+
+### 3. `screens/` (UI Views)
+The 7 core screens mapped out in our roadmap are physically located here:
+*   `login_screen.dart` & `forgot_password_screen.dart`: The entry point (soon to be wired to FastAPI JWT auth).
+*   `dashboard_screen.dart` / `dashboard_placeholder_screen.dart`: The primary morning view showing the daily forecast summary.
+*   `item_setup_screen.dart`: The critical form for adding new inventory items and defining perishability.
+*   `inventory_checkin_screen.dart`: The closing time view for logging leftover stock.
+*   `item_detail_forecast_screen.dart`: The deep-dive view explaining the math behind a specific item's restock suggestion.
+*   `waste_alerts_screen.dart`: The intraday view for markdown notifications.
+*   `settings_screen.dart`: Role-based management screen.
+
+### 4. `widgets/` (Reusable UI Components)
+Highly modular components built using the "Warm Tech" design system.
+*   `dashboard_forecast_card.dart`, `inventory_item_card.dart`, `waste_alert_card.dart`, `stock_check_card.dart`: Custom styled cards with specific soft shadowing and border radii.
+*   `quantity_adjuster.dart`: The oversized, tactile +/- button component for rapid kitchen input.
+*   `sales_forecast_chart.dart`: Visual representation of historical vs predicted sales.
+*   `primary_button.dart`, `custom_input.dart`, `custom_dropdown.dart`: Foundational form elements.
+*   `bottom_nav_bar.dart` & `dotted_background.dart`: Scaffold components for layout.
+
+### 5. `theme/` (Design Tokens)
+*   `app_theme.dart`, `app_colors.dart`, `app_typography.dart`: This is where the exact hex codes (e.g., `#1b4332`, `#ffb702`) and font families (Montserrat, Inter) from the Stitch design system are centralized and applied globally.
+
+**Current Context:** The entire UI skeleton is fully scaffolded and built. The UI currently relies on the mock data stored inside the `providers/`. The immediate next step for the frontend is replacing the hardcoded data in those providers with real `http` calls to our new production FastAPI backend.
 
 ---
 
