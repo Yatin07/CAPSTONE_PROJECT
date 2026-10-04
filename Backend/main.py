@@ -159,6 +159,11 @@ class ItemUpdateRequest(BaseModel):
 class RestockRequest(BaseModel):
     quantity: Optional[int] = None
 
+class IntradaySaleRequest(BaseModel):
+    item_id: str
+    quantity: int
+
+
 
 # ---------------------------------------------------------------------------- #
 # Auth Routes
@@ -465,13 +470,199 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
 
 
 # ---------------------------------------------------------------------------- #
-# Waste Alerts (Step 5 stub)
+# Waste Action Engine (Step 5)
 # ---------------------------------------------------------------------------- #
+
+@app.post("/api/v1/sales/intraday", status_code=201)
+async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(get_current_user)):
+    item = await db.items.find_one({"_id": req.item_id, "owner_id": current_user["_id"]})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    new_intraday = item.get("intradaySales", 0) + req.quantity
+    new_stock = max(0, item.get("currentStock", 0) - req.quantity)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # Log individual sales event
+    await db.intraday_sales.insert_one({
+        "item_id": req.item_id,
+        "owner_id": current_user["_id"],
+        "quantity": req.quantity,
+        "timestamp": now_iso,
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+    })
+
+    # Update item state in Atlas
+    await db.items.update_one(
+        {"_id": req.item_id},
+        {"$set": {"intradaySales": new_intraday, "currentStock": new_stock, "updatedAt": now_iso}}
+    )
+
+    return {
+        "status": "recorded",
+        "item_id": req.item_id,
+        "sold": req.quantity,
+        "totalIntradaySales": new_intraday,
+        "remainingStock": new_stock,
+    }
+
 
 @app.get("/api/v1/waste-alerts")
 async def get_waste_alerts(current_user=Depends(get_current_user)):
-    # Wired fully in Step 5 (Waste Engine)
-    return {"alerts": []}
+    cursor = db.items.find({"owner_id": current_user["_id"], "isPerishable": True})
+    alerts = []
+    
+    # Store operates 8:00 AM (8) to 8:00 PM (20)
+    now_utc = datetime.now(timezone.utc)
+    current_hour = now_utc.hour
+    
+    # Operational fraction of day elapsed (minimum 25% to allow initial morning pace)
+    elapsed_fraction = max(0.25, min(1.0, (current_hour - 8 + 1) / 12.0))
+
+    async for item in cursor:
+        if item.get("isDismissed", False):
+            continue
+
+        item_id = item["_id"]
+        # Fetch latest daily forecast
+        forecast = await db.forecasts.find_one({"item_id": item_id}, sort=[("forecast_date", -1)])
+        predicted_daily = (forecast.get("predictedDemand") if forecast else item.get("predictedDemand")) or 30
+        
+        actual_sold = item.get("intradaySales", 0)
+        expected_by_now = max(1.0, predicted_daily * elapsed_fraction)
+        
+        # Calculate sales pace ratio
+        sales_pace_ratio = round(actual_sold / expected_by_now, 2)
+        
+        # Flag items with slow pace (< 70% of expected volume) that still have stock
+        curr_stock = item.get("currentStock", 0)
+        if sales_pace_ratio < 0.70 and curr_stock > 0:
+            clean_name = item["name"].lower()
+            if "croissant" in clean_name:
+                food_type = "croissant"
+            elif any(k in clean_name for k in ["baguette", "bread", "loaf", "sourdough"]):
+                food_type = "baguette"
+            elif any(k in clean_name for k in ["milk", "dairy"]):
+                food_type = "milk"
+            elif any(k in clean_name for k in ["quiche", "savory", "lunch"]):
+                food_type = "quiche"
+            else:
+                food_type = "pastry"
+
+            # Strict architectural mapping: static discount based on risk tier
+            if sales_pace_ratio < 0.35:
+                severity_label = "Critical"
+                severity_color = "#D97706"
+                discount_pct = 30
+                rec_action_text = "Flag for Donation"
+                rec_action_color = "#FFB702"
+                rec_done_text = "Flagged for Donation"
+                prim_action_text = "Flag Item"
+                prim_done_text = "Item Flagged"
+                layout_style = "sideBySide"
+            else:
+                severity_label = "Low Pace"
+                severity_color = "#B91C1C"
+                discount_pct = 20
+                rec_action_text = "Suggest 20% Discount"
+                rec_action_color = "#8B1E22"
+                rec_done_text = "Discount Suggested"
+                prim_action_text = "Apply Discount"
+                prim_done_text = "Discount Applied"
+                layout_style = "stacked"
+
+            pct_int = int(round(sales_pace_ratio * 100))
+            sales_text = f"{pct_int}% of expected sales so far\ntoday"
+
+            alerts.append({
+                "id": item_id,
+                "itemName": item["name"],
+                "salesText": sales_text,
+                "progress": round(min(1.0, sales_pace_ratio), 2),
+                "salesPaceRatio": sales_pace_ratio,
+                "expectedSales": round(expected_by_now, 1),
+                "actualSold": actual_sold,
+                "currentStock": curr_stock,
+                "severityLabel": severity_label,
+                "severityColor": severity_color,
+                "discount_pct": discount_pct,
+                "recommendedActionText": rec_action_text,
+                "recommendedActionColor": rec_action_color,
+                "recommendedDoneText": rec_done_text,
+                "isRecommendedActionDone": item.get("isRecommendedActionDone", False),
+                "primaryActionText": prim_action_text,
+                "primaryDoneText": prim_done_text,
+                "isPrimaryActionDone": item.get("isPrimaryActionDone", False),
+                "isDismissed": False,
+                "layoutStyle": layout_style,
+                "foodType": food_type,
+            })
+
+    return {"alerts": alerts, "total_alerts": len(alerts)}
+
+
+@app.post("/api/v1/waste-alerts/{item_id}/apply-discount")
+async def apply_discount_action(item_id: str, current_user=Depends(get_current_user)):
+    item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    # Static 20% discount mapping
+    current_price = item.get("price") or 5.0
+    discounted_price = round(current_price * 0.80, 2)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    await db.items.update_one(
+        {"_id": item_id},
+        {"$set": {
+            "price": discounted_price,
+            "originalPrice": current_price,
+            "isPrimaryActionDone": True,
+            "discountApplied": True,
+            "updatedAt": now_iso,
+        }}
+    )
+    return {
+        "status": "success",
+        "message": f"Applied 20% discount to {item['name']}. New price: ${discounted_price}",
+        "oldPrice": current_price,
+        "newPrice": discounted_price,
+    }
+
+
+@app.post("/api/v1/waste-alerts/{item_id}/flag-donation")
+async def flag_donation_action(item_id: str, current_user=Depends(get_current_user)):
+    item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.items.update_one(
+        {"_id": item_id},
+        {"$set": {
+            "flaggedForDonation": True,
+            "isRecommendedActionDone": True,
+            "updatedAt": now_iso,
+        }}
+    )
+    return {
+        "status": "success",
+        "message": f"Item '{item['name']}' has been marked for community donation pickup.",
+    }
+
+
+@app.post("/api/v1/waste-alerts/{item_id}/dismiss")
+async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_user)):
+    item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    await db.items.update_one(
+        {"_id": item_id},
+        {"$set": {"isDismissed": True}}
+    )
+    return {"status": "dismissed", "item_id": item_id}
+
 
 
 if __name__ == "__main__":
