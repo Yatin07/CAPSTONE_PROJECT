@@ -73,75 +73,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            // Main Scrollable Area
+            // Main Scrollable Area with Pull-To-Refresh
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Learning Badge Pill
-                        Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFE8B0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 18,
-                                  height: 18,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF8A5A00),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.lightbulb_rounded,
-                                      size: 11,
-                                      color: Color(0xFFFFE8B0),
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  await inventoryProvider.fetchDashboardItems();
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Learning Badge Pill
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFE8B0),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 18,
+                                    height: 18,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF8A5A00),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.lightbulb_rounded,
+                                        size: 11,
+                                        color: Color(0xFFFFE8B0),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    'Learning your patterns • Day ${widget.learningDay} of ${widget.learningTotalDays}',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF4A3400),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      'Learning your patterns • Day ${widget.learningDay} of ${widget.learningTotalDays}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF4A3400),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        // Subtitle Text
-                        Center(
-                          child: Text(
-                            '${items.length} items need attention today • overall demand trending up this week',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                              color: AppColors.onSurfaceVariant,
+                          // Dynamic AI Subtitle Text
+                          Center(
+                            child: Text(
+                              inventoryProvider.dashboardSummary,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
+
 
                         // Main Section Heading
                         Text(
@@ -234,9 +241,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
+    ),
+  );
   }
 }

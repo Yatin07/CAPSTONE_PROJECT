@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
+import '../providers/inventory_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -39,6 +41,12 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
       _isRestockConfirmed = true;
     });
 
+    // Sync live restock to MongoDB Atlas
+    try {
+      Provider.of<InventoryProvider>(context, listen: false)
+          .confirmRestock(widget.item.id, quantity: _calculatedRestockQty);
+    } catch (_) {}
+
     final unitLabel = widget.item.unit.toLowerCase();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -50,6 +58,7 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

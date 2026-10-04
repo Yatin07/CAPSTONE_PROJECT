@@ -82,5 +82,49 @@ class InventoryItem {
       return 'Updated ${diff.inDays}d ago';
     }
   }
+
+  factory InventoryItem.fromJson(Map<String, dynamic> json) {
+    DateTime parsedDate;
+    try {
+      parsedDate = json['updatedAt'] != null && json['updatedAt'].toString().isNotEmpty
+          ? DateTime.parse(json['updatedAt'].toString())
+          : DateTime.now();
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+
+    return InventoryItem(
+      id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      category: json['category']?.toString() ?? 'Bakery',
+      unit: json['unit']?.toString() ?? 'Units',
+      currentStock: (json['currentStock'] as num?)?.toInt() ?? 0,
+      isPerishable: json['isPerishable'] == true,
+      price: (json['price'] as num?)?.toDouble(),
+      predictedDemand: (json['predictedDemand'] as num?)?.toInt(),
+      safetyStock: (json['safetyStock'] as num?)?.toInt(),
+      updatedAt: parsedDate,
+      description: json['description']?.toString(),
+      riskLevel: json['riskLevel']?.toString() ?? 'normal',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'category': category,
+      'unit': unit,
+      'currentStock': currentStock,
+      'isPerishable': isPerishable,
+      'price': price,
+      'predictedDemand': predictedDemand,
+      'safetyStock': safetyStock,
+      'updatedAt': updatedAt.toIso8601String(),
+      'description': description,
+      'riskLevel': riskLevel,
+    };
+  }
 }
+
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/waste_alert.dart';
+import '../services/api_service.dart';
 
 class WasteAlertsProvider extends ChangeNotifier {
   final List<WasteAlert> _alerts = [
@@ -37,10 +38,35 @@ class WasteAlertsProvider extends ChangeNotifier {
     ),
   ];
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
   List<WasteAlert> get activeAlerts =>
       _alerts.where((alert) => !alert.isDismissed).toList();
 
   List<WasteAlert> get allAlerts => List.unmodifiable(_alerts);
+
+  WasteAlertsProvider() {
+    fetchCloudWasteAlerts();
+  }
+
+  Future<void> fetchCloudWasteAlerts() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final cloudAlerts = await ApiService.instance.fetchWasteAlerts();
+      if (cloudAlerts != null && cloudAlerts.isNotEmpty) {
+        _alerts.clear();
+        _alerts.addAll(cloudAlerts);
+      }
+    } catch (_) {
+      // Graceful fallback to initial alerts
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   String suggestRecommendation(String id) {
     final index = _alerts.indexWhere((a) => a.id == id);
@@ -49,10 +75,13 @@ class WasteAlertsProvider extends ChangeNotifier {
       _alerts[index] = alert.copyWith(isRecommendedActionDone: true);
       notifyListeners();
 
-      if (id == '1') {
-        return 'Discount suggested successfully.';
+      // Sync donation flag to Atlas
+      ApiService.instance.flagDonation(id);
+
+      if (alert.recommendedActionText.toLowerCase().contains('donation')) {
+        return 'Item flagged for charity donation.';
       } else {
-        return 'Item flagged for donation.';
+        return 'Discount suggestion recorded.';
       }
     }
     return '';
@@ -65,11 +94,10 @@ class WasteAlertsProvider extends ChangeNotifier {
       _alerts[index] = alert.copyWith(isPrimaryActionDone: true);
       notifyListeners();
 
-      if (id == '1') {
-        return 'Discount applied successfully.';
-      } else {
-        return 'Item flagged successfully.';
-      }
+      // Sync 20% discount to Atlas
+      ApiService.instance.applyDiscount(id);
+
+      return '20% discount applied successfully to ${alert.itemName}.';
     }
     return '';
   }
@@ -79,6 +107,9 @@ class WasteAlertsProvider extends ChangeNotifier {
     if (index != -1) {
       _alerts[index] = _alerts[index].copyWith(isDismissed: true);
       notifyListeners();
+
+      // Sync dismiss to Atlas
+      ApiService.instance.dismissAlert(id);
     }
   }
 

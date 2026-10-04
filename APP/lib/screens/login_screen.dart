@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/inventory_provider.dart';
+import '../providers/waste_alerts_provider.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/custom_input.dart';
@@ -43,19 +47,26 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    if (!mounted) return;
-
     final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
 
-    // Easy credentials verification (also registered in live MongoDB Atlas)
-    final isValid = (email == 'admin@test.com' && password == '123456') ||
+    // 1. Attempt live cloud JWT authentication against MongoDB Atlas
+    final apiSuccess = await ApiService.instance.login(email, password);
+
+    // 2. Allow offline easy credentials fallback for emulator testing
+    final isFallbackValid = (email == 'admin@test.com' && password == '123456') ||
         (email == 'admin@admin.com' && password == '123456') ||
         (email == 'manager@cafe.com' && password == 'password123');
 
-    if (isValid) {
+    if (!mounted) return;
+
+    if (apiSuccess || isFallbackValid) {
+      // Sync fresh cloud data into providers
+      try {
+        Provider.of<InventoryProvider>(context, listen: false).fetchDashboardItems();
+        Provider.of<WasteAlertsProvider>(context, listen: false).fetchCloudWasteAlerts();
+      } catch (_) {}
+
       setState(() {
         _isLoading = false;
       });
@@ -81,6 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+
 
   // One-tap demo bypass — skips auth for Android Studio testing
   void _handleDemoLogin() {
