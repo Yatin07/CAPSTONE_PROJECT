@@ -1,0 +1,40 @@
+# CodeRabbit Configuration for RestockIQ (CAP)
+# https://docs.coderabbit.ai/guides/configure-coderabbit
+
+version: "2"
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_instructions:
+    - path: "APP/**"
+      instructions: |
+        This is a production Flutter/Dart application:
+        - Ensure null-safety compliance and zero analysis warnings (`flutter analyze`).
+        - Enforce separation of concerns: UI screens vs Provider state managers (`InventoryProvider`, `WasteAlertsProvider`) vs `ApiService`.
+        - The app connects to FastAPI backend at `http://10.0.2.2:8000/api/v1` for Android emulator or configured host.
+        - Ensure responsive UI, graceful offline/error handling, and avoid blocking the main UI thread.
+
+    - path: "Backend/**"
+      instructions: |
+        This is an asynchronous FastAPI backend with MongoDB Atlas:
+        - Use `motor.motor_asyncio` exclusively for database calls. Never use synchronous `pymongo` in route handlers.
+        - Strict Schema Rule: Forecast point estimates are locked (`confidence_interval` must remain `null` or omitted). Never hallucinate lower/upper bounds.
+        - Ensure all authentication uses passlib bcrypt and python-jose JWT.
+        - Ensure endpoints handle MongoDB disconnection timeouts gracefully with proper HTTP 503 or 500 status codes.
+
+    - path: "ML/**"
+      instructions: |
+        This is the dual-tier forecasting and waste optimization engine:
+        - Primary Tier uses Prophet + HistGradientBoostingRegressor on dense historical items.
+        - Sparse/Cold-Start Tier uses Croston/TSB + Category prior shrinkage W = n / (n + 14).
+        - Intraday Waste Action Engine applies locked static discount policies (20% / 30%) and donation triggers based on sales velocity pace.
