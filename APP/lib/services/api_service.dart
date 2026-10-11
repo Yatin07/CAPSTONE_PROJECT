@@ -376,4 +376,49 @@ class ApiService {
       return false;
     }
   }
+
+  // --------------------------------------------------------------------------
+  // AI Executive Briefing & Manager Assistant (Google Gemini)
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>?> fetchTodayBriefing() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/briefing/today'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['briefing'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) print('[API] fetchTodayBriefing error: $e');
+      return null;
+    }
+  }
+
+  Future<String?> askAssistant(String query) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/assistant/chat'),
+            headers: _headers,
+            body: jsonEncode({'query': query}),
+          )
+          .timeout(const Duration(seconds: 12));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['reply'] as String?;
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) print('[API] askAssistant error: $e');
+      return null;
+    }
+  }
 }

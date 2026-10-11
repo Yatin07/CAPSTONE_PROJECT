@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/dashboard_forecast_card.dart';
+import '../widgets/ai_briefing_card.dart';
 import '../widgets/dotted_background.dart';
 import 'item_detail_forecast_screen.dart';
 import 'item_setup_screen.dart';
@@ -133,21 +134,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 14),
 
-                          // Dynamic AI Subtitle Text
-                          Center(
-                            child: Text(
-                              inventoryProvider.dashboardSummary,
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontStyle: FontStyle.italic,
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                          // Executive AI Briefing Card
+                          const AiBriefingCard(),
+                          const SizedBox(height: 10),
 
 
                         // Main Section Heading

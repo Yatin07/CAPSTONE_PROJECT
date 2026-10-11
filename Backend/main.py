@@ -11,6 +11,7 @@ from pymongo.server_api import ServerApi
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from dotenv import load_dotenv
+from services.llm_service import generate_daily_briefing, answer_assistant_chat
 
 # ---------------------------------------------------------------------------- #
 # Config
@@ -662,6 +663,56 @@ async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_us
         {"$set": {"isDismissed": True}}
     )
     return {"status": "dismissed", "item_id": item_id}
+
+
+# ---------------------------------------------------------------------------- #
+# AI Executive Briefing & Manager Assistant (Google Gemini 1.5/2.5/3.8 Flash)
+# ---------------------------------------------------------------------------- #
+
+class AssistantChatRequest(BaseModel):
+    query: str
+
+
+@app.get("/api/v1/briefing/today")
+async def get_today_executive_briefing(current_user=Depends(get_current_user)):
+    """
+    Synthesizes an executive daily operational briefing for the on-duty manager
+    using Google Gemini. Strictly grounded in verified MongoDB Atlas metrics.
+    """
+    user_id = current_user["_id"]
+    cursor = db.items.find({"owner_id": user_id})
+    items = await cursor.to_list(length=100)
+
+    # Fetch alerts for this user
+    alerts_resp = await get_waste_alerts(current_user=current_user)
+    alerts = alerts_resp.get("alerts", [])
+
+    briefing = generate_daily_briefing(items, alerts)
+    return {
+        "status": "success",
+        "briefing": briefing,
+    }
+
+
+@app.post("/api/v1/assistant/chat")
+async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_current_user)):
+    """
+    Answers manager queries with RAG grounding from today's inventory state.
+    """
+    user_id = current_user["_id"]
+    cursor = db.items.find({"owner_id": user_id})
+    items = await cursor.to_list(length=100)
+
+    alerts_resp = await get_waste_alerts(current_user=current_user)
+    alerts = alerts_resp.get("alerts", [])
+
+    result = answer_assistant_chat(req.query, items, alerts)
+    return {
+        "status": "success",
+        "reply": result["reply"],
+        "provider": result.get("provider"),
+        "model": result.get("model"),
+    }
 
 
 

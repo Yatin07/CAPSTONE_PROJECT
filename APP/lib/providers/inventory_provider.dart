@@ -81,6 +81,8 @@ class InventoryProvider extends ChangeNotifier {
   String? _errorMessage;
   String _dashboardSummary = "Restock needed for active items. Cold-start engine tracking new inventory.";
   int _actionRequiredCount = 3;
+  Map<String, dynamic>? _aiBriefing;
+  bool _isAiBriefingLoading = false;
 
   List<InventoryItem> get items => List.unmodifiable(_items);
   int get itemCount => _items.length;
@@ -90,6 +92,14 @@ class InventoryProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String get dashboardSummary => _dashboardSummary;
   int get actionRequiredCount => _actionRequiredCount;
+  Map<String, dynamic>? get aiBriefing => _aiBriefing;
+  bool get isAiBriefingLoading => _isAiBriefingLoading;
+  List<String> get aiActions {
+    if (_aiBriefing != null && _aiBriefing!['actions'] is List) {
+      return List<String>.from(_aiBriefing!['actions']);
+    }
+    return [];
+  }
 
   InventoryProvider() {
     // Automatically fetch live items from MongoDB Atlas upon initialization
@@ -129,6 +139,32 @@ class InventoryProvider extends ChangeNotifier {
       if (kDebugMode) print('[Provider] fetchDashboardItems error: $e');
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+
+    // Simultaneously fetch AI briefing in background
+    fetchAiBriefing();
+  }
+
+  /// Fetches executive AI daily operational briefing from Gemini
+  Future<void> fetchAiBriefing() async {
+    _isAiBriefingLoading = true;
+    notifyListeners();
+
+    try {
+      final briefing = await ApiService.instance.fetchTodayBriefing();
+      if (briefing != null) {
+        _aiBriefing = briefing;
+        final summary = briefing['executive_summary']?.toString();
+        if (summary != null && summary.isNotEmpty) {
+          _dashboardSummary = summary;
+        }
+        if (kDebugMode) print('[Provider] Successfully loaded Gemini AI Briefing.');
+      }
+    } catch (e) {
+      if (kDebugMode) print('[Provider] fetchAiBriefing error: $e');
+    } finally {
+      _isAiBriefingLoading = false;
       notifyListeners();
     }
   }
