@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
@@ -20,8 +21,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'admin@test.com');
-  final _passwordController = TextEditingController(text: '123456');
+  final _emailController = TextEditingController(text: kDebugMode ? 'admin@test.com' : '');
+  final _passwordController = TextEditingController(text: kDebugMode ? '123456' : '');
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -53,10 +54,12 @@ class _LoginScreenState extends State<LoginScreen> {
     // 1. Attempt live cloud JWT authentication against MongoDB Atlas
     final apiSuccess = await ApiService.instance.login(email, password);
 
-    // 2. Allow offline easy credentials fallback for emulator testing
-    final isFallbackValid = (email == 'admin@test.com' && password == '123456') ||
+    // 2. Allow offline easy credentials fallback ONLY in debug mode for emulator testing
+    final isFallbackValid = kDebugMode && (
+        (email == 'admin@test.com' && password == '123456') ||
         (email == 'admin@admin.com' && password == '123456') ||
-        (email == 'manager@cafe.com' && password == 'password123');
+        (email == 'manager@cafe.com' && password == 'password123')
+    );
 
     if (!mounted) return;
 
@@ -251,26 +254,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         isLoading: _isLoading,
                         onPressed: _handleLogin,
                       ),
-                      const SizedBox(height: 16),
-
-                      // Demo Login — one-tap bypass for Android Studio testing
-                      OutlinedButton.icon(
-                        onPressed: _handleDemoLogin,
-                        icon: const Icon(
-                          Icons.play_circle_outline_rounded,
-                          size: 18,
-                        ),
-                        label: const Text('Demo Login (Skip Auth)'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: const BorderSide(
-                            color: AppColors.primary,
-                            width: 1.5,
+                      if (kDebugMode) ...[
+                        const SizedBox(height: 16),
+                        // Demo Login — one-tap bypass for debug / emulator testing
+                        OutlinedButton.icon(
+                          onPressed: _handleDemoLogin,
+                          icon: const Icon(
+                            Icons.play_circle_outline_rounded,
+                            size: 18,
                           ),
-                          shape: const StadiumBorder(),
-                          minimumSize: const Size(double.infinity, 48),
+                          label: const Text('Demo Login (Skip Auth)'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
+                            ),
+                            shape: const StadiumBorder(),
+                            minimumSize: const Size(double.infinity, 48),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

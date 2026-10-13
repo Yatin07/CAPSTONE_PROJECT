@@ -267,11 +267,13 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                         color: AppColors.primaryDark,
                       ),
                     ),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
                       children: [
                         Text(
                           briefing != null && briefing['provider'] == 'google-gemini'
-                              ? 'Google Gemini 1.5/3.8 Flash'
+                              ? 'Google Gemini Flash'
                               : 'AI Operational Engine',
                           style: GoogleFonts.inter(
                             fontSize: 10,
@@ -279,7 +281,6 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                             color: const Color(0xFF8A5A00),
                           ),
                         ),
-                        const SizedBox(width: 6),
                         Container(
                           width: 4,
                           height: 4,
@@ -288,7 +289,6 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 6),
                         Text(
                           'Zero-Math Grounded',
                           style: GoogleFonts.inter(

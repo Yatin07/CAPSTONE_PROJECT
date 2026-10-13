@@ -10,16 +10,27 @@ class ApiService {
   static final ApiService instance = ApiService._internal();
 
   /// Default API base URL:
-  /// - Android Emulator: 10.0.2.2 routes to the host machine localhost
-  /// - Web / Desktop: 127.0.0.1
+  /// - Configured via compile-time flag: --dart-define=API_BASE_URL=https://your-api.com/api/v1
+  /// - In debug mode: defaults to 10.0.2.2 (Android Emulator) or 127.0.0.1 (Web/Desktop)
+  /// - In release mode: strictly requires --dart-define=API_BASE_URL without hardcoded 10.0.2.2
   static String get defaultBaseUrl {
-    if (kIsWeb) return 'http://127.0.0.1:8000/api/v1';
-    try {
-      if (Platform.isAndroid) {
-        return 'http://10.0.2.2:8000/api/v1';
-      }
-    } catch (_) {}
-    return 'http://127.0.0.1:8000/api/v1';
+    const definedUrl = String.fromEnvironment('API_BASE_URL');
+    if (definedUrl.isNotEmpty) {
+      return definedUrl;
+    }
+
+    // Only allow local emulator/desktop routing in debug mode
+    if (kDebugMode) {
+      if (kIsWeb) return 'http://127.0.0.1:8000/api/v1';
+      try {
+        if (Platform.isAndroid) {
+          return 'http://10.0.2.2:8000/api/v1';
+        }
+      } catch (_) {}
+      return 'http://127.0.0.1:8000/api/v1';
+    }
+
+    return '';
   }
 
   String _baseUrl = defaultBaseUrl;
