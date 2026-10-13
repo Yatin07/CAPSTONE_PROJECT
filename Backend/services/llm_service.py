@@ -1,12 +1,21 @@
 import os
 import json
+import time
+import logging
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = logging.getLogger("restockiq.llm")
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] [LLM] %(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
 # Initialize client safely if key exists
 _client = None
@@ -14,12 +23,65 @@ if GEMINI_API_KEY:
     try:
         from google import genai
         _client = genai.Client(api_key=GEMINI_API_KEY)
+        logger.info("Initialized Google GenAI client with model: %s", GEMINI_MODEL)
     except Exception as e:
-        print(f"[LLM] Warning: Could not initialize google-genai Client: {e}")
+        logger.warning("Could not initialize google-genai Client: %s", e)
+
+
+def is_llm_configured() -> bool:
+    return bool(GEMINI_API_KEY and _client)
+
+
+def get_llm_info() -> Dict[str, Any]:
+    return {
+        "configured": is_llm_configured(),
+        "provider": "google-gemini" if is_llm_configured() else "deterministic-fallback",
+        "model": GEMINI_MODEL if is_llm_configured() else "rule-based",
+    }
+
+
+def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: float = 1.0) -> Optional[str]:
+    """
+    Executes generate_content with exponential backoff on 429 rate limit or 5xx errors.
+    If the primary model is unavailable, attempts a backup Flash model.
+    """
+    global _client
+    if not _client:
+        return None
+
+    model_candidates = [GEMINI_MODEL, "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview"]
+    # Deduplicate while preserving order
+    models_to_try = []
+    for m in model_candidates:
+        if m not in models_to_try:
+            models_to_try.append(m)
+
+    for active_model in models_to_try:
+        delay = initial_delay
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = _client.models.generate_content(
+                    model=active_model,
+                    contents=prompt,
+                )
+                if response and response.text:
+                    return response.text.strip()
+                return None
+            except Exception as e:
+                err_str = str(e).lower()
+                is_retryable = any(k in err_str for k in ["429", "rate", "exhausted", "500", "502", "503", "504", "server error", "timeout"])
+                logger.warning("Gemini API (model %s) attempt %d/%d failed: %s", active_model, attempt, max_retries, e)
+                if attempt < max_retries and is_retryable:
+                    time.sleep(delay)
+                    delay *= 2.0
+                else:
+                    break
+    return None
 
 
 def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Fallback generator when LLM API is unreachable or not configured."""
+    logger.info("Activating deterministic rule-based fallback for daily briefing.")
     restock_needed = [
         it for it in items
         if it.get("currentStock", 0) <= it.get("safetyStock", 0)
@@ -44,6 +106,7 @@ def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict
         actions.append("Inventory levels stable with standard turnover pace.")
 
     return {
+        "source": "fallback",
         "provider": "deterministic-fallback",
         "model": "rule-based",
         "executive_summary": summary,
@@ -103,52 +166,45 @@ ACTIVE INTRADAY WASTE ALERTS:
 {json.dumps(alerts_summary, indent=2)}
 """
 
-    try:
-        response = _client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-        )
-        text = response.text.strip() if response and response.text else ""
-        if not text:
-            return _build_deterministic_fallback(items, alerts)
-
-        # Parse sections cleanly
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
-        summary_lines = []
-        action_lines = []
-        collecting_actions = False
-
-        for line in lines:
-            if "action" in line.lower() or "checklist" in line.lower():
-                collecting_actions = True
-                continue
-            if collecting_actions:
-                if line.startswith(("-", "*", "1.", "2.", "3.")):
-                    cleaned = line.lstrip("-*0123456789. ")
-                    action_lines.append(cleaned)
-            else:
-                if not line.startswith("#"):
-                    summary_lines.append(line)
-
-        exec_summary = " ".join(summary_lines[:3]) if summary_lines else text[:250]
-        if not action_lines:
-            action_lines = [
-                "Review items below safety stock threshold.",
-                "Inspect high-risk waste alerts for intraday markdown.",
-                "Confirm morning delivery arrivals."
-            ]
-
-        return {
-            "provider": "google-gemini",
-            "model": GEMINI_MODEL,
-            "executive_summary": exec_summary,
-            "actions": action_lines[:4],
-            "raw_text": text,
-        }
-
-    except Exception as e:
-        print(f"[LLM] Error calling Gemini: {e}")
+    text = _call_gemini_with_retry(prompt)
+    if not text:
+        logger.warning("Gemini generation failed or timed out; falling back to deterministic engine.")
         return _build_deterministic_fallback(items, alerts)
+
+    # Parse sections cleanly
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    summary_lines = []
+    action_lines = []
+    collecting_actions = False
+
+    for line in lines:
+        if "action" in line.lower() or "checklist" in line.lower():
+            collecting_actions = True
+            continue
+        if collecting_actions:
+            if line.startswith(("-", "*", "1.", "2.", "3.")):
+                cleaned = line.lstrip("-*0123456789. ")
+                action_lines.append(cleaned)
+        else:
+            if not line.startswith("#"):
+                summary_lines.append(line)
+
+    exec_summary = " ".join(summary_lines[:3]) if summary_lines else text[:250]
+    if not action_lines:
+        action_lines = [
+            "Review items below safety stock threshold.",
+            "Inspect high-risk waste alerts for intraday markdown.",
+            "Confirm morning delivery arrivals."
+        ]
+
+    return {
+        "source": "gemini",
+        "provider": "google-gemini",
+        "model": GEMINI_MODEL,
+        "executive_summary": exec_summary,
+        "actions": action_lines[:4],
+        "raw_text": text,
+    }
 
 
 def answer_assistant_chat(
@@ -162,9 +218,12 @@ def answer_assistant_chat(
     """
     global _client
     if not _client:
+        logger.info("Assistant chat running in fallback mode.")
         return {
-            "reply": "RestockIQ AI Assistant is currently running in local fallback mode. Please ensure GEMINI_API_KEY is configured.",
-            "provider": "fallback"
+            "reply": "RestockIQ AI Assistant is currently running in local fallback mode. Please configure GEMINI_API_KEY.",
+            "source": "fallback",
+            "provider": "deterministic-fallback",
+            "model": "rule-based",
         }
 
     inventory_context = [
@@ -196,18 +255,19 @@ STORE MANAGER'S QUESTION:
 {user_query}
 """
 
-    try:
-        response = _client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=prompt,
-        )
+    text = _call_gemini_with_retry(prompt)
+    if not text:
+        logger.warning("Gemini assistant chat call failed; returning fallback message.")
         return {
-            "reply": response.text.strip(),
-            "provider": "google-gemini",
+            "reply": "Sorry, the AI assistant is currently experiencing high load or connection delay. Please try again shortly.",
+            "source": "fallback",
+            "provider": "fallback",
             "model": GEMINI_MODEL,
         }
-    except Exception as e:
-        return {
-            "reply": f"Sorry, could not process query with AI assistant: {str(e)}",
-            "provider": "error"
-        }
+
+    return {
+        "reply": text,
+        "source": "gemini",
+        "provider": "google-gemini",
+        "model": GEMINI_MODEL,
+    }
