@@ -1,40 +1,99 @@
 import os
+import time
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.server_api import ServerApi
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from dotenv import load_dotenv
-from services.llm_service import generate_daily_briefing, answer_assistant_chat
+from services.llm_service import generate_daily_briefing, answer_assistant_chat, get_llm_info
 
 # ---------------------------------------------------------------------------- #
-# Config
+# Config & Secrets Validation (Fail-Fast)
 # ---------------------------------------------------------------------------- #
 load_dotenv()
 
-MONGO_URI = os.getenv("MONGO_URI")
-SECRET_KEY = os.getenv("JWT_SECRET", "restockiq-super-secret-change-in-prod")
+MONGO_URI = os.getenv("MONGODB_URI") or os.getenv("MONGO_URI")
+if not MONGO_URI:
+    raise RuntimeError(
+        "CRITICAL STARTUP CONFIGURATION ERROR: Neither MONGODB_URI nor MONGO_URI is set. "
+        "The application cannot start without a valid database connection string."
+    )
+
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    raise RuntimeError(
+        "CRITICAL STARTUP CONFIGURATION ERROR: JWT_SECRET is not set. "
+        "Hardcoded security secrets are prohibited in production."
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+ALLOW_DEMO_SEED = os.getenv("ALLOW_DEMO_SEED", "false").lower() in ("true", "1", "yes")
 
 # ---------------------------------------------------------------------------- #
-# App
+# App & CORS Configuration
 # ---------------------------------------------------------------------------- #
 app = FastAPI(title="RestockIQ API", version="1.0.0")
 
+raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+if raw_origins.strip():
+    allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+else:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------- #
+# Rate Limiting
+# ---------------------------------------------------------------------------- #
+class InMemoryRateLimiter:
+    def __init__(self, max_requests: int, window_seconds: int, action_name: str):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.action_name = action_name
+        self.requests = defaultdict(list)
+
+    async def __call__(self, request: Request):
+        forwarded_for = request.headers.get("x-forwarded-for")
+        client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else "127.0.0.1")
+        
+        now = time.time()
+        window_start = now - self.window_seconds
+        
+        # Purge timestamps outside sliding window
+        self.requests[client_ip] = [t for t in self.requests[client_ip] if t > window_start]
+        
+        if len(self.requests[client_ip]) >= self.max_requests:
+            retry_after = int(self.window_seconds - (now - self.requests[client_ip][0])) + 1
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Rate limit exceeded for {self.action_name}. Limit: {self.max_requests} requests per {self.window_seconds}s. Try again in {retry_after}s.",
+                headers={"Retry-After": str(max(1, retry_after))}
+            )
+            
+        self.requests[client_ip].append(now)
+
+login_limiter = InMemoryRateLimiter(max_requests=10, window_seconds=60, action_name="authentication")
+chat_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60, action_name="assistant chat")
 
 # ---------------------------------------------------------------------------- #
 # DB Connection
@@ -57,6 +116,21 @@ async def startup_db():
         await client.admin.command("ping")
         print("[DB] Connected to MongoDB Atlas successfully.")
         await db.users.create_index("email", unique=True)
+        
+        # Guarded demo user seeding
+        if ALLOW_DEMO_SEED:
+            demo_user = await db.users.find_one({"email": "admin@test.com"})
+            if not demo_user:
+                from bson import ObjectId
+                await db.users.insert_one({
+                    "_id": str(ObjectId()),
+                    "name": "Demo Admin",
+                    "email": "admin@test.com",
+                    "password_hash": hash_password("123456"),
+                    "role": "owner",
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                })
+                print("[DB] Initialized demo user admin@test.com (ALLOW_DEMO_SEED=true).")
     except Exception as e:
         print(f"[DB] WARNING: Could not reach Atlas on startup ({e}). "
               "Server will start anyway. Fix network/VPN to enable real DB operations.")
@@ -172,6 +246,12 @@ class IntradaySaleRequest(BaseModel):
 
 @app.post("/api/v1/auth/register", response_model=TokenResponse, status_code=201)
 async def register(req: RegisterRequest):
+    if req.email.lower() == "admin@test.com" and not ALLOW_DEMO_SEED:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Creation of default demo accounts is restricted in production environments."
+        )
+
     existing = await db.users.find_one({"email": req.email})
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -193,7 +273,7 @@ async def register(req: RegisterRequest):
     return TokenResponse(access_token=token, user_id=user_id, name=req.name, role=req.role)
 
 
-@app.post("/api/v1/auth/login", response_model=TokenResponse)
+@app.post("/api/v1/auth/login", response_model=TokenResponse, dependencies=[Depends(login_limiter)])
 async def login(req: LoginRequest):
     user = await db.users.find_one({"email": req.email})
     if not user or not verify_password(req.password, user["password_hash"]):
@@ -209,16 +289,34 @@ async def login(req: LoginRequest):
 
 
 # ---------------------------------------------------------------------------- #
-# Health / DB Check
+# Health / System Status (Non-leaking DB & LLM check)
 # ---------------------------------------------------------------------------- #
 
+@app.get("/health")
 @app.get("/api/v1/health")
 async def health_check():
+    db_status = "disconnected"
     try:
-        await client.admin.command("ping")
-        return {"status": "ok", "db": "connected", "timestamp": datetime.now(timezone.utc).isoformat()}
-    except Exception as e:
-        return {"status": "error", "db": "disconnected", "detail": str(e)}
+        if client:
+            await client.admin.command("ping")
+            db_status = "connected"
+    except Exception:
+        db_status = "unreachable"
+
+    llm_info = get_llm_info()
+    overall_status = "ok" if db_status == "connected" else "degraded"
+
+    return {
+        "status": overall_status,
+        "database": {
+            "status": db_status,
+        },
+        "llm": {
+            "status": "configured" if llm_info.get("configured") else "unconfigured",
+            "model": llm_info.get("model"),
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 # ---------------------------------------------------------------------------- #
@@ -670,7 +768,7 @@ async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_us
 # ---------------------------------------------------------------------------- #
 
 class AssistantChatRequest(BaseModel):
-    query: str
+    query: str = Field(..., min_length=1, max_length=500, description="Manager operational query (1 to 500 characters)")
 
 
 @app.get("/api/v1/briefing/today")
@@ -694,7 +792,7 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
     }
 
 
-@app.post("/api/v1/assistant/chat")
+@app.post("/api/v1/assistant/chat", dependencies=[Depends(chat_limiter)])
 async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_current_user)):
     """
     Answers manager queries with RAG grounding from today's inventory state.
