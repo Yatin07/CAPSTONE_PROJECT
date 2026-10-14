@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: restockiq-backend
+    runtime: docker
+    dockerfilePath: ./Backend/Dockerfile
+    dockerContext: ./Backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3-flash-preview
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: ALLOW_DEMO_SEED
+        value: "false"
