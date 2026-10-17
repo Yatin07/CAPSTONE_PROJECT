@@ -1,0 +1,148 @@
+================================================================================
+                    RESTOCKIQ: RAW DATASET AUDIT REPORT                  
+================================================================================
+Files found in data\raw:
+  - Bakery sales.csv (14.00 MB)
+  - Grocery_Inventory_and_Sales_Dataset.csv (0.13 MB)
+  - sample_submission.csv (0.30 MB)
+  - store.csv (0.04 MB)
+  - Store_Sales_Price_Elasticity_Promotions_Data.parquet (1.96 MB)
+  - test.csv (1.36 MB)
+  - train.csv (36.29 MB)
+
+--------------------------------------------------------------------------------
+FILE: Bakery sales.csv
+--------------------------------------------------------------------------------
+Shape: 234,005 rows x 7 columns
+
+Columns & Dtypes:
+  - Unnamed: 0                       int64           Missing:   0.00%
+  - date                             object          Missing:   0.00%
+  - time                             object          Missing:   0.00%
+  - ticket_number                    float64         Missing:   0.00%
+  - article                          object          Missing:   0.00%
+  - Quantity                         float64         Missing:   0.00%
+  - unit_price                       object          Missing:   0.00%
+
+Detected Date Column: 'date'
+  Min Date: 2021-01-02
+  Max Date: 2022-09-30
+  Span:     636 days (1.74 years)
+Granularity Assessment: Transaction-level / Intraday (duplicates per article: 204,803)
+
+VERDICT: USABLE FOR PROPHET TRAINING (Real multi-article daily series with 1.74 years history: 2021-01-02 to 2022-09-30)
+
+--------------------------------------------------------------------------------
+FILE: Grocery_Inventory_and_Sales_Dataset.csv
+--------------------------------------------------------------------------------
+Shape: 990 rows x 16 columns
+
+Columns & Dtypes:
+  - Product_ID                       object          Missing:   0.00%
+  - Product_Name                     object          Missing:   0.00%
+  - Catagory                         object          Missing:   0.10%
+  - Supplier_ID                      object          Missing:   0.00%
+  - Supplier_Name                    object          Missing:   0.00%
+  - Stock_Quantity                   int64           Missing:   0.00%
+  - Reorder_Level                    int64           Missing:   0.00%
+  - Reorder_Quantity                 int64           Missing:   0.00%
+  - Unit_Price                       object          Missing:   0.00%
+  - Date_Received                    object          Missing:   0.00%
+  - Last_Order_Date                  object          Missing:   0.00%
+  - Expiration_Date                  object          Missing:   0.00%
+  - Warehouse_Location               object          Missing:   0.00%
+  - Sales_Volume                     int64           Missing:   0.00%
+  - Inventory_Turnover_Rate          int64           Missing:   0.00%
+  - Status                           object          Missing:   0.00%
+
+Detected Date Column: 'Date_Received'
+  Min Date: 2024-02-25
+  Max Date: 2025-02-24
+  Span:     365 days (1.00 years)
+Granularity Assessment: Regular Daily Series per Product_ID
+
+VERDICT: NOT USABLE FOR TRAINING - Synthetic cross-sectional snapshot table lacking sequential multi-year time series.
+
+--------------------------------------------------------------------------------
+FILE: sample_submission.csv
+--------------------------------------------------------------------------------
+Shape: 41,088 rows x 2 columns
+
+Columns & Dtypes:
+  - Id                               int64           Missing:   0.00%
+  - Sales                            int64           Missing:   0.00%
+
+No Date column detected.
+Granularity Assessment: Unknown / Non-temporal
+
+VERDICT: NOT USABLE FOR TRAINING - Kaggle submission template with IDs only, no historical targets.
+
+--------------------------------------------------------------------------------
+FILE: store.csv
+--------------------------------------------------------------------------------
+Shape: 1,115 rows x 10 columns
+
+Columns & Dtypes:
+  - Store                            int64           Missing:   0.00%
+  - StoreType                        object          Missing:   0.00%
+  - Assortment                       object          Missing:   0.00%
+  - CompetitionDistance              float64         Missing:   0.27%
+  - CompetitionOpenSinceMonth        float64         Missing:  31.75%
+  - CompetitionOpenSinceYear         float64         Missing:  31.75%
+  - Promo2                           int64           Missing:   0.00%
+  - Promo2SinceWeek                  float64         Missing:  48.79%
+  - Promo2SinceYear                  float64         Missing:  48.79%
+  - PromoInterval                    object          Missing:  48.79%
+
+No Date column detected.
+Granularity Assessment: Unknown / Non-temporal
+
+VERDICT: NOT USABLE FOR TRAINING - Static store metadata without time-series sales/dates.
+
+--------------------------------------------------------------------------------
+FILE: test.csv
+--------------------------------------------------------------------------------
+Shape: 41,088 rows x 8 columns
+
+Columns & Dtypes:
+  - Id                               int64           Missing:   0.00%
+  - Store                            int64           Missing:   0.00%
+  - DayOfWeek                        int64           Missing:   0.00%
+  - Date                             object          Missing:   0.00%
+  - Open                             float64         Missing:   0.03%
+  - Promo                            int64           Missing:   0.00%
+  - StateHoliday                     object          Missing:   0.00%
+  - SchoolHoliday                    int64           Missing:   0.00%
+
+Detected Date Column: 'Date'
+  Min Date: 2015-08-01
+  Max Date: 2015-09-17
+  Span:     47 days (0.13 years)
+Granularity Assessment: Regular Daily Series per Store
+
+VERDICT: NOT USABLE FOR TRAINING - Out-of-sample evaluation feature matrix without historical ground truth.
+
+--------------------------------------------------------------------------------
+FILE: train.csv
+--------------------------------------------------------------------------------
+Shape: 1,017,209 rows x 9 columns
+
+Columns & Dtypes:
+  - Store                            int64           Missing:   0.00%
+  - DayOfWeek                        int64           Missing:   0.00%
+  - Date                             object          Missing:   0.00%
+  - Sales                            int64           Missing:   0.00%
+  - Customers                        int64           Missing:   0.00%
+  - Open                             int64           Missing:   0.00%
+  - Promo                            int64           Missing:   0.00%
+  - StateHoliday                     object          Missing:   0.00%
+  - SchoolHoliday                    int64           Missing:   0.00%
+
+Detected Date Column: 'Date'
+  Min Date: 2013-01-01
+  Max Date: 2015-07-31
+  Span:     941 days (2.58 years)
+Granularity Assessment: Regular Daily Series per Store
+
+VERDICT: USABLE FOR PROPHET TRAINING (Real multi-store daily series with 2.58 years history: 2013-01-01 to 2015-07-31)
+
