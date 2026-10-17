@@ -1,0 +1,65 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  backend-tests:
+    name: Backend Offline Verification & Security Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: 'Backend/requirements.txt'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r Backend/requirements.txt
+
+      - name: Run Offline Unit & Multi-Tenant Tests
+        env:
+          JWT_SECRET: ci-test-secret-value-not-for-production
+          MONGODB_URI: mongodb://localhost:27017/test
+          ALLOWED_ORIGINS: http://localhost:3000
+        run: |
+          python Backend/test_backend_unit.py
+
+  flutter-tests:
+    name: Flutter Analyze & Widget Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter Dependencies
+        working-directory: APP
+        run: flutter pub get
+
+      - name: Run Flutter Static Analysis
+        working-directory: APP
+        run: flutter analyze
+
+      - name: Run Flutter Test Suite
+        working-directory: APP
+        run: flutter test
