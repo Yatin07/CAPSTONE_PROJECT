@@ -75,11 +75,17 @@ class InMemoryRateLimiter:
         self.requests = defaultdict(list)
 
     def get_client_ip(self, request: Request) -> str:
-        """Extracts client IP behind trusted reverse proxies via X-Forwarded-For."""
+        """Extracts client IP behind trusted reverse proxies via X-Forwarded-For.
+        
+        The right-most IP in the X-Forwarded-For chain is appended by the nearest
+        trusted reverse proxy (e.g. Render edge router), ensuring that clients cannot
+        bypass rate limits by injecting arbitrary fake spoofed IPs on the left.
+        """
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
-            # First IP in comma-separated chain is the client IP
-            return forwarded_for.split(",")[0].strip()
+            ips = [ip.strip() for ip in forwarded_for.split(",") if ip.strip()]
+            if ips:
+                return ips[-1]
         if request.client and request.client.host:
             return request.client.host
         return "127.0.0.1"
@@ -827,4 +833,5 @@ async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_cur
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, proxy_headers=True, forwarded_allow_ips="*")
+    forwarded_ips = os.getenv("FORWARDED_ALLOW_IPS", "127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, proxy_headers=True, forwarded_allow_ips=forwarded_ips)

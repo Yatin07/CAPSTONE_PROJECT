@@ -76,8 +76,31 @@ async def test_multi_ip_rate_limiting():
     except HTTPException as e:
         print(f"\n[3] Re-probe IP A ({ip_a}): STILL RATE LIMITED (HTTP {e.status_code})")
 
+    # [4] Test Spoofed X-Forwarded-For protection
+    print("\n[4] Testing Spoofed X-Forwarded-For protection...")
+    real_proxy_client_ip = "192.0.2.100"
+    limiter_spoof = InMemoryRateLimiter(max_requests=2, window_seconds=60, action_name="spoof test")
+
+    # Attacker rotates fake IP on each request, but Render appends real client IP on the right
+    req_spoof_1 = create_mock_request(f"1.1.1.1, {real_proxy_client_ip}")
+    await limiter_spoof(req_spoof_1)
+    print(f"  Attempt 1 (Client claims 1.1.1.1, Proxy appended {real_proxy_client_ip}): SUCCESS (Counter: {len(limiter_spoof.requests[real_proxy_client_ip])})")
+
+    req_spoof_2 = create_mock_request(f"8.8.8.8, {real_proxy_client_ip}")
+    await limiter_spoof(req_spoof_2)
+    print(f"  Attempt 2 (Client claims 8.8.8.8, Proxy appended {real_proxy_client_ip}): SUCCESS (Counter: {len(limiter_spoof.requests[real_proxy_client_ip])})")
+
+    try:
+        req_spoof_3 = create_mock_request(f"44.55.66.77, {real_proxy_client_ip}")
+        await limiter_spoof(req_spoof_3)
+        assert False, "Attacker should have been blocked despite injecting fake IP 44.55.66.77"
+    except HTTPException as e:
+        print(f"  Attempt 3 (Client claims 44.55.66.77, Proxy appended {real_proxy_client_ip}): RATE LIMITED as expected! (HTTP {e.status_code})")
+        assert e.status_code == 429
+        print("  [OK] Proved: Injected fake client IPs share the same real counter and cannot bypass rate limiting.")
+
     print("\n" + "=" * 60)
-    print("  [SUCCESS] Verified: Separate client IPs maintain distinct counters!")
+    print("  [SUCCESS] All rate limiter & spoof protection checks passed!")
     print("=" * 60)
 
 if __name__ == "__main__":
