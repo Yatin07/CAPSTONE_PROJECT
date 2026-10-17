@@ -44,10 +44,12 @@ ALLOW_DEMO_SEED = os.getenv("ALLOW_DEMO_SEED", "false").lower() in ("true", "1",
 app = FastAPI(title="RestockIQ API", version="1.0.0")
 
 raw_origins = os.getenv("ALLOWED_ORIGINS", "")
-if raw_origins.strip():
+if raw_origins.strip() and raw_origins.strip() != "*":
     allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 else:
     allowed_origins = [
+        "https://restockiq.com",
+        "https://app.restockiq.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",

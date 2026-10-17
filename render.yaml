@@ -17,6 +17,6 @@ services:
       - key: GEMINI_MODEL
         value: gemini-3-flash-preview
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://restockiq.com,https://app.restockiq.com,http://localhost:3000,http://127.0.0.1:3000"
       - key: ALLOW_DEMO_SEED
         value: "false"
