@@ -27,5 +27,5 @@ USER appuser
 
 EXPOSE 8000
 
-# Launch server with dynamic $PORT support
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+# Launch server with dynamic $PORT and proxy headers support (Render / Cloud reverse proxy)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*'"]

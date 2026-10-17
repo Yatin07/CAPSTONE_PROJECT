@@ -74,9 +74,18 @@ class InMemoryRateLimiter:
         self.action_name = action_name
         self.requests = defaultdict(list)
 
-    async def __call__(self, request: Request):
+    def get_client_ip(self, request: Request) -> str:
+        """Extracts client IP behind trusted reverse proxies via X-Forwarded-For."""
         forwarded_for = request.headers.get("x-forwarded-for")
-        client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else "127.0.0.1")
+        if forwarded_for:
+            # First IP in comma-separated chain is the client IP
+            return forwarded_for.split(",")[0].strip()
+        if request.client and request.client.host:
+            return request.client.host
+        return "127.0.0.1"
+
+    async def __call__(self, request: Request):
+        client_ip = self.get_client_ip(request)
         
         now = time.time()
         window_start = now - self.window_seconds
@@ -383,8 +392,8 @@ async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends
     update_data = {k: v for k, v in req.dict().items() if v is not None}
     update_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
 
-    await db.items.update_one({"_id": item_id}, {"$set": update_data})
-    updated = await db.items.find_one({"_id": item_id})
+    await db.items.update_one({"_id": item_id, "owner_id": current_user["_id"]}, {"$set": update_data})
+    updated = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     return {"status": "updated", "item": {
         "id": updated["_id"],
         "name": updated["name"],
@@ -428,7 +437,7 @@ async def restock_item(item_id: str, req: RestockRequest, current_user=Depends(g
     new_stock = item["currentStock"] + qty_to_add
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.items.update_one(
-        {"_id": item_id},
+        {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {"currentStock": new_stock, "updatedAt": now_iso}}
     )
     return {
@@ -595,7 +604,7 @@ async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(ge
 
     # Update item state in Atlas
     await db.items.update_one(
-        {"_id": req.item_id},
+        {"_id": req.item_id, "owner_id": current_user["_id"]},
         {"$set": {"intradaySales": new_intraday, "currentStock": new_stock, "updatedAt": now_iso}}
     )
 
@@ -714,7 +723,7 @@ async def apply_discount_action(item_id: str, current_user=Depends(get_current_u
     now_iso = datetime.now(timezone.utc).isoformat()
 
     await db.items.update_one(
-        {"_id": item_id},
+        {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {
             "price": discounted_price,
             "originalPrice": current_price,
@@ -739,7 +748,7 @@ async def flag_donation_action(item_id: str, current_user=Depends(get_current_us
 
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.items.update_one(
-        {"_id": item_id},
+        {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {
             "flaggedForDonation": True,
             "isRecommendedActionDone": True,
@@ -759,7 +768,7 @@ async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_us
         raise HTTPException(status_code=404, detail="Item not found")
 
     await db.items.update_one(
-        {"_id": item_id},
+        {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {"isDismissed": True}}
     )
     return {"status": "dismissed", "item_id": item_id}
@@ -818,4 +827,4 @@ async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_cur
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, proxy_headers=True, forwarded_allow_ips="*")
