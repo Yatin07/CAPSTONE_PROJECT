@@ -1,0 +1,35 @@
+name: Nightly ML Batch Forecast
+
+on:
+  schedule:
+    # Run every night at 02:00 UTC (past closing time, ready for morning shift)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-batch-forecast:
+    name: Execute ML Batch Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: 'ML/requirements.txt'
+
+      - name: Install ML Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ML/requirements.txt
+
+      - name: Run Nightly Batch Forecasting
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          python ML/batch_forecast.py

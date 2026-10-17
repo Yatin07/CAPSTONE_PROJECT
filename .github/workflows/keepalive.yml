@@ -1,0 +1,22 @@
+name: Render Backend Keep-Alive
+
+on:
+  schedule:
+    # Trigger every 10 minutes to prevent Render free-tier spinning down
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-health:
+    name: Ping /health Endpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping Live Health Check
+        run: |
+          echo "Pinging RestockIQ live Render backend at https://restockiq-backend.onrender.com/health..."
+          RESPONSE=$(curl -fsS --max-time 45 --retry 3 --retry-delay 5 https://restockiq-backend.onrender.com/health)
+          echo "Response received: $RESPONSE"
+          echo "$RESPONSE" | grep -q '"status"' || { echo "Health check failed!"; exit 1; }
+          echo "Health check succeeded."

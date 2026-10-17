@@ -24,9 +24,9 @@ from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
 # Check MongoDB URI
-MONGO_URI = os.getenv("MONGO_URI")
+MONGO_URI = os.getenv("MONGODB_URI") or os.getenv("MONGO_URI")
 if not MONGO_URI:
-    print("[ERROR] MONGO_URI not found in environment.")
+    print("[ERROR] Neither MONGODB_URI nor MONGO_URI found in environment.")
     sys.exit(1)
 
 print("=" * 60)

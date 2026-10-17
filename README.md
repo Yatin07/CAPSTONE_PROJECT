@@ -91,4 +91,15 @@ If a perishable item is moving significantly slower than forecasted (e.g., `< 0.
 4. `pip install -r requirements.txt` (Ensure `prophet` and `scikit-learn` are installed).
 
 ---
+
+## ☁️ Cloud Deployment & Keep-Alive Automation
+
+The FastAPI backend is deployed live on Render at `https://restockiq-backend.onrender.com`.
+
+### Keep-Alive Workflow
+* `.github/workflows/keepalive.yml` sends an HTTP GET request to `/health` every 10 minutes to prevent Render's free-tier container from spinning down.
+* **Important Caveat on GitHub Actions Cron:**
+  > GitHub Actions scheduled workflows may experience execution delays during periods of high GitHub infrastructure load. Additionally, GitHub automatically disables scheduled workflows on public or private repositories that have had no commit activity for 60 consecutive days. If inactive, simply trigger the workflow manually or push a commit.
+
+---
 *Built to make independent food retail profitable, predictable, and waste-free.*
