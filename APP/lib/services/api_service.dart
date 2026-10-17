@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, ValueNotifier;
 import 'package:http/http.dart' as http;
 import '../models/inventory_item.dart';
 import '../models/waste_alert.dart';
@@ -8,6 +9,12 @@ import '../models/waste_alert.dart';
 class ApiService {
   ApiService._internal();
   static final ApiService instance = ApiService._internal();
+
+  /// Reactive status for UI to display cold start wake-up progress
+  static final ValueNotifier<bool> isWakingUpServer = ValueNotifier<bool>(false);
+  static final ValueNotifier<String?> serverStatusMessage = ValueNotifier<String?>(null);
+
+  bool _isFirstRequest = true;
 
   /// Default API base URL:
   /// - Configured via compile-time flag: --dart-define=API_BASE_URL=https://your-api.com/api/v1
@@ -56,22 +63,86 @@ class ApiService {
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
+  /// Core HTTP execution with exponential backoff retry and cold-start wake detection
+  Future<http.Response> _executeWithRetry({
+    required Future<http.Response> Function(Duration currentTimeout) requestFn,
+    int maxTries = 3,
+    Duration firstRequestTimeout = const Duration(seconds: 40),
+    Duration normalTimeout = const Duration(seconds: 15),
+  }) async {
+    int attempt = 0;
+    final timeoutToUse = _isFirstRequest ? firstRequestTimeout : normalTimeout;
+
+    while (attempt < maxTries) {
+      attempt++;
+      final isColdStartPossibility = _isFirstRequest || attempt > 1;
+
+      Timer? wakingTimer;
+      if (isColdStartPossibility) {
+        wakingTimer = Timer(const Duration(milliseconds: 2500), () {
+          isWakingUpServer.value = true;
+          serverStatusMessage.value = attempt > 1
+              ? 'Waking up server (retrying $attempt/$maxTries)...'
+              : 'Waking up server...';
+        });
+      }
+
+      try {
+        final response = await requestFn(timeoutToUse);
+        _isFirstRequest = false;
+        wakingTimer?.cancel();
+        isWakingUpServer.value = false;
+        serverStatusMessage.value = null;
+
+        // If gateway cold-start status 502/503/504 is returned, retry
+        if ((response.statusCode == 502 || response.statusCode == 503 || response.statusCode == 504) &&
+            attempt < maxTries) {
+          isWakingUpServer.value = true;
+          serverStatusMessage.value = 'Waking up server...';
+          await Future.delayed(Duration(seconds: attempt * 2));
+          continue;
+        }
+
+        return response;
+      } catch (e) {
+        wakingTimer?.cancel();
+        if (kDebugMode) print('[API] Attempt $attempt/$maxTries error: $e');
+
+        if (attempt >= maxTries) {
+          isWakingUpServer.value = false;
+          serverStatusMessage.value = null;
+          rethrow;
+        }
+
+        isWakingUpServer.value = true;
+        serverStatusMessage.value = 'Waking up server...';
+        await Future.delayed(Duration(seconds: attempt * 2));
+      }
+    }
+
+    isWakingUpServer.value = false;
+    serverStatusMessage.value = null;
+    throw http.ClientException('Max retries exceeded');
+  }
+
   // --------------------------------------------------------------------------
   // Authentication
   // --------------------------------------------------------------------------
 
   Future<bool> login(String email, String password) async {
     try {
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/login'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'email': email.trim().toLowerCase(),
-              'password': password,
-            }),
-          )
-          .timeout(const Duration(seconds: 6));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => http
+            .post(
+              Uri.parse('$_baseUrl/auth/login'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'email': email.trim().toLowerCase(),
+                'password': password,
+              }),
+            )
+            .timeout(timeout),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -134,12 +205,14 @@ class ApiService {
 
   Future<Map<String, dynamic>?> fetchTodayDashboard() async {
     try {
-      final response = await http
-          .get(
-            Uri.parse('$_baseUrl/forecasts/today'),
-            headers: _headers,
-          )
-          .timeout(const Duration(seconds: 6));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => http
+            .get(
+              Uri.parse('$_baseUrl/forecasts/today'),
+              headers: _headers,
+            )
+            .timeout(timeout),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -163,12 +236,14 @@ class ApiService {
 
   Future<List<InventoryItem>?> fetchItems() async {
     try {
-      final response = await http
-          .get(
-            Uri.parse('$_baseUrl/items'),
-            headers: _headers,
-          )
-          .timeout(const Duration(seconds: 6));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => http
+            .get(
+              Uri.parse('$_baseUrl/items'),
+              headers: _headers,
+            )
+            .timeout(timeout),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -303,12 +378,14 @@ class ApiService {
 
   Future<List<WasteAlert>?> fetchWasteAlerts() async {
     try {
-      final response = await http
-          .get(
-            Uri.parse('$_baseUrl/waste-alerts'),
-            headers: _headers,
-          )
-          .timeout(const Duration(seconds: 6));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => http
+            .get(
+              Uri.parse('$_baseUrl/waste-alerts'),
+              headers: _headers,
+            )
+            .timeout(timeout),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -331,7 +408,7 @@ class ApiService {
             headers: _headers,
             body: jsonEncode({'item_id': itemId, 'quantity': quantity}),
           )
-          .timeout(const Duration(seconds: 6));
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 201;
     } catch (e) {
@@ -347,7 +424,7 @@ class ApiService {
             Uri.parse('$_baseUrl/waste-alerts/$itemId/apply-discount'),
             headers: _headers,
           )
-          .timeout(const Duration(seconds: 6));
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -363,7 +440,7 @@ class ApiService {
             Uri.parse('$_baseUrl/waste-alerts/$itemId/flag-donation'),
             headers: _headers,
           )
-          .timeout(const Duration(seconds: 6));
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -379,7 +456,7 @@ class ApiService {
             Uri.parse('$_baseUrl/waste-alerts/$itemId/dismiss'),
             headers: _headers,
           )
-          .timeout(const Duration(seconds: 6));
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -394,12 +471,14 @@ class ApiService {
 
   Future<Map<String, dynamic>?> fetchTodayBriefing() async {
     try {
-      final response = await http
-          .get(
-            Uri.parse('$_baseUrl/briefing/today'),
-            headers: _headers,
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => http
+            .get(
+              Uri.parse('$_baseUrl/briefing/today'),
+              headers: _headers,
+            )
+            .timeout(timeout),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

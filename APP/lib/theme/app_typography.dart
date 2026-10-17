@@ -53,4 +53,10 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     color: AppColors.primary,
   );
+
+  static TextStyle captionBold = GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: AppColors.onSurfaceVariant,
+  );
 }

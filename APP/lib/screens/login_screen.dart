@@ -254,6 +254,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         isLoading: _isLoading,
                         onPressed: _handleLogin,
                       ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: ApiService.isWakingUpServer,
+                        builder: (context, isWaking, _) {
+                          if (!isWaking) return const SizedBox.shrink();
+                          return Container(
+                            margin: const EdgeInsets.only(top: 14),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF8E7),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFFFD580)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8A5A00)),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ValueListenableBuilder<String?>(
+                                  valueListenable: ApiService.serverStatusMessage,
+                                  builder: (context, msg, _) {
+                                    return Text(
+                                      msg ?? 'Waking up server...',
+                                      style: AppTypography.captionBold.copyWith(
+                                        color: const Color(0xFF8A5A00),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                       if (kDebugMode) ...[
                         const SizedBox(height: 16),
                         // Demo Login — one-tap bypass for debug / emulator testing

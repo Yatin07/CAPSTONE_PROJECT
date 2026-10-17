@@ -281,6 +281,23 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                             color: const Color(0xFF8A5A00),
                           ),
                         ),
+                        if (briefing != null && briefing['source'] == 'fallback')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFE0B2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0xFFFFB74D), width: 0.8),
+                            ),
+                            child: Text(
+                              'Fallback Mode',
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFE65100),
+                              ),
+                            ),
+                          ),
                         Container(
                           width: 4,
                           height: 4,

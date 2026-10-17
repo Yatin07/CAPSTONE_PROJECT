@@ -13,6 +13,8 @@ import 'package:app/screens/item_setup_screen.dart';
 import 'package:app/screens/login_screen.dart';
 import 'package:app/screens/settings_screen.dart';
 import 'package:app/screens/waste_alerts_screen.dart';
+import 'package:app/services/api_service.dart';
+import 'package:app/widgets/ai_briefing_card.dart';
 
 void main() {
   group('RestockIQ App Tests', () {
@@ -475,6 +477,60 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Your Menu Items'), findsOneWidget);
+    });
+
+    testWidgets('LoginScreen displays Waking up server... when cold start flag is active', (WidgetTester tester) async {
+      ApiService.isWakingUpServer.value = true;
+      ApiService.serverStatusMessage.value = 'Waking up server...';
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => InventoryProvider()),
+            ChangeNotifierProvider(create: (_) => StockCheckProvider()),
+            ChangeNotifierProvider(create: (_) => WasteAlertsProvider()),
+          ],
+          child: const MaterialApp(
+            home: LoginScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Waking up server...'), findsOneWidget);
+
+      ApiService.isWakingUpServer.value = false;
+      ApiService.serverStatusMessage.value = null;
+      await tester.pump();
+      expect(find.text('Waking up server...'), findsNothing);
+    });
+
+    testWidgets('AiBriefingCard displays Fallback Mode label when briefing source is fallback', (WidgetTester tester) async {
+      final inventoryProvider = InventoryProvider();
+      inventoryProvider.setAiBriefingForTest({
+        'source': 'fallback',
+        'provider': 'deterministic-fallback',
+        'executive_summary': 'Fallback summary for testing',
+        'actions': ['Action 1', 'Action 2'],
+      });
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: inventoryProvider),
+            ChangeNotifierProvider(create: (_) => StockCheckProvider()),
+            ChangeNotifierProvider(create: (_) => WasteAlertsProvider()),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: AiBriefingCard(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Fallback Mode'), findsOneWidget);
     });
   });
 }

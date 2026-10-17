@@ -169,6 +169,11 @@ class InventoryProvider extends ChangeNotifier {
     }
   }
 
+  void setAiBriefingForTest(Map<String, dynamic> briefing) {
+    _aiBriefing = briefing;
+    notifyListeners();
+  }
+
   Future<void> addItem({
     required String name,
     required String category,
