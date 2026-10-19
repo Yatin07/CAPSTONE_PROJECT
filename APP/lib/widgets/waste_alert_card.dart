@@ -222,17 +222,23 @@ class WasteAlertCard extends StatelessWidget {
         ],
       ),
       child: Center(
-        child: foodType == 'croissant'
+        child: foodType == 'milk'
             ? const Icon(
-                Icons.bakery_dining_rounded,
+                Icons.local_drink_rounded,
                 size: 28,
-                color: Color(0xFFB45309),
+                color: Color(0xFF0284C7),
               )
-            : const Icon(
-                Icons.pie_chart_outline_rounded,
-                size: 28,
-                color: Color(0xFFD97706),
-              ),
+            : foodType == 'quiche'
+                ? const Icon(
+                    Icons.pie_chart_outline_rounded,
+                    size: 28,
+                    color: Color(0xFFD97706),
+                  )
+                : const Icon(
+                    Icons.bakery_dining_rounded,
+                    size: 28,
+                    color: Color(0xFFB45309),
+                  ),
       ),
     );
   }

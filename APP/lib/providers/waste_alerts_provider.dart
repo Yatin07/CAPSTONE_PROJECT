@@ -5,8 +5,8 @@ import '../services/api_service.dart';
 class WasteAlertsProvider extends ChangeNotifier {
   final List<WasteAlert> _alerts = [
     WasteAlert(
-      id: '1',
-      itemName: 'Almond Croissant',
+      id: '2',
+      itemName: 'Traditional Baguette',
       salesText: '40% of expected sales so far\ntoday',
       progress: 0.40,
       severityLabel: 'Low Pace',
@@ -18,11 +18,11 @@ class WasteAlertsProvider extends ChangeNotifier {
       primaryActionText: 'Apply Discount',
       primaryDoneText: 'Discount Applied',
       layoutStyle: WasteAlertCardLayoutStyle.stacked,
-      foodType: 'croissant',
+      foodType: 'baguette',
     ),
     WasteAlert(
-      id: '2',
-      itemName: 'Spinach Feta\nQuiche',
+      id: '4',
+      itemName: 'Whole Milk',
       salesText: '25% of expected sales so far\ntoday',
       progress: 0.25,
       severityLabel: 'Critical',
@@ -34,7 +34,7 @@ class WasteAlertsProvider extends ChangeNotifier {
       primaryActionText: 'Flag Item',
       primaryDoneText: 'Item Flagged',
       layoutStyle: WasteAlertCardLayoutStyle.sideBySide,
-      foodType: 'quiche',
+      foodType: 'milk',
     ),
   ];
 

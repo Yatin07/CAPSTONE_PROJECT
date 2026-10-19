@@ -41,22 +41,22 @@ void main() {
       final provider = WasteAlertsProvider();
 
       expect(provider.activeAlerts.length, 2);
-      expect(provider.activeAlerts[0].itemName, 'Almond Croissant');
-      expect(provider.activeAlerts[1].itemName, 'Spinach Feta\nQuiche');
+      expect(provider.activeAlerts[0].itemName, 'Traditional Baguette');
+      expect(provider.activeAlerts[1].itemName, 'Whole Milk');
 
-      final msg1 = provider.suggestRecommendation('1');
+      final msg1 = provider.suggestRecommendation('2');
       expect(msg1, 'Discount suggestion recorded.');
       expect(provider.activeAlerts[0].isRecommendedActionDone, true);
 
-      final msg2 = provider.applyPrimaryAction('1');
-      expect(msg2, '20% discount applied successfully to Almond Croissant.');
+      final msg2 = provider.applyPrimaryAction('2');
+      expect(msg2, '20% discount applied successfully to Traditional Baguette.');
       expect(provider.activeAlerts[0].isPrimaryActionDone, true);
 
-      provider.dismissAlert('1');
-      expect(provider.activeAlerts.length, 1);
-      expect(provider.activeAlerts[0].itemName, 'Spinach Feta\nQuiche');
-
       provider.dismissAlert('2');
+      expect(provider.activeAlerts.length, 1);
+      expect(provider.activeAlerts[0].itemName, 'Whole Milk');
+
+      provider.dismissAlert('4');
       expect(provider.activeAlerts.isEmpty, true);
 
       provider.resetAlerts();
@@ -83,8 +83,8 @@ void main() {
 
       expect(find.text('RestockIQ'), findsOneWidget);
       expect(find.text('Items Needing\nAttention'), findsOneWidget);
-      expect(find.text('Almond Croissant'), findsOneWidget);
-      expect(find.text('Spinach Feta\nQuiche'), findsOneWidget);
+      expect(find.text('Traditional Baguette'), findsOneWidget);
+      expect(find.text('Whole Milk'), findsOneWidget);
       expect(find.text('Suggest 20% Discount'), findsOneWidget);
       expect(find.text('Apply Discount'), findsOneWidget);
       expect(find.text('Flag for Donation'), findsOneWidget);
@@ -105,14 +105,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Discount Applied'), findsOneWidget);
 
-      // Dismiss Card 1
-      wasteProvider.dismissAlert('1');
-      await tester.pumpAndSettle();
-      expect(find.text('Almond Croissant'), findsNothing);
-      expect(find.text('Spinach Feta\nQuiche'), findsOneWidget);
-
-      // Dismiss Card 2
+      // Dismiss Card 1 (Traditional Baguette)
       wasteProvider.dismissAlert('2');
+      await tester.pumpAndSettle();
+      expect(find.text('Traditional Baguette'), findsNothing);
+      expect(find.text('Whole Milk'), findsOneWidget);
+
+      // Dismiss Card 2 (Whole Milk)
+      wasteProvider.dismissAlert('4');
       await tester.pumpAndSettle();
       expect(find.text('No waste alerts'), findsOneWidget);
       expect(find.text('All items are currently performing well.'), findsOneWidget);
@@ -157,32 +157,47 @@ void main() {
     test('StockCheckProvider initial state and mutations', () {
       final provider = StockCheckProvider();
 
-      expect(provider.entries.length, 4);
+      expect(provider.entries.length, 5);
       
-      // Almond Milk
-      final almond = provider.entries[0];
-      expect(almond.name, 'Almond Milk (Barista)');
-      expect(almond.actualQuantity, 5);
-      expect(almond.isAutoCalculated, true);
-      expect(almond.isManualOverride, false);
-
       // Croissants perishable reset daily
-      final croissants = provider.entries[2];
-      expect(croissants.name, 'Croissants (Butter)');
+      final croissants = provider.entries[0];
+      expect(croissants.name, 'Croissants');
+      expect(croissants.actualQuantity, 30);
+      expect(croissants.isAutoCalculated, true);
       expect(croissants.isPerishable, true);
 
-      // Oat Milk manual override
-      final oat = provider.entries[3];
-      expect(oat.name, 'Oat Milk');
-      expect(oat.actualQuantity, 8);
-      expect(oat.isManualOverride, true);
+      // Traditional Baguette
+      final baguette = provider.entries[1];
+      expect(baguette.name, 'Traditional Baguette');
+      expect(baguette.actualQuantity, 8);
+      expect(baguette.isPerishable, true);
 
-      // Mutate Almond Milk quantity 5 -> 6
-      provider.updateQuantity(almond.id, 6);
-      final updatedAlmond = provider.entries[0];
-      expect(updatedAlmond.actualQuantity, 6);
-      expect(updatedAlmond.isAutoCalculated, false);
-      expect(updatedAlmond.isManualOverride, true);
+      // Pain au Chocolat
+      final pain = provider.entries[2];
+      expect(pain.name, 'Pain au Chocolat');
+      expect(pain.actualQuantity, 15);
+      expect(pain.isPerishable, true);
+
+      // Whole Milk
+      final milk = provider.entries[3];
+      expect(milk.name, 'Whole Milk');
+      expect(milk.actualQuantity, 4);
+      expect(milk.isPerishable, true);
+
+      // Espresso Beans (non-perishable)
+      final beans = provider.entries[4];
+      expect(beans.name, 'Espresso Beans');
+      expect(beans.actualQuantity, 20);
+      expect(beans.isPerishable, false);
+      expect(beans.isAutoCalculated, true);
+      expect(beans.isManualOverride, false);
+
+      // Mutate Espresso Beans quantity 20 -> 22
+      provider.updateQuantity(beans.id, 22);
+      final updatedBeans = provider.entries[4];
+      expect(updatedBeans.actualQuantity, 22);
+      expect(updatedBeans.isAutoCalculated, false);
+      expect(updatedBeans.isManualOverride, true);
 
       // Confirm stock
       expect(provider.isConfirmed, false);
@@ -300,17 +315,17 @@ void main() {
 
       expect(find.text("Today's Stock Check"), findsOneWidget);
       expect(find.text('Verify auto-calculated quantities or adjust manually.'), findsOneWidget);
-      expect(find.text('Almond Milk (Barista)'), findsOneWidget);
-      expect(find.text('Espresso Beans (House)'), findsOneWidget);
-      expect(find.text('Croissants (Butter)'), findsOneWidget);
-      expect(find.text('Oat Milk'), findsOneWidget);
-      expect(find.text('Auto-calculated'), findsNWidgets(2));
-      expect(find.text('Resets daily'), findsOneWidget);
-      expect(find.text('Manual Override'), findsOneWidget);
+      expect(find.text('Croissants'), findsOneWidget);
+      expect(find.text('Traditional Baguette'), findsOneWidget);
+      expect(find.text('Pain au Chocolat'), findsOneWidget);
+      expect(find.text('Whole Milk'), findsOneWidget);
+      expect(find.text('Espresso Beans'), findsOneWidget);
+      expect(find.text('Resets daily'), findsNWidgets(4));
+      expect(find.text('Auto-calculated'), findsOneWidget);
       expect(find.text("✓ Confirm Today's Stock"), findsOneWidget);
     });
 
-    testWidgets('Editing Almond Milk quantity in InventoryCheckInScreen updates status to Manual Override', (WidgetTester tester) async {
+    testWidgets('Editing Espresso Beans quantity in InventoryCheckInScreen updates status to Manual Override', (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -323,12 +338,13 @@ void main() {
         ),
       );
 
-      // Tap pencil edit icon on Almond Milk
+      // Tap pencil edit icon on Espresso Beans
       final editIconFinder = find.byIcon(Icons.edit_outlined).first;
+      await tester.ensureVisible(editIconFinder);
       await tester.tap(editIconFinder);
       await tester.pumpAndSettle();
 
-      // Tap plus button to increment 5 -> 6
+      // Tap plus button to increment 20 -> 21
       final plusFinder = find.byIcon(Icons.add);
       await tester.tap(plusFinder);
       await tester.pumpAndSettle();
@@ -338,9 +354,9 @@ void main() {
       await tester.tap(checkFinder);
       await tester.pumpAndSettle();
 
-      // Expect Almond Milk now shows Manual Override
-      expect(find.text('6'), findsOneWidget);
-      expect(find.text('Manual Override'), findsNWidgets(2));
+      // Expect Espresso Beans now shows Manual Override and updated quantity 21
+      expect(find.text('21'), findsOneWidget);
+      expect(find.text('Manual Override'), findsOneWidget);
     });
 
     testWidgets('Confirming stock updates button state and shows snackbar', (WidgetTester tester) async {

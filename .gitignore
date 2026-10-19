@@ -19,6 +19,7 @@ env/
 .flutter-plugins-dependencies
 .packages
 build/
+*.apk
 *.lock.bak
 
 # IDEs

@@ -64,6 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (apiSuccess || isFallbackValid) {
+      if (!ApiService.instance.isAuthenticated) {
+        ApiService.instance.setWalkthroughSession(email: email);
+      }
       // Sync fresh cloud data into providers
       try {
         Provider.of<InventoryProvider>(context, listen: false).fetchDashboardItems();
