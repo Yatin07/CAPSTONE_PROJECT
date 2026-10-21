@@ -69,13 +69,46 @@ If a perishable item is moving significantly slower than forecasted (e.g., `< 0.
 
 ## 📁 Repository Structure
 
-*   `/APP/` - The Flutter mobile application source code.
-*   `/ML/` - The Python forecasting pipeline, Prophet/XGBoost training scripts, and simulation testing.
-    *   `ML_Development_Plan.md` - In-depth ML architecture rationale.
-    *   `learning_notes.md` - Exhaustive log of ML experiments, falsifications, and final locked configurations.
-*   `/Backend/` *(Upcoming)* - The FastAPI routing and MongoDB integration layers.
+```
+CAP/
+├── APP/                           # Flutter mobile client (Dart, Riverpod, Warm Tech design system)
+│   ├── lib/                       # Clean architecture: models, providers, screens, services, theme, widgets
+│   ├── test/                      # Automated test suites (44 tests: Unit, Widget, Integration)
+│   └── README.md                  # Frontend development guide & screen specifications
+├── Backend/                       # FastAPI asynchronous microservice (Motor, MongoDB Atlas, JWT)
+│   ├── services/                  # Business logic & Google Gemini 2.5 Flash LLM integration
+│   ├── test_backend_unit.py       # Offline security & unit tests (rate limiting, tenant isolation)
+│   ├── Dockerfile                 # Render cloud deployment container specification
+│   └── README.md                  # API endpoints, authentication, and verification guide
+├── ML/                            # Demand forecasting engine (Prophet + GBDT & Bayesian TSB)
+│   ├── batch_forecast.py          # Production batch pipeline executed via GitHub Actions cron
+│   ├── models/                    # Production Prophet & GBDT model architectures
+│   ├── data/                      # Processed historical sales rollups & raw transaction datasets
+│   ├── experiments/               # Diagnostic benchmarks, grid search, and intermittent baselines
+│   └── README.md                  # ML pipeline architecture & mathematical rationale
+├── docs/                          # Technical engineering & operational documentation
+│   ├── architecture/              # High-level architecture plans & unsold stock domain logic
+│   ├── TESTING_AND_INTEGRITY_REPORT.md  # Formal software testing & verification report
+│   ├── simulation_report.md       # 90-day inventory waste & stockout financial simulation
+│   └── README.md                  # Technical documentation directory index
+├── Documentation/                 # Academic capstone deliverables (NMIMS MPSTME, Course 702IT0E035)
+│   ├── academic-reviews/          # Formal review presentation decks (Review I, Review II, improved slides)
+│   ├── literature-review/         # IEEE LaTeX manuscript, markdown surveys, and comparison matrices
+│   ├── research-papers/           # Curated library of 25 reference papers (Chinmay, Soumy, Yatin)
+│   ├── summaries/                 # Structured summaries, notes, and domain transcripts
+│   ├── tools/                     # Slide automation scripts, pptx mergers, and raw extraction dumps
+│   └── README.md                  # Academic archive index and contribution guide
+├── scripts/                       # Operational automation tools (backtesting, waste simulation, dataset audit)
+│   └── README.md                  # Script catalog and execution guide
+├── assets/                        # Architecture diagrams and model forecast visual assets
+├── adapters/                      # LLM developer personas and prompts (Claude, Gemini, GPT-OSS)
+├── .github/workflows/             # GitHub Actions CI/CD (ci.yml, nightly-forecast.yml, keepalive.yml)
+├── render.yaml                    # Infrastructure-as-Code for Render backend hosting
+├── PROJECT_RULES.md               # Repository engineering rules, testing mandates, and coding standards
+├── VERSION                        # Semantic release version tag
+└── README.md                      # Project root overview
+```
 
----
 
 ## 🚀 Getting Started
 
