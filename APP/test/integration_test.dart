@@ -7,8 +7,6 @@ import 'package:app/providers/waste_alerts_provider.dart';
 import 'package:app/screens/login_screen.dart';
 import 'package:app/screens/dashboard_screen.dart';
 import 'package:app/screens/waste_alerts_screen.dart';
-import 'package:app/screens/inventory_checkin_screen.dart';
-import 'package:app/services/api_service.dart';
 
 void main() {
   group('RestockIQ Phase 2: Integration Testing Suite', () {

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, ValueNotifier;
 import 'package:http/http.dart' as http;
 import '../models/inventory_item.dart';
@@ -119,6 +118,8 @@ class ApiService {
   // --------------------------------------------------------------------------
 
   void setWalkthroughSession({String email = 'admin@test.com', String name = 'Store Manager'}) {
+    assert(kDebugMode, 'Walkthrough sessions are strictly forbidden in release builds.');
+    if (!kDebugMode) return;
     _token = 'offline_jwt_walkthrough_${DateTime.now().millisecondsSinceEpoch}';
     _userId = 'demo_walkthrough_owner';
     _userName = email.contains('admin') ? 'Admin Manager' : name;
@@ -129,9 +130,11 @@ class ApiService {
 
   Future<bool> login(String email, String password) async {
     final cleanEmail = email.trim().toLowerCase();
-    final isWalkthroughCred = (cleanEmail == 'admin@test.com' && password == '123456') ||
+    final isWalkthroughCred = kDebugMode && (
+        (cleanEmail == 'admin@test.com' && password == '123456') ||
         (cleanEmail == 'admin@admin.com' && password == '123456') ||
-        (cleanEmail == 'manager@cafe.com' && password == 'password123');
+        (cleanEmail == 'manager@cafe.com' && password == 'password123')
+    );
 
     try {
       final response = await _executeWithRetry(

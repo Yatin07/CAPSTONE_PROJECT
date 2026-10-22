@@ -1,8 +1,5 @@
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app/models/inventory_item.dart';
-import 'package:app/models/stock_check_entry.dart';
-import 'package:app/models/waste_alert.dart';
 import 'package:app/providers/inventory_provider.dart';
 import 'package:app/providers/stock_check_provider.dart';
 import 'package:app/providers/waste_alerts_provider.dart';
