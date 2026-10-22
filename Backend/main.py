@@ -623,6 +623,57 @@ async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(ge
     }
 
 
+def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stock: int, actual_sold: float, expected_by_now: float):
+    """
+    Deterministic decision engine for intraday waste risk classification.
+    Evaluates:
+      1. isPerishable == True (non-perishables ignored)
+      2. isDismissed == False (dismissed items skipped)
+      3. curr_stock > 0 (out of stock items produce no waste alert)
+      4. sales_pace_ratio = round(actual_sold / expected_by_now, 2)
+         - pace >= 0.70: Normal pace (No Alert)
+         - 0.35 <= pace < 0.70: Low Pace (20% discount suggested)
+         - pace < 0.35: Critical (Flag for donation / 30% discount in code)
+    """
+    if not is_perishable or is_dismissed:
+        return None
+    if curr_stock <= 0:
+        return None
+    if expected_by_now <= 0:
+        expected_by_now = 1.0
+        
+    sales_pace_ratio = round(actual_sold / expected_by_now, 2)
+    if sales_pace_ratio >= 0.70:
+        return None
+        
+    if sales_pace_ratio < 0.35:
+        return {
+            "severityLabel": "Critical",
+            "severityColor": "#D97706",
+            "discount_pct": 30,
+            "recommendedActionText": "Flag for Donation",
+            "recommendedActionColor": "#FFB702",
+            "recommendedDoneText": "Flagged for Donation",
+            "primaryActionText": "Flag Item",
+            "primaryDoneText": "Item Flagged",
+            "layoutStyle": "sideBySide",
+            "salesPaceRatio": sales_pace_ratio,
+        }
+    else:
+        return {
+            "severityLabel": "Low Pace",
+            "severityColor": "#B91C1C",
+            "discount_pct": 20,
+            "recommendedActionText": "Suggest 20% Discount",
+            "recommendedActionColor": "#8B1E22",
+            "recommendedDoneText": "Discount Suggested",
+            "primaryActionText": "Apply Discount",
+            "primaryDoneText": "Discount Applied",
+            "layoutStyle": "stacked",
+            "salesPaceRatio": sales_pace_ratio,
+        }
+
+
 @app.get("/api/v1/waste-alerts")
 async def get_waste_alerts(current_user=Depends(get_current_user)):
     cursor = db.items.find({"owner_id": current_user["_id"], "isPerishable": True})
@@ -646,13 +697,16 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
         
         actual_sold = item.get("intradaySales", 0)
         expected_by_now = max(1.0, predicted_daily * elapsed_fraction)
-        
-        # Calculate sales pace ratio
-        sales_pace_ratio = round(actual_sold / expected_by_now, 2)
-        
-        # Flag items with slow pace (< 70% of expected volume) that still have stock
         curr_stock = item.get("currentStock", 0)
-        if sales_pace_ratio < 0.70 and curr_stock > 0:
+        
+        tier = evaluate_waste_alert_tier(
+            is_perishable=item.get("isPerishable", False),
+            is_dismissed=item.get("isDismissed", False),
+            curr_stock=curr_stock,
+            actual_sold=actual_sold,
+            expected_by_now=expected_by_now,
+        )
+        if tier is not None:
             clean_name = item["name"].lower()
             if "croissant" in clean_name:
                 food_type = "croissant"
@@ -665,28 +719,7 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
             else:
                 food_type = "pastry"
 
-            # Strict architectural mapping: static discount based on risk tier
-            if sales_pace_ratio < 0.35:
-                severity_label = "Critical"
-                severity_color = "#D97706"
-                discount_pct = 30
-                rec_action_text = "Flag for Donation"
-                rec_action_color = "#FFB702"
-                rec_done_text = "Flagged for Donation"
-                prim_action_text = "Flag Item"
-                prim_done_text = "Item Flagged"
-                layout_style = "sideBySide"
-            else:
-                severity_label = "Low Pace"
-                severity_color = "#B91C1C"
-                discount_pct = 20
-                rec_action_text = "Suggest 20% Discount"
-                rec_action_color = "#8B1E22"
-                rec_done_text = "Discount Suggested"
-                prim_action_text = "Apply Discount"
-                prim_done_text = "Discount Applied"
-                layout_style = "stacked"
-
+            sales_pace_ratio = tier["salesPaceRatio"]
             pct_int = int(round(sales_pace_ratio * 100))
             sales_text = f"{pct_int}% of expected sales so far\ntoday"
 
