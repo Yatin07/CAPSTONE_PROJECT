@@ -44,17 +44,18 @@ The forecasting engine is split into a **Dual-Tier Architecture** to handle both
 
 ## 📊 Proven Business Impact (Simulation)
 
-To validate the ML engine, we ran an inventory simulation over a 4-month summer period on real bakery data (84,500 total demand). 
+To validate the ML engine, we ran a 90-day inventory simulation on real bakery retail data (68,908 observed demand units across 35 SKUs from July to September 2022). 
 
-**Rule:** `Restock = Forecast + Safety Stock (1.65 * Historical Std Dev)`
+**Ordering Policy:** `Restock = Forecast + z * Historical Std Dev`
 
-| Strategy | Total Waste (Units) | Stockout Days |
-| :--- | :--- | :--- |
-| **Seasonal Naive** | 65,026 | 275 |
-| **7-Day Moving Average** | 63,759 | 179 |
-| **RestockIQ (ML Engine)** | **60,483** | **137** |
+| Strategy ($z = 1.65$) | Total Waste (Units) | Waste % | Stockout Units | Stockout Rate | Gross Profit (€) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Same-Weekday 4-Wk Avg** | 46,986 | 41.2% | 1,780 | 2.58% | €25,921.33 |
+| **Seasonal Naive (Lag 7)** | 46,044 | 40.5% | 1,345 | 1.95% | €26,626.08 |
+| **7-Day Moving Average** | 45,894 | 40.4% | 1,258 | 1.83% | €26,867.65 |
+| **RestockIQ (Hybrid Model)** | **40,954** | **37.6%** | **979** | **1.42%** | **€29,042.96** |
 
-**The Result:** By tightening the forecast variance, RestockIQ prevents over **3,200 units of food waste** in a single season while simultaneously **eliminating 42+ stockout days**, proving that advanced ML drives real margin expansion.
+**The Result:** At $z = 1.65$ safety stock, RestockIQ reduces **5,090 units of food waste** and cuts **366 stockout units** compared to the seasonal naive baseline (+€2,416.88 additional gross margin in 90 days). Furthermore, for operators prioritizing lean zero-waste targets, RestockIQ at $z = 0.0$ reduces waste to **9.0%** (5,814 units) with **€40,717 in gross profit**. Full sensitivity analysis across $z \in \{0.0, 0.5, 1.0, 1.65\}$ is documented in [`docs/simulation_report.md`](file:///e:/CAP/docs/simulation_report.md).
 
 ---
 
@@ -73,11 +74,11 @@ If a perishable item is moving significantly slower than forecasted (e.g., `< 0.
 CAP/
 ├── APP/                           # Flutter mobile client (Dart, Riverpod, Warm Tech design system)
 │   ├── lib/                       # Clean architecture: models, providers, screens, services, theme, widgets
-│   ├── test/                      # Automated test suites (44 tests: Unit, Widget, Integration)
+│   ├── test/                      # Automated test suites (44 tests: 21 Unit, 18 Widget, 5 Integration)
 │   └── README.md                  # Frontend development guide & screen specifications
 ├── Backend/                       # FastAPI asynchronous microservice (Motor, MongoDB Atlas, JWT)
-│   ├── services/                  # Business logic & Google Gemini 2.5 Flash LLM integration
-│   ├── test_backend_unit.py       # Offline security & unit tests (rate limiting, tenant isolation)
+│   ├── services/                  # Business logic & Google Gemini 3 Flash (gemini-3-flash-preview)
+│   ├── test_backend_unit.py       # Offline security, BVA, decision table & CFG basis path tests (7 suites)
 │   ├── Dockerfile                 # Render cloud deployment container specification
 │   └── README.md                  # API endpoints, authentication, and verification guide
 ├── ML/                            # Demand forecasting engine (Prophet + GBDT & Bayesian TSB)
@@ -88,7 +89,9 @@ CAP/
 │   └── README.md                  # ML pipeline architecture & mathematical rationale
 ├── docs/                          # Technical engineering & operational documentation
 │   ├── architecture/              # High-level architecture plans & unsold stock domain logic
-│   ├── TESTING_AND_INTEGRITY_REPORT.md  # Formal software testing & verification report
+│   ├── software_testing_10slides.pptx  # 10-slide high-readability testing deck with speaker notes
+│   ├── software_testing_presentation.pptx # 15-slide comprehensive testing presentation
+│   ├── TESTING_AND_INTEGRITY_REPORT.md # Formal software testing & verification report (51 automated tests)
 │   ├── simulation_report.md       # 90-day inventory waste & stockout financial simulation
 │   └── README.md                  # Technical documentation directory index
 ├── Documentation/                 # Academic capstone deliverables (NMIMS MPSTME, Course 702IT0E035)
@@ -99,6 +102,8 @@ CAP/
 │   ├── tools/                     # Slide automation scripts, pptx mergers, and raw extraction dumps
 │   └── README.md                  # Academic archive index and contribution guide
 ├── scripts/                       # Operational automation tools (backtesting, waste simulation, dataset audit)
+│   ├── build_10slides_deck.js     # Reproducible PPTX builder for 10-slide testing deck
+│   ├── build_testing_deck.js      # PPTX builder for 15-slide comprehensive testing deck
 │   └── README.md                  # Script catalog and execution guide
 ├── assets/                        # Architecture diagrams and model forecast visual assets
 ├── adapters/                      # LLM developer personas and prompts (Claude, Gemini, GPT-OSS)
