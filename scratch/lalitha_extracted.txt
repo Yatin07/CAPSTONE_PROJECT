@@ -1,0 +1,841 @@
+
+--- PAGE 1 ---
+Enhanced sales forecasting of perishable and 
+non- perishable goods using weather data with 
+insights on Imports and price sensitivity 
+ 
+ 
+Lalitha R 
+Professor, CSE 
+Rajalakshmi Institute of Technology 
+Chennai, India. 
+researchlalitha@gmail.com  
+ 
+Sreelekha Ponugoti                                               
+Assistant Professor 
+RMK college of engineering and 
+Technology 
+Chennai, India                                          
+Sreelekha.skit@gmail.com 
+Aisvarya S  
+CSE 
+Rajalakshmi Institute of Technology 
+Chennai, India. 
+aisvarya.sun@gmail.com 
+ 
+                     Hanne Jenifer R 
+CSE 
+Rajalakshmi Institute of Technology 
+Chennai, India. 
+Hannejenifer9841@gmail.com  
+Dhanusree A R  
+CSE 
+Rajalakshmi Institute of Technology 
+Chennai, India. 
+ dhanu72005@gmail.com
+ 
+ 
+Abstract: In the competitive restaurant industry, success 
+hinges on accurate demand forecasting and optimal pricing 
+strategies. Weather factors such as temperature, rain, and 
+seasonal changes significantly impact consumer behavior, 
+particularly affecting sales of goods categorized as highly 
+perishable (e.g., fresh produce, dairy), perishable (e.g., bread, 
+meat), and non-perishable (e.g., canned goods, dry ingredients). 
+The project leverages historical weather patterns, ingredient 
+prices, and machine learning to forecast sales and implement 
+dynamic pricing, with a focus on import status and price 
+sensitivity. Using Random Forest and ARIMA models, the 
+system conducts time series analysis for precise demand 
+prediction. Built with Python and utilizing libraries like scikit - 
+learn and pandas, the project processes real -time weather and 
+ingredient price data to enable timely price adjustments and 
+inventory management. The data -driven approach empowers 
+restaurants to maximize revenue, optimize menu pricing, and 
+enhance customer satisfaction in a fluctuating market. 
+Keywords --- Demand forecasting, dynamic pricing, weather 
+data, machine learning, time series analysis, Random Forest, 
+ARIMA, highly perishable goods, perishable goods, non - 
+perishable goods, import status, price sensitivity, restaurant 
+sales, real-time data. 
+I.  INTRODUCTION 
+This fast -growing restaurant environment is forcing the 
+operations to be always better in knowing the customer and 
+predicting his behavior and decision -making. Two forces 
+which were minor  factors relatively, weather and ingredient 
+prices, have now become major contributors to restaurant 
+sales. Weather can decide when and how frequently 
+customers go out to dine, for favorable conditions boost 
+dining out, while unfavorable weather hinders it. Meanwhile, 
+fluctuations in the  price of ingredients pressure the margins, 
+and thus strategic changes have to be made in order to stay 
+profitable as well as deliver customer satisfaction. 
+Of major challenge, restaurant industry is faced with 
+optimizing sales of perishable and non-perishable as well as 
+import goods due to dynamic factors like weather, demand 
+patterns, and price sensitivity. Traditional models cannot 
+give accurate demand forecasting; instead, product 
+overstocking or stockouts, which is a significant problem for 
+perishable products with low shelf lives, occurred. This 
+project will erase all those problems by using machine 
+learning algorithms like Time Series Forecasting and 
+Dynamic Pricing in predicting the amounts of demand based 
+on local weather forecast data and types of product 
+(perishable, non-perishable, and imported goods), ingredient 
+costs, and other exogenous factors. The model returns an 
+MSE value of [53.97], which yet again confirms that the 
+model is highly accurate. 
+ 
+ 
+Most conventional sales forecasting models do not account 
+for real -time situational variables, such as weather and 
+ingredient price fluctuations. This approach integrated 
+various sources of data including, but not limited to historical 
+sales, weather conditions, and fluctuating prices, thereby 
+generating a more holistic model. The model shows how the 
+external drivers are influencing customer demand over time 
+with accurate amalgamation of temperature, humidity, and 
+rainfall data integrated with trends of price that could be 
+influenced by market movements, supply chain disruptions, 
+or seasonality. For instance, change in the weather can 
+influence the demand for seasonal dishes, such as hot soups 
+during winter or light meals in summer. This is something 
+restaurants can plan their seasonal menus or promotions 
+around. 
+ 
+It develops a dynamic pricing model that should change the 
+prices of foods on the menu according to fluctuating weather 
+conditions and ingredient costs in real time, helping 
+restaurants maintain profit margins even as they stay 
+competitive-the tactic, more commonly employed in such 
+industries as airlines and hotels, has been relatively new to 
+restaurants. This model helps restaurants make smooth 
+responses to changes in demand, ingredient costs, and other 
+factors going into determining their business; therefore, 
+profit margins will not be compromised at the cost of 
+customer satisfaction. 
+2025 2nd International Conference on Research Methodologies in Knowledge Management, Artificial Intelligence and Telecommunication Engineering (RMKMATE) | 979-8-3315-9848-8/25/$31.00 ©2025 IEEE | DOI: 10.1109/RMKMATE64874.2025.11042488
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 2 ---
+ 
+ 
+Additionally, it can depict an overall view of whether 
+weather conditions or price sensitivity affects sales so that 
+informed decisions based on data can be made. Unlike its 
+competitors that do not change when abrupt weather 
+conditions or special events happen, the project will permit 
+changes on real -time basis in order to minimize waste and 
+maximize sales. This advantage will ensure accuracy in 
+giving information to optimize everything in managing 
+inventory, reduce costs, and assure satisfaction of customers' 
+needs. The dynamic pricing strategies, real -time data 
+analysis, and integration of machine learning methods would 
+thus make the restaurant business highly adaptable and 
+successful in this volatile market. 
+ 
+ 
+The system will also facilitate the implementation of 
+customer engagement strategies. For example, a restaurant 
+can offer special  deals for hot drinks when it is cold or cool 
+beverages when there is a heatwave. Targeted promotions 
+increase the level of customer involvement and their loyalty, 
+which increases repeat visits and cash flow generation. 
+ 
+For these insights to be actionable, the project applies 
+interactive dashboards with products such as Power BI. 
+The interactive dashboards allow restaurant managers to 
+understand trends and behavior patterns of customers so 
+that they can make proper pricing decisions in attaining 
+optimal operational efficiency. It gives restaurants an 
+integrated decision-support system in consolidated 
+models of weather conditions, ingredient prices, and sales 
+data for proper sales predictions, cost management,  and 
+customer relationships. 
+ 
+This model therefore addresses the weaknesses of the 
+traditional sales forecasting since multiple external factors 
+are all incorporated into one dynamic framework. 
+ 
+The advantage over inventory and cost  management lies in 
+its dynamic pricing and real-time adjustments, so restaurants 
+are confident about long -term success and continued 
+profitability. 
+ 
+The architecture diagram of the system is illustrated in 
+Figure 1. The system has multiple layers aimed at the 
+integration of data collection, model development, and 
+decision-making processes: 
+ 
+1. Data Collection : Various sources of data, such as weather 
+conditions, sales data, ingredients data, and price sensitivity 
+are combined. The data is categorized into highly  
+perishable, perishable, and non -perishable goods, thus 
+offering insights into product demand patterns. 
+ 
+2. Data Processing Layer : This layer of data processing is 
+aimed at making the processed data ready for analysis. For 
+preprocessing purposes, this layer relies on relevant Python 
+libraries like Pandas and Numpy and the tasks can include 
+data cleansing, data imputation, and feature engineering 
+among others aimed at extracting informative features for 
+modeling.  
+ 
+3. Model Development Layer : This core part includes 
+models that would be based on learning machines for sales 
+prediction, time series forecasting, and dynamic pricing. It's 
+always trained on historical  data, so the system can predict 
+future trends in sales and change its prices accordingly. 
+4. Data Storage: This section will store the processed data 
+for any further analysis needed for the next step. 
+ 
+5. Visualization : This layer uses Matplotlib and Seaborn to 
+form visual insights such as trend analysis. 
+ 
+Figure 1: System Architecture 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 3 ---
+6. Automated Decision Making: The real-time prediction - 
+based system can automatically adjust prices as well as 
+provide loyalty programs that award customers according to 
+their history of purchases, so more customers will get 
+engaged. 
+ 
+7. User Interface (UI): Power BI demonstrates the processed 
+information to the user on the dashboard. Restaurant 
+managers can then track reports and change strategies 
+according to new insights for that report. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 2:Workflow 
+ 
+ 
+Figure 2 Overall Process Using a Workflow How It Processes 
+All Data, Including Collection up to the Adjustment  of 
+Dynamic Pricing actual implementation: 
+ 
+1. Source Data Collection: Weather data, prior sales 
+history, ingredient cost data, and even availability 
+would be collected. 
+2. Upload Previous Data: Upload prior sales data as 
+well as other relevant data to be used for analysis 
+3. Data Preprocessing: Cleaning up the data, proper 
+treatment of missing entries, and other such which 
+shall make the data of better quality for model 
+training. 
+4.  Train a sequence of Random Forest model in 
+predicting the sales based on historical data and 
+then follow it by ARIMA to predict future values 
+of time-series. 
+5.  Dynamic Pricing Model Train pricing model on 
+the predictions made by sales and the cost of the 
+ingredients involved. 
+6. Weather Impact Prediction Generate the forecast as 
+to how upcoming changes in the weather will 
+influence sales. 
+7.  Dynamic Price Adjustment The prices adjust 
+automatically depending on the prediction of 
+demand and the expected cost. 
+8. Power BI Dashboards: Visualizing  actionable 
+insights on sales trend, pricing strategy, and 
+customer loyalty for decision making. 
+9. Automatic Price Updates: Real-time adjustment of 
+food item price in the restaurant's price list. 
+10. Continuous Adaptation: Continuously monitor 
+incoming sales data and customer reaction to the 
+system. 
+It is an automated workflow that ensures dynamic and 
+responsive restaurant sales for maximum profitability. 
+ 
+ 
+II. LITERATURE SURVEY 
+ 
+Literature work related to Weather and Restaurant Sales 
+The influence of weather on the behavior of customers 
+has been described and shown by many authors in different 
+contexts. For instance, Bujisic et al. [1] proved that the 
+change in weather primarily affects the foot traffic into 
+restaurants as more considerable pleasant weather motivates 
+customers to go out for eating. Similarly, Rose and Dolega 
+[2] analyzed a spatial analysis to quantify the impact of 
+weather on retail sales that is represented by the demand of 
+having a weather -based model towards forecasting 
+requirements. Yang et al. [3] focus on incorporating weather 
+data into sales prediction models by using advanced feature 
+interaction learning mechanisms to include the impact of 
+weather. 
+ 
+Some of the studies include work by Tanizaki et al. [4] and 
+Schepers et al. [5], which explores how diner behavior may 
+be predicted using weather patterns, pointing out that 
+comfort foods sell more during colder weather, while lighter 
+meals sell better during warmer weather. Nassibi et al. [6] 
+argue that if restaurant chains include weather data in 
+demand forecasting models, it will enable restaurants to 
+understand their customers' preferences better, hence menu 
+items are managed more appropriately.  
+ Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 4 ---
+Customer responsiveness is greatly enhanced in terms of 
+response to dynamic changes in menu items with respect to 
+the weather, as reviewed from Zháo and Jayadi's [7] demand 
+forecasting for an Indonesian restaurant chain. 
+ 
+Literature work related to Ingredient Prices with Dynamic 
+Pricing 
+One of the most significant challenges to restaurant 
+profitability is dynamic ingredient prices. Singh et al. [8] 
+expounded on a model for dynamic pricing strategy, tailored 
+to Indian Railways, but generally applicable to restaurants. 
+The authors' approach is underscored by the need for 
+dynamic prices based on supply chain alterations. Popescu 
+and Wu [9] worked on dynamic pricing with reference 
+effects. This should work well in restaurant ingredient price 
+fluctuations without antagonizing the customers. 
+ 
+Banerjee and Gurung [10] analyzed whether such models 
+like ARIMA and VAR could predict the price of vegetables, 
+which is one of the basic needs for restaurants, which have 
+fresh produce as a source. Namasudra et al. [11], as well as 
+Deksnyte and Lydeka [12], were also eager to make the fact 
+that dynamic model pricing for the alteration in  both supply 
+chain and demand of consumers helps businesses incur 
+profits without making prices burdening on the customer. 
+ 
+It extends these concepts by incorporating ingredient cost 
+data coupled with the real-time sales and weather patterns that 
+throw out a holistic pricing model. The project draws 
+inspiration from Mishra et al. [13] as well as Yamuna et al. 
+[14] and aims at the development of a dynamic framework that 
+tends to adjust the prices based on the interaction between the 
+external factors such as weather and the internal drivers such 
+as ingredient costs. 
+ 
+Literature work related to Machine learning for 
+forecasting sales 
+Machine learning has become an important tool to foresee 
+sales and make restaurant operations more efficient. 
+Pavlyshenko [15] studied different models of machine 
+learning for time series predictions. It was shown to make 
+them quite efficient in sales trend forecasting using only 
+historical information. Schmidt et al. [16] follows the same 
+line of using machine learning for restaurant sales forecasting. 
+The study used neural networks for modeling, making it 
+possible to handle complex nonlinear dependencies between 
+various variables, such as weather, the prices of ingredients, 
+and client preferences. 
+ 
+ 
+In fact, Tsoumakas  [17] conducted a comprehensive 
+review of the approaches machine learning applies in terms of 
+predicting food sales, and indeed finds that ensemble methods 
+such as Random Forests are extremely effective even at 
+surpassing conventional statistical models in handling vast, 
+multi-dimensional datasets. Rane et al. [18], among others, 
+also outlined how ML may look to enhance customer 
+satisfaction through the prediction of their behavior while 
+adjusting pricing accordingly. 
+ 
+Other promising approaches include ARIMA models on 
+time series forecasting, as suggested by Panda and Mohanty 
+[19], and hybrid models, which combine machine learning 
+techniques with statistical techniques, as suggested by 
+Mahmoud and Mohammed [20].  
+ 
+Hence, these models can be exploited in the framework 
+of Enhanced sales forecasting  in order to enhance the 
+predictions toward the sales during seasonal variations in 
+customer demand. 
+III.METHODOLOGY 
+Methodology Steps: 
+1. Data Collection 
+2. Data Preprocessing 
+3. Model Selection 
+4. Model Training and Evaluation 
+5. Integration for Real-Time Analysis 
+ 
+    DATA COLLECTION 
+First, the actual collection of detailed datasets that will be 
+applied to the project will begin. Historical sales data will be 
+used from the restaurant, showing the different categories such 
+as highly perishable, perishable, non -perishable, and imported 
+goods. Also, weather conditions, which involve temperature, 
+humidity, and rainfall factors, will also be covered because 
+external conditions play a big role in determining consumers' 
+actions. This component shall collect ingredient price data and 
+note the volatility from differences in circumstances or even the 
+market drivers, potentially highlighting some supply -side-
+related challenges. The primary sources will come from real -
+time databases; governmental reports or publications will be 
+used for good coverage of all factors. Here are the datasets 
+employed for this project: 
+- chennai_1990_2022_Madras.csv Source: Kaggle  
+Historical weather data with climate parameters -temperature, 
+about Chennai. 
+-FAOSTAT_data_en_10-05-2024* 
+FAOSTAT dataset with ingredients, producer price series: in 
+this analysis of forces driving the prices. 
+Additional categorization done with the help of 
+highly_perishable and non_perishable, perishable ,imported and 
+price sensitivity. 
+These shall be combined for integrated analyses between 
+internal sales and outside influences in the environment as 
+preparation to take effective decisions. 
+ 
+    DATA PREPROCESSING 
+The preprocessing step is very intensive and begins post - 
+gathering. In this process, cleaning data of all irregularities, 
+or anomalies that are capable of deviating results, is 
+followed by missing values being filled via either 
+imputation or deletion. Here, features engineering take the 
+lead whereby the proper attributes are defined or altered in 
+such a way that they now do represent better relationships 
+between variables that would be collected.  
+For instance, classification of products as high perishable, 
+perishable, non -perishable, and imported can enable the 
+model to understand how each type of product reacts in 
+different circumstances.  Then the datasets are brought 
+together into a single  integrated dataset with the sales 
+records correlated to their respective weather and price 
+records. 
+   MODEL SELECTION: 
+Random Forest is selected considering strength for multiple 
+input features with the feature importance which, in the case 
+of this sensitivity and categorization analysis for the impact 
+on sales, might be crucial. ARIMA was preferred as it is very 
+much applicable to the time series model thus allowing to Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 5 ---
+understand seasonal patterns in ascending order of time in 
+sales. These algorithms together provide a comprehensive 
+approach to understanding and predicting sales patterns. 
+    MODEL TRAINING AND EVALUATION 
+ 
+The next step is to train the selected models using the 
+historical datasets. The data is typically split into training 
+and testing subsets, allowing the models to learn from past 
+sales patterns and evaluate their predictive accuracy. 
+Hyperparameters are tuned for optimally maximizing 
+performance, and the techniques of model validation used 
+are cross-validation to ascertain that the model generalizes 
+well to unseen data. Predictions' accuracy is checked by 
+using key performance metrics, namely Mean Squared 
+Error (MSE). Lower the MSE, the more efficiently the 
+model is able to capture the underlying relationships 
+between variables in the data. 
+    INTEGRATION FOR REAL-TIME ANALYSIS 
+ 
+Finally, the developed models are integrated into a system 
+that enables real-time demand and dynamic pricing. 
+Integration facilitates continuous processing of new inputs, 
+including real -time changes in weather and changes in 
+ingredient prices. Once more data becomes available, these 
+models can adjust their forecast in a matter of seconds, 
+making it possible for restaurant owners to take the right 
+inventory or pricing decisions. This is especially important 
+for perishable products, as timely adjustment can help in 
+preventing waste and optimize sales. The system also has 
+specific pricing strategies depending on the type of 
+product. Imported items and price -sensitive products are 
+well taken care of. 
+ 
+IV.EXPERIMENT AND ANALYSIS 
+IMPLEMENTATION OF DATA VISUALIZATION FOR 
+INSIGHT EXTRACTION 
+ 
+Density Plot Description:  
+Comparing the actual and the fitted price distribution by the 
+regression model. The actual prices are plotted in a filled KDE 
+curve in blue colors, and the fitted ones in orange filled colors 
+so they are differentiated by semi-transparent color fillings. 
+ 
+ Figure 3 : Density Plot of Actual and Predicted Prices 
+Figure 3 depicts the closeness of actual prices to the values that 
+were predicted as model performance. Similar distributions 
+represent the rightness of the model, and large deviations are 
+representative of error areas in the model. 
+ 
+Histogram Description: 
+Plot histogram of error distribution of the regression model. The 
+frequency of different error values is shown with 30 bins, and 
+an overlay of KDE will smooth the error distribution. 
+Figure 4 : Distribution of Predicted errors  
+Figure 4 depicts  the extent to which model predictions can be 
+accurate by bringing out both the frequency and dispersion of 
+error. A distribution hugging closely around zero with relatively 
+low dispersion would indicate higher accuracy while greater 
+dispersion, or more significantly skewness suggests where 
+adjustments in the models might need to be incorporated.   
+ 
+Bar Plot Description: 
+The above is a bar chart that represents the evaluation metrics 
+for the Random Forest regression model, including MAE, MSE, 
+and R² Score. All of them are in different colors so that it will 
+be easier to compare. 
+ 
+Figure 5 : Model Evaluation Metrics 
+Figure 5 shows  a short visual summary of model performance. 
+Lower MAE and MSE values relate to lesser errors, and a 
+higher R² Score implies more effectiveness of the model in 
+explaining variance. This evaluates the accuracy of the model 
+and identifies where it needs improvement. 
+ 
+Heatmap Description: 
+A heat map of the price sensitivity level of various items. To 
+the right is the color bar, which describes a range for the values 
+on sensitivity. 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 6 ---
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 6 :  Heatmap of Price Sensitivity for Goods 
+Figure 6 heatmap is very efficient to represent how food 
+products differ from each other concerning the sensitivity to 
+price change. The darker or lighter shade explains what items 
+are relatively more or less sensitive in their response to a 
+variation in prices, and that therefore, helps strategic decisions 
+concerning price as well as market segmentation. 
+ 
+Description of Line Plot: 
+A line plot showing the trends of imports over time for various 
+perishable items. Each line represents an item and the changing 
+import quantity every year. 
+ 
+ 
+Figure 7 : Trends of Imported items over years on Perishable 
+Goods 
+ 
+Figure 7 shows trends in volumes of different perishable items 
+imported, and one can easily compare volumes across years. 
+Fluctuations or steady trends point to insights that may 
+influence supply chain decisions or change the import strategy. 
+ 
+Description of Trend Visualization: 
+A FacetGrid  of line plots of the annual pattern of imported 
+quantities for some very perishable items. One plot per product; 
+extra data points to render all points visible. 
+ 
+ 
+ 
+Figure 8 : FacetGrid Creation for Highly Perishable goods 
+Figure 8 line plot shows that for every product, the rate of   
+importation is different. This plot makes it relatively easy to 
+compare items through time. Steep climb or fall for some may 
+be highly informative for inventory and import planning 
+strategy. 
+ 
+Line Plot Explanation: 
+A line plot of the import trends of various non-perishable items 
+over the years. Each item is represented by a line, and circular 
+markers are given at each point for easy readability. 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 7 ---
+ 
+Figure 9 : Trends of Imported items over years on Non - Perishable 
+Goods 
+The figure 9 depicts the import curves, peak, and collapse for 
+the non-perishable goods, thus affording a trend analysis to be 
+made on the general products. Major volume shift over time 
+can help the organization make appropriate adjustments with 
+the inventory and supply chain, thus optimizing the non -
+perishable stock's management. 
+ 
+The line graph shows the pattern of the import volumes of the 
+different types of non -perishable goods over the years. Each 
+line that is a different color represents a different item and is 
+denoted by a circular symbol to allow for easier visibility on 
+the time axis. The change of lines over time is, from 2018 on, 
+and very clearly shows a divergence among the products - 
+some with marked increases in import volume and others had 
+no increment and even a decreased volume. It is apparent there 
+are diverging demand and supply of these products that also 
+could involve restrained domestic production by consumer 
+trends, international market preferences, trade agreements, or 
+geopolitics.  
+ 
+The parallels of the graph also show that the imports of non -
+perishable imports were more similar in earlier years since 
+they clustered in terms of volume, but by later years there is 
+more of a spread of lengths, which illustrates that there were 
+more common items of imports in earlier years, but, over time, 
+has become more specialized by product types. This further 
+emphasizes the development of tailored forecasting for the 
+specific products instead of a general idea of demand for a 
+category of items.  
+ 
+The researchers looking at this will be able to see patterns in 
+the trends over the years they can allow for planning to prepare 
+for disruption, see opportunities for growth of products or 
+other supply shortages or whether the stock of popular items 
+has established ways to present to the agent, but without filling 
+storage facilities with missing demand stock or incurring costs 
+from supplying items that are not moving. 
+ 
+To further validate the work, the architecture developed was 
+tested with few real time data collected from 10 different 
+restaurants and our cafeteria, hostel mess. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+V.RESULT AND DISCUSSIONS 
+ 
+TABLE 1: 
+ 
+ 
+Table shows the performance metrics of the sales predictive 
+model developed through Mean Squared Error, and R -
+squared 
+For any model, different metrics such as MSE or R2 provide 
+different insights into a model. 
+ 
+MSE: This is an average squared difference between 
+predictions and actual sales values. If the MSE is very low, it 
+means the model is making predictions quite close to the 
+observed value. The error is minimal. Results obtained in our 
+study also reflected the fact that model values captured the 
+trends related to the sales data, specifically those for 
+perishable as well as highly perishable products, which are 
+naturally sensitive to changes in such extraneous factors as 
+weather. 
+ 
+R-Squared (R²): This R² metric explains the variance in sales 
+that could be contributed or explained by the model's inputs 
+or inputs comprising its variables, such as weather variables 
+and price sensitivity. The greater the value of R², the stronger 
+the predictive strength of the model in capturing a factor that 
+influences sales. From this analysis, it can be derived that R² 
+varies category wise. Each category exhibits the sensitivity to 
+the extent to which it reacts on variations in 
+weather and change in price. For example, R² for more 
+perishable products is rather higher, showing that there's a 
+great aptness in the model for describing how the demand for 
+it reacts to weather conditions changes. 
+ 
+Overall, results of this study indicate predictability to be the 
+highest for highly perishable items, followed by perishable, 
+and lowest in the case of non-perishable. This is intuitive with 
+the expectation that the product like fresh fruits would have a 
+lot of responses due to environmental factors like temperature 
+and seasonality, and products such as canned goods would 
+have fewer fluctuations. This confirms the concept that real -
+time pricing would help businesses maximise sales in sub -
+product lines sensitive to particular circumstances. 
+ 
+VI .CONCLUSION 
+ 
+This project provides a solid, data -driven solution to the 
+restaurant industry because restaurants can immediately 
+respond to changes in weather and the prices of ingredients. 
+The model maximizes the management of perishable, non -
+perishable, and imported goods with the use of machine 
+learning algorithms like Time Series Forecasting and 
+Dynamic Pricing. Unlike static models applied earlier, this 
+model will actually take real -time data, using predictive 
+analytics to ensure the restaurants are responding well to the 
+influence of extrinsic factors, but all of this without allowing 
+it to compromise on the improvement in customer 
+satisfaction, thus providing room for profit margins to be 
+protected. 
+ 
+Metric Value 
+Mean Absolute Error (MAE) 5.31 
+Mean Squared Error (MSE) 53.97 
+R² Score 0.38 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 
+--- PAGE 8 ---
+The restaurant managers, through the web of integrated 
+interactive dashboards, establish consumer behavior and 
+come up with fact -based decision -making about pricing as 
+well as inventory levels. With the current weather dynamics, 
+pricing and promotions will attract more customers, 
+generating revenues. The entire project delivers a forward -
+looking approach, equipping restaurants to handle an ever -
+competitive market towards long term success and 
+adaptability given the changing landscape of an industry. 
+ 
+VII .FUTURE ADVANCEMENT  
+The project will look to the future to improve prediction 
+accuracy by using ensemble learning and deep neural 
+networks to identify complex patterns in sales and weather 
+data. Additionally, Power BI will be extended for 
+interactive visual dashboards to give deeper insights in 
+real-time data - driven decisions. These developments can 
+be of great help  to the restaurant industry in terms of 
+optimizing ingredient inventory, dynamic pricing, and the 
+sale strategy based on the actual demand forecast. 
+REFERENCES  
+[1] Bujisic, M., Bogicevic, V., & Parsa, H., “The effect of 
+weather factors on restaurant sales,” Journal of 
+Foodservice Business Research, vol. 20, pp. 1–21. 
+https://doi.org/10.1080/15378020.2016.1209723 , 
+2016. 
+[2]  Rose, N. & Dolega, L., “It’s the weather: quantifying 
+the impact of weather on retail sales,” SpringerLink. 
+Available: 
+https://link.springer.com/article/10.1007/s12061-021-
+09397-0,2021. 
+[3]  Yang, X., Tsuboi, T., Kimura, K., et al., “Restaurant 
+sales forecasting with feature interaction-learning 
+mechanism-based neural network model,” 2022 IEEE 
+International Conference on Big Data (Big Data), pp. 
+4166–4172. 
+https://doi.org/10.1109/BigData55660.2022.10021061 
+,2022. 
+[4] A.K. Reshmy,"Data Mining of Unstructured Big Data 
+In Cloud Computing” International Journal of Business 
+Intelligence and Data Mining, Vol.13 Issue 1-3 2017 
+[5]  Schepers, H., De Wijk, R., Mojet, J., & Koster, A., 
+“Innovative consumer studies at the Restaurant of the 
+Future,” 2008. 
+[6] U. M. Fernandes Dimlo, M. Arshad, B. Allam and M. 
+S. Raj, "Design Services at Home-Tailor Application," 
+2023 International Conference on Research 
+Methodologies in Knowledge Management, Artificial 
+Intelligence and Telecommunication Engineering 
+(RMKMATE), Chennai, India, 2023, pp. 1-6, doi: 
+10.1109/RMKMATE59243.2023.10368909. 
+[7] S. Rosaline, "A Novel Approach to ROI based Medical 
+Image Compression using Lifting Wavelets," 2024 
+International Conference on Inventive Computation 
+Technologies (ICICT), Lalitpur, Nepal, 2024, pp. 2077-
+2082, doi: 10.1109/ICICT60155.2024.10544524. 
+[8]  Singh, K., Dhake, P., & Narayanaswami, S., “A 
+dynamic pricing strategy model for Indian Railways,” 
+Journal of Revenue and Pricing Management, vol. 23, 
+pp. 1–10. Available: https://doi.org/10.1057/s41272-
+023-00450-w,2023 . 
+[9]  Popescu, I., & Wu, Y., “Dynamic pricing strategies 
+with reference effects,” Operations Research, vol. 55, 
+no. 3, pp. 413–429.Available: 
+https://doi.org/10.1287/opre.1070.0393,2007. 
+[10]  Banerjee, T. & Gurung, D., “Vegetable price forecasting 
+using ARIMA and VAR modeling,” Data Science and 
+Communication, ICTDsC 2023. 
+https://doi.org/10.1007/978-981-99-5435-3_40 ,2024. 
+[11]  S. Namasudra, M. C. Trivedi, R. G. Crespo, and P. 
+Lorenz, Eds., Data Science and Network Engineering: 
+Proceedings of ICDSNE 2023, Lecture Notes in 
+Networks and Systems, 1st ed., Singapore: Springer. 
+[Online]. Available: https://doi.org/10.1007/978-981-99-
+6755-1,2023. 
+[12]  Deksnyte, L., & Lydeka, Z., “Dynamic pricing and its 
+forming factors,” International Journal of Business and 
+Social Science, vol. 3, 2012. 
+[13]  Mishra, U., Mishra, B., Praharaj, S., & Mahapatra, R., 
+“CRM in banks: a comparative study of public and 
+private sectors in India,” European Journal of Social 
+Sciences, vol. 24, pp. 265–277, 2011. 
+[14]  Yamuna, G., Dhinakaran, D. P., Vijai, C., et al., 
+“Machine learning- based price optimization for 
+dynamic pricing on online retail,” ICONSTEM. 
+https://doi.org/10.1109/ICONSTEM60960.2024.105687
+63 ,2024. 
+[15]  Pavlyshenko, B. M., “Machine-learning models for 
+sales time series forecasting,” Data, vol. 4, no. 1. 
+Available: https://doi.org/10.3390/data4010015,2019. 
+[16]  Schmidt, A., Kabir, M. W. U., & Hoque, M. T., 
+“Machine learning based restaurant sales forecasting,” 
+Machine Learning and Knowledge Extraction, vol. 4, 
+no. 1, pp. 105–130. Available: 
+https://doi.org/10.3390/make4010006 ,2022. 
+[17] K.A. Mohamed Junaid, T. Sethukarasi, M. Vigilson 
+Prem, S. Neelakandan, Adi Alhudhaif, Norah Alnaim, 
+"A novel efficient Rank-Revealing QR matrix and Schur 
+decomposition method for big data mining and 
+clustering (RRQR-SDM)", Information Sciences, 
+Volume 657, 2024, 119957, ISSN 0020-0255, 
+https://doi.org/10.1016/j.ins.2023.119957.. 
+[18]  Rane, N., Paramesha, M., Choudhary, S., & Rane, J., 
+“Artificial intelligence in sales and marketing: 
+Enhancing customer satisfaction, experience and 
+loyalty,” SSRN Electronic Journal. 
+https://doi.org/10.2139/ssrn.4831903 ,2024. 
+[19] Panda, S. K., & Mohanty, S. N., “Time series forecasting 
+and modeling of food demand supply chain based on 
+regressors analysis,” IEEE Access, vol. 11, pp. 42679–
+42700. https://doi.org/10.1109/ACCESS.2023.3266275 
+,2023. 
+[20] Mahmoud, A., & Mohammed, A., “Leveraging hybrid 
+deep learning models for enhanced multivariate time 
+series forecasting,” Neural 
+Processing Letters, vol. 56, pp. 223. Available: 
+https://doi.org/10.1007/s11063-024-11656-3,2024. 
+ 
+Authorized licensed use limited to: Mukesh Patel School of Technology & Engineering. Downloaded on July 10,2026 at 15:43:45 UTC from IEEE Xplore.  Restrictions apply. 

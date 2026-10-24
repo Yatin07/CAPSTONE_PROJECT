@@ -1,0 +1,546 @@
+
+--- PAGE 1 ---
+15
+Journal of Data Applications
+Journal of Data Applications
+Issue: 2, 2023
+E-ISSN: 2980-3357
+RESEARCH ARTICLE
+Forecasting Restaurant Sales with the Sensitivity of 
+Weather Conditions and Special Days Using Facebook 
+Prophet
+Ali Kerem GÜLER1 , Ali MUSA1 , Mustafa TARIM1 , Osman SARAÇ1 , 
+Mehmet GÖKTÜRK2 
+DOI: 10.26650/JODA.1450459
+1PROTEL A.Ş., Department of Software, 
+İstanbul, Türkiye Turkiye 
+2Gebze Technical University, Department of 
+Computer Engineering, Kocaeli, Türkiye
+ORCID: A.K.G. 0000-0003-3405-005X;  
+A.M. 0009-0000-5829-5698;  
+M.T. 0000-0001-7079-5062;  
+O.S. 0000-0002-4870-9823;  
+M.G. 0000-0002-8030-8923
+Corresponding author:
+Ali Kerem GÜLER,
+PROTEL A.Ş., Department of Software, İstanbul, 
+Türkiye
+E-mail: aguler@protel.com.tr
+Submitted: 11.03.2024
+Revision Requested: 28.03.2024
+Last Revision Received: 28.03.2024
+Accepted: 03.04.2024
+Published Online: 24.06.2024
+Citation: Güler, A. K., Musa, A., Tarım, M., 
+Saraç, O., & Göktürk, M. (2023). Forecasting 
+restaurant sales with the sensitivity of weather 
+conditions and special days using facebook 
+prophet. Journal of Data Applications, 2, 15-30.
+https://doi.org/10.26650/JODA.1450459
+ABSTRACT
+This article focuses on forecasting sales for restaurant businesses using 
+the Prophet model developed by Facebook. A method is proposed to 
+make more accurate forecasts by accounting for the effects external 
+factors have on sales, including weather conditions and special days. 
+The analyses conducted on the real-time sales data of the daily operations 
+of a restaurant business (provided by PROTEL Inc.) reveal that the 
+Prophet model can forecast the sales of different products based on 
+daily sales and weather data. The prediction performance of the model 
+was evaluated using four error metrics: Mean Absolute Error, Mean 
+Absolute Percentage Error, Mean Squared Error, and Root Mean Square 
+Error. The results revealed that the model produced more consistent 
+and accurate predictions for some product categories. This study, 
+which aims to contribute to the literature through an optimization of 
+operational efficiency and decision-making processes related to the 
+restaurant industry, highlights the importance of external factors in 
+sales forecasting in the restaurant industry and provides a detailed 
+analysis of incorporating these factors into the forecasting process. The 
+findings may support restaurant businesses in obtaining more accurate 
+sales forecasts by taking external factors into account. In particular, 
+understanding the effects of weather changes and special days on sales 
+can contribute significantly to operational decisions in such areas as 
+personnel planning and inventory management. In this regard, the article 
+proposes innovative approaches to the challenges faced by restaurant 
+operations, presenting different approaches found in the literature and a 
+detailed model evaluation process.
+Keywords: Machine Learning, Time Series Forecasting, Facebook 
+Prophet
+This work is licensed under Creative Commons Attribution-NonCommercial 4.0 International License
+--- PAGE 2 ---
+16
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+Introduction
+Sales forecasting is the process of predicting future sales of businesses and is essential for 
+planning business strategies and an effective use of resources. Accurate and effective sales 
+forecasting is critical in a competitive business environment. Accurate sales forecasts impact 
+many aspects of restaurant business operations, such as inventory management, supply chain 
+optimization, financial planning, and customer satisfaction. A proper implementation of this 
+procedure allows businesses to prevent stock overages and supply shortages, reduce costs, 
+and obtain a competitive edge.
+Traditional sales forecasting methods forecast future sales by taking into account 
+various factors, such as historical sales data and seasonal patterns. In the restaurant industry, 
+understanding and predicting the impact of external factors (such as weather changes and 
+special occasions) on sales can directly impact the profitability of a business and improve 
+customer satisfaction. Today, developments in artificial intelligence and big data analytics 
+have greatly improved the sales forecasting process. Artificial intelligence-based methods can 
+process more complex data sets and provide more accurate predictions.
+Facebook’s Prophet algorithm is employed in this study to forecast restaurant sales. Prophet 
+(Taylor & Letham, 2018) is unique in that it may detect intricate patterns in time series data and 
+has a flexible architecture. By addressing the sensitivity of external factors on sales forecasts, 
+the research focuses on particular challenges encountered by the restaurant industry and seeks 
+to optimize inventory management and business strategies. Additionally, the present research 
+analyzes the effects that weather and special occasions have on sales, integrating these factors 
+into sales forecasts.
+The impact of sales forecasting appears across multiple domains, including inventory 
+optimization, supply chain management, and satisfying customer needs. The restaurant industry 
+has a complex structure which is marked by customer preferences changing overnight and 
+numerous external influences. This study predicts future restaurant sales by incorporating such 
+external factors. Thus, such an analysis enables restaurants to optimize their sales volumes 
+and also the orders of necessary ingredients based on reliable forecasts. This approach allows 
+restaurants to increase operational efficiency while reducing food waste and lowering costs.
+The article is structured as follows: The Literature Review section covers relevant studies 
+that have approached the topic from various angles. The Methodology section introduces 
+the dataset, then explains the data processing and modeling techniques used. The Results 
+and Discussion section presents the findings and their outcomes. The Future Work and 
+Recommendations section provides information on potential subjects for further study. The 
+article concludes with the Conclusion section.
+--- PAGE 3 ---
+17
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+Literature Review
+Sales Forcasting
+In their research, Patricia Ramos et al. (2015) focused on predicting coming sales, which 
+is one of the most important factors of effective business operations. Accurate forecasting of 
+demands is important for retail businesses in terms of production, purchasing, logistics, and 
+workforce organization. The study also included time series of retail sales, which are a type 
+of time series that is characterized by trending and seasonal patterns and presents several 
+challenges in terms of implementing efficient forecasting models. In order to forecast consumer 
+retail sales, the study analyzes the accuracy of state space and ARIMA models. Both single 
+step and multistep forecasts were conducted, with the performance of the forecasts being 
+illustrated by a case study of retail sales in five distinct groups of women’s footwear (Boots, 
+Ankle-length boots, Flats, Sandals, and Shoes). The prediction performances of the state space 
+and ARIMA models were measured based on the MAE, MAPE, and RMSE metrics in both 
+single step and multistep predictions. These analyses revealed that the error scores of both 
+models were quite near to one another.
+Sébastien Thomassey (2010) conducted a comprehensive analysis while detailed success 
+in the textile-clothing industry, where consumer demands are constantly increasing. The study 
+emphasizes the importance of complex information systems and logistics capabilities based on 
+forecasting systems. Thomassey noted some of the unique challenges of the textile-clothing 
+market, such as variable demand, strong seasonality, a large number of short-lived products, 
+and a lack of historical data. The author provides information that, against these challenges, 
+companies often develop simple but robust forecasting mechanisms. After evaluating current 
+practices in the clothing industry, is the study proposed the use of different forecasting models 
+that provide more accurate and reliable sales forecasts. Such models are built around different 
+and innovative approaches, such as fuzzy logic, neural networks, and data mining techniques, 
+which focus on the specific challenges faced by companies in the sector.
+A study by Arunraj and Ahrens (2015) focused on providing an innovative approach to 
+the daily sales forecasting problems encountered in the food retail industry. It is emphasized 
+that food waste and stock outages in this sector are caused by incorrect sales forecasting and, 
+as a result, ordering the wrong product. Time series sales data in the food retail sector can 
+exhibit high variability and skewness. For this reason, it has been mentioned that interval 
+forecasts should be made for retail companies to determine appropriate stock policies. This 
+study demonstrates the effectiveness of a hybrid model called SARIMA-QR, produced by 
+combining SARIMA and Quantile regression, for the difficulties encountered in daily sales 
+forecasting in the industry. Using daily sales data of banana products from a German discount 
+--- PAGE 4 ---
+18
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+retail store, the authors developed a model to forecast future banana sales. Considering the 
+variable sales dynamics and various factors affecting demand, the new model offers the 
+potential to obtain more accurate and comprehensive forecasts.
+It has been stated that the Bayesian model developed by Posch et al. (2022) for food and 
+beverage sales forecasting in restaurants and cafeterias is more efficient than the existing 
+methods of ARIMA, Seasonal ARIMA, and Exponential Smoothing. In other words, it provides 
+a high accuracy rate and a low margin of error. It has been stated that the results obtained from 
+sales forecasts contribute to reducing food waste and optimizing stock management. is the 
+study pointed out that the model which they used has the ability to efficiently integrate different 
+external factors and seasonal changes as a powerful forecasting tool in the restaurant industry.
+Using Machine Learning for Sales Forecasting
+A deep learning approach was used to predict the following season’s product sales in the 
+retail fashion industry in a study which compared traditional machine learning and deep learning 
+models (Loureiro et al., 2018). Their models were constructed using real data which considered a 
+variety of characteristics, including product physical characteristics and expert recommendations. 
+The researchers revealed that deep learning techniques, as well as more traditional machine 
+learning techniques, can be effective in this area. The study also serves as a reference for 
+comparing deep and traditional machine learning techniques in retail sales forecasting.
+Machine learning models were discussed in a study conducted by Tsoumakas (2019) 
+with the aim of predicting the future sales rates of different businesses operating in the food 
+industry  (supermarkets, restaurants, and bakeries). The study emphasized that the model 
+obtained from short-term sales forecasts can enable businesses to minimize both their stocks 
+and expired products. In addition, the study also discussed important design processes, such 
+as the temporal granularity of sales data, the input factors to be used in forecasting, and the 
+representation of the output variable. Machine learning approaches used in sales forecasting 
+and appropriate measurement metrics to evaluate the performance of these algorithms have 
+also been included in detail.
+Another important study was conducted by Shilong et al. (2021). In this research, which 
+examines the role of the success of sales forecasts for large retail chains on the development, 
+success, and failure of businesses, a sales forecasting model was put forward that allows 
+companies to manage their resources more effectively and produce effective business plans. The 
+basis of this model is to extract features from historical sales data through feature engineering 
+and predict subsequent sales volumes using the Extreme Gradient Boosting (XGBoost) model. 
+The model was shown to work well in terms of cost through experimentation conducted on 
+Walmart retail products.
+--- PAGE 5 ---
+19
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+Using Facebook Prophet for Sales Forecasting
+Prophet’s model, based on time series decomposition, was applied to six different 
+financial time series datasets with different input parameters in Yusof et al.’s (2020) study. 
+The implemented datasets cover a variety of markets, such as the Hong Kong Hang Seng 300 
+Index (HS300), the Standard & Poor’s 500 (SP500), and the Tokyo Nihon Keizai Shinbun 
+Index (Nikkei). The study presents a new approach to the development of financial forecasting 
+models. It argues that the Prophet model has the potential to effectively model the movements 
+of financial markets with appropriate parameter settings and an average absolute percentage 
+error of six percent.
+A study conducted by Zunic et al. (2020) presented a comprehensive framework for using 
+Facebook’s Prophet algorithm for sales forecasting in the retail industry. Accordingly, the 
+study purports that the Prophet model has the capacity to manage the effects of seasonality, 
+as well as its effectiveness in monthly and quarterly sales forecasts. In addition, the research 
+highlighted the importance of back testing for measuring forecast reliability and classifying 
+product portfolios. It is emphasized that Prophet can be used effectively in retail forecasting 
+By showing how Prophet can be applied to various product categories with different lengths of 
+historical data, there is an emphasis on the effective use of the algorithm for retail forecasting.
+A study conducted by Jha and Pande (2021) recommended using a time series sales rate 
+forecasting model in supermarkets, which contains useful information about time that assists 
+in statistical analyses. The researchers claimed that the model would also increase sales rates. 
+The study reveals the usefulness of the Prophet model for supermarket data, suggesting a 
+low prediction accuracy of this tool at 8.3, based on the MAPE result and other metrics. 
+Additionally, the ARIMA, Holt-Winter, and Prophet models were compared using the same 
+error metrics, concluding that the Prophet model performed better. Thus, the study indicates 
+the benefits of using the Prophet model as a time series forecasting model for supermarket 
+sales forecasting.
+Methodology
+Dataset
+The data sets used in sales forecasting in this study were provided by PROTEL Inc. and 
+include daily sales data of a business on a product basis. These data sets contain sales amounts 
+of different products of businesses and historical information of sales. The data sets used in 
+this study were collected on a daily basis through the Point of Sale (POS) system of PROTEL 
+Inc. company and stored in a time series format. The collected data sets were prepared as .csv 
+files in order to perform analytical processes and modeling.
+--- PAGE 6 ---
+20
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+Since data sets keep real-time sales data gathered from daily workflows of businesses, they 
+present the sales trends of products, seasonal changes, and the impact of other time-related 
+factors on sales in detail. Because these data sets are in a format suitable for time series 
+operations, they have been a useful resource in developing and testing time series models for 
+sales forecasting. Analyzing data sets in detail is very important in making sense of the sales 
+performance of businesses and predicting future sales trends.
+In this study, the weather data required for the model to produce precise predictions were 
+obtained from the OpenWeatherMap platform. OpenWeatherMap (OpenWeatherMap, 2024) 
+is an open-source platform that provides weather data via API. During the time period covered 
+by the study, weather data were taken and recorded twice every day, at regular intervals 
+between 9 am and 9 pm. This systematic approach enabled the holistic collection of all weather 
+information required for the model since the inception date of the sales forecast data. The 
+OpenWeatherMap platform contains a wide range of data, including important meteorological 
+measurements, such as temperature, humidity, pressure, wind speed, and cloud information. 
+This data helps the forecasting model better understand the impact of certain weather conditions 
+on sales and make its forecasts more precisely.
+This study covers detailed analysis of data sets and modeling processes to help businesses 
+make their sales forecasts more consistent, improve their inventory management, optimize 
+their operational planning, and create marketing strategies more effectively. Thanks to the 
+regularly collected data, the forecast model has the capacity to produce more precise and 
+reliable forecasts by efficiently analyzing daily sales dynamics.
+ 
+Figure 1. Graph of historical sales for product 1.
+--- PAGE 7 ---
+21
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+Figure 2. Graph of historical sales for product 2.
+Figure 3. Graph of historical sales for product 3.
+Eight months’ worth of sales data for three different goods of a restaurant business are 
+visualized in Figure 1, Figure 2, and Figure 3. The time series analysis conducted on the sales 
+of each product has been observed within the framework of fundamental concepts such as 
+trend, seasonality, cyclicality, and volatility. These concepts play a crucial role in enhancing 
+the understanding of sales dynamics, thereby contributing significantly to the prediction of 
+future sales. The initial examinations of the graphs indicate the challenges of identifying a 
+clear and direct trend. However, the increases or decreases in sales volumes at certain intervals 
+can be interpreted as potential signs of seasonality. Additionally, the fluctuations in sales data 
+over time point to the influence of external factors. These fluctuations could stem from such 
+environmental changes as economic, social, or weather conditions.
+--- PAGE 8 ---
+22
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+An analysis of the data forms the basis of the sales forecasting model and determines the 
+data patterns that the model needs in order to learn. Additionally, such an analysis is crucial in 
+terms of evaluating the performance of the model and implementing the necessary adjustments 
+to forecast future sales. This holistic approach contributes to the continuous development of 
+the model and will provide more concrete benefits to businesses.
+Data Processing
+For an accurate and efficient analysis of the time series data of the product sales of 
+businesses, a data processing method, such as that used in this study, is crucial. The process 
+begins by identifying missing data, before filling these gaps. The first area of focus relates 
+to whether the weather data has been integrated into sales data. The weather data is divided 
+into two different time periods of the day: morning and evening. This data includes various 
+features, such as date, temperature, felt temperature, pressure, humidity, wind speed, cloud 
+information, sunrise, and sunset.
+A special function has been developed to detect and complete missing data points in case 
+there is a break in the weather data for any reason. This function detects missing weather 
+records for 9 am and 9 pm by using the date and time information in the data set. For each 
+missing data point, an index number is kept along with the date and time information of the 
+relevant record. This approach enabled the locations of missing data points in the data set to 
+be found accurately and easily. Then, the detected missing data points were filled with the 
+values of the weather records from the same time period of the previous day. When consecutive 
+missing data points were detected, this was specifically handled by the function and the missing 
+data were filled by taking into account the values of the last known data point.
+The morning and evening weather datasets were equalized in terms of size after the missing 
+data points were filled in. This process is important in terms of correcting the inconsistencies 
+that occur in the start and end dates of the data set. If differences are detected in the start or 
+end dates of the morning and evening, a new record is added to the smaller data set based on 
+the first or last record of the other data set. With this method, morning and evening weather 
+data were completed and checked for deficiencies. Following the verification procedure, the 
+morning and evening weather data sets were combined in the correct order according to the 
+dates.
+When each data set used in sales forecasting was analyzed, it was observed that sales 
+information was missing for some dates. These gaps were caused by missing sales records for 
+the products on these dates. To solve this problem, a function that detects and fills in missing 
+data has been developed. This function filled the sales information with a zero (0) value on 
+the relevant dates, assuming that there were no sales on the dates determined for each data set 
+--- PAGE 9 ---
+23
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+Following these processes, each sales data set was integrated with weather data on the relevant 
+dates, which prepared everything to be used in sales forecasting. 
+Modeling
+In the modeling part of the study, the open-source Prophet model developed by Facebook 
+was used for time series forecasting. This model has a machine learning-based approach and 
+has been effective in analyzing time series data, especially with its sensitivity to special days 
+(such as holidays) and seasonal effects. The Prophet can model linear and nonlinear trends 
+and automatically detect annual, weekly, and daily seasonality, which is why it was chosen 
+for the modeling phase of this study.
+Prophet models were trained separately for each sales data set, including weather 
+information. By giving weather data to the models, they were able to learn the effects of weather 
+conditions on sales (Badorf & Hoberg, 2020). The parameters for “weekly_seasonality” and 
+“daily_seasonality” were adjusted to help the models learn weekly and daily patterns. In this 
+way, the models are able to analyze the changes in sales according to hours of the day and days 
+of the week. The “changepoint_prior_scale” parameter was used to adjust the sensitivity of the 
+models to trend changes in the data sets. This value was determined as 0.09 for all models. In 
+addition, with the “country_code” parameter, the models were enabled to automatically take 
+country-based holidays into account, and thus, the effects of holidays on sales were included 
+in the modeling process. Since the time series data considered belongs to a business in Turkey, 
+the “country_code” was set to ‘TR,’ enabling the models to take into account holidays specific 
+to the country.
+The “make_future_dataframe” function of the Prophet model was utilized to produce 
+future date data frames that would be similar to the training datasets. This function acquires 
+information about the duration and frequency of the forecast through parameters. Since the 
+study used daily sales data, the data frames were also generated with a daily frequency. In order 
+to maintain a forecast period of 30 days, the data frames for the models’ predictions were set 
+to 30 data points. Despite the models’ capability to generate future data frames, the inclusion 
+of weather data into these frames was necessary for more precise forecasting. For this purpose, 
+seven-day weather forecast data were obtained from the OpenWeatherMap platform via API 
+using the Python programming language. These forecasts were produced with atmospheric 
+measurements and mathematical models instead of machine learning approaches. Considering 
+the possibility of inconsistencies in weather forecasts beyond a certain period, efforts were 
+taken to ensure that the models used the extended data frames with weather forecast data for 
+the first 7 days for their predictions. For the remaining 23 days, the models forecasted without 
+weather data. Subsequently, the sales forecasts made with and without weather forecast data 
+--- PAGE 10 ---
+24
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+were merged with accuracy. This approach thoroughly assesses the effects of sales and weather 
+data in a time series analysis, allowing the Prophet model to precisely model the impact of 
+such significant factors as seasonality and trends.
+Results and Discussion
+Within the scope of this study, Facebook’s Prophet model was applied to make forecasts 
+based on daily sales data collected over approximately eight months for each product, provided 
+by PROTEL Inc.
+Figure 4. Component graph from the Prophet model of the Product 1 sales data set.
+The time series analysis conducted using the Prophet model reveals an increasing trend in the 
+sales of Product 1 from May 2023 to February 2024. The component graph provided by Prophet, 
+shown in Figure 4, indicates that this linear and positive trend in sales could potentially point 
+--- PAGE 11 ---
+25
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+to factors such as an expanding customer base or an increase in market demand. The model’s 
+“holidays” graph reveals that special days have a negative impact on sales. A decrease in sales is 
+observed particularly before and after holiday periods, with sales dropping to their lowest levels 
+on the holidays themselves. This could be attributed to the influence of holidays on customer 
+behavior and the business being closed during these periods. The weekly component analysis 
+shows significant differences in sales across the days of the week, with the highest sales volume 
+reached on Mondays and a gradual decline observed throughout the week until Friday. The daily 
+component graph demonstrates how sales fluctuate during different hours of the day. All these 
+component graphs provide valuable insights into the dynamics of sales for Product 1 over time, 
+supporting decision-making processes in business management.
+Figure 5, Figure 6, and Figure 7 below present the forecasts and confidence intervals for 
+three separate products made using the Prophet model. The analyses conducted on the sales 
+data of Product 1, Product 2, and Product 3 demonstrate the extent to which this model can 
+capture different sales dynamics and manage the confidence intervals in making forward-
+looking predictions.
+Figure 5. Forecasts and confidence intervals for Product 1.
+The evaluation on Figure 5 for Product 1 shows that the Prophet model exhibits a good 
+fit with the current sales (illustrated by the dark blue line along the plane with black dots) 
+and future forecasts (continuing as a dark blue line beyond the black dots). The confidence 
+interval, represented by the light blue area surrounding the model predictions, has remained 
+almost constant in width throughout the forecasting period. This indicates that the model has 
+efficiently adapted to past data and demonstrated consistency in future forecasts. This harmony 
+between actual sales data and the model’s predictions indicates that the model has the capacity 
+to make sense of historical data and can produce reliable forward-looking forecasts.
+--- PAGE 12 ---
+26
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+Figure 6. Forecasts and confidence intervals for Product 2.
+In the analysis of Product 2 presented in Figure 6, it can be seen that the predictions of 
+the model successfully follow the general trend of the actual sales data, with the confidence 
+interval remaining at a regular area around the predicted trend line. However, the widening 
+of the confidence interval in certain periods indicates that the model’s predictions are less 
+accurate in these periods and the data points show a greater variance. That said, the model 
+was generally consistent in its predictions.
+Figure 7. Forecasts and confidence intervals for Product 3.
+As can be seen in Figure 7 above regarding Product 3, the prediction line produced by the 
+model deviates from the real data from time to time. Although these deviations are not very 
+large, they may indicate that the model is not always able to effectively filter out noise and 
+--- PAGE 13 ---
+27
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+high variability in the data set. The widening and narrowing of the confidence interval over 
+time also confirms this situation. When the confidence interval widens, model predictions 
+contain higher uncertainty and, accordingly, the reliability level decreases. The performance 
+of the model for all three products contributed to understanding the model’s strengths and 
+weaknesses. This provided valuable insights regarding its interaction with real-world data.
+To measure the prediction performance of the model, daily sales data for the last 30 days of 
+each product in the data set were separated from the training data and used as the data set for 
+testing. Following this approach made it possible to evaluate the degree to which the model’s 
+daily sales forecasts in each product deviated from the actual sales data for the following 30 days. 
+Four distinct error metrics (Buitinck et. al, 2013) were implemented to evaluate the forecast’s 
+performance: Mean Absolute Error (MAE) (Eq. 1), Mean Absolute Percentage Error (MAPE) 
+(Eq. 2), Mean Squared Error (MSE) (Eq. 3), and Root Mean Square Error (RMSE) (Eq. 4).
+     
+Eq.1
+      Eq.2
+       
+Eq.3
+      
+Eq.4
+The rrror metrics reveal a detailed analysis of the performance of the model by considering 
+the deviations of the predictions from real values across various dimensions. The RMSE and 
+MAE metrics indicate how far the predictions are from the real values in terms of absolute 
+and squared errors, whereas the MAPE metric uses a percentage technique to express this 
+condition. The MSE error metric aids in observing the performance of the model from a 
+different perspective by lending more weight to larger errors.
+Table 1. Evaluating the Deviations in the Prophet Model’ s Forecasts for Various Products in the Dataset 
+Using Different Metrics.
+Data MAE MAPE MSE RMSE
+Product 1 1.79 0.17 0.06 2.53
+Product 2 4.33 0.19 0.09 5.98
+Product 3 0.76 0.18 0.02 0.82
+--- PAGE 14 ---
+28
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+As can be understood from Table 1, reaching different error scores for three different 
+products indicates that the model exhibits varying performances for different products. The 
+varying daily sales quantities and sales trends of each product are also factors that affect 
+the model’s performance differently across products. For the first product, low MAE (1.79) 
+and RMSE (2.53) scores demonstrate that the model generally performs well in predictions. 
+The low MAPE (0.17) value for the same product indicates that the model’s predictions are 
+consistent in percentage terms. However, slightly higher MSE (0.06) and RMSE (2.53) scores 
+suggest that deviations in predictions for some instances are larger. For the second product, 
+somewhat higher MAE (4.33) and RMSE (5.98) scores indicate that the model makes more 
+errors in predictions. A high MAPE (0.19) score further suggests that sales predictions for this 
+product are less consistent compared to other products. Lastly, for the third product, lower 
+MAE (0.76) and RMSE (0.82) scores reveal that the model produces robust predictions, and 
+the obtained MAPE (0.18) score also shows that sales predictions for the product are consistent 
+in percentage terms.
+As a result, by using all error metrics together, the performance of the predictions produced 
+by the model for different products has been analyzed in detail. For some products, the model 
+predicts more reliably and accurately, while it has greater error rates for others. All of this 
+information demonstrates how well the model can understand and predict each product’s 
+unique sales trends.
+Future Work and Recommendations
+This study used Facebook’s Prophet model to predict restaurant sales, revealing the positive 
+effects of external factors, such as weather and special days, on sales forecasts. Despite 
+the success of the results, there are several recommendations for further improvement and 
+expansion of the study and directions for future work.
+The dataset used in this study is based on a specific enterprise and geographical location. 
+In the future, the scope of the study could be expanded with data from different geographical 
+regions and various businesses. This would improve the model’s sensitivity to different 
+market dynamics and customer preferences. Moreover, analyzing data gathered over years 
+that include different seasons can help the model make better sense of long-term trends and 
+seasonal variations. This research was limited in what was considered external factors, only 
+weather conditions and special days (holidays, festivals, etc.). Future studies could integrate 
+other external elements, such as business promotions, campaigns, local events, and economic 
+indicators, into the model. Integrating these additional elements into the model can allow 
+businesses to plan their marketing and operational strategies more efficiently by enabling more 
+precise sales forecasts. As an alternative to Facebook’s Prophet algorithm, other time series 
+--- PAGE 15 ---
+29
+Ali Kerem GÜLER, Ali MUSA, Mustafa TARIM, Osman SARAÇ, Mehmet GÖKTÜRK
+Journal of Data Applications
+forecasting models and machine learning-based approaches can be tested by applying them 
+to similar data sets. Comparing the forecasting performances of different models will reveal 
+the strengths and weaknesses of each model and support the selection of the most appropriate 
+model. A comparative analysis of deep learning models and traditional statistical approaches 
+can provide a broader understanding.
+Future studies in line with these recommendations may offer innovative solutions that will 
+enable businesses to gain a competitive advantage in the market by increasing the efficiency 
+of sales forecasting models. This study provides a basis for future research and development 
+in the field of sales forecasting in the restaurant industry.
+Conclusion
+This study comprehensively analyzed the effectiveness of Facebook’s Prophet model 
+in forecasting business sales and the effects of external factors on this process. The model 
+provided insights into the specific challenges faced in the restaurant industry, particularly by 
+accounting for the effects of external factors on sales, such as weather conditions and special 
+days. The results of this research can be useful for businesses in terms of improving their sales 
+forecasting strategies and optimizing their operational efficiency. Furthermore, the analyses 
+provide valuable insights that may allow restaurants to develop future sales strategies in a 
+more effective way.
+Peer-review: Externally peer-reviewed.
+Ethics Committee Approval: The corresponding author declared that this study falls under the category of research 
+that does not require ethics committee approval for any reason.
+Author Contributions: Conception/Design of Study- A.K.G., A.M.; Data Acquisition- A.K.G., M.T.; Data Analysis/
+Interpretation- M.T., A.K.G., O.S., M.G.; Drafting Manuscript- A.K.G.; Critical Revision of Manuscript- M.G., 
+A.K.G., A.M., M.T., O.S.; Final Approval and Accountability- A.K.G., M.G., M.T., A.M., O.S.; Technical or Material 
+Support- A.K.G., A.M., M.T.; Supervision- M.G.
+Conflict of Interest: The authors have no conflict of interest to declare.
+Grant Support: The authors declared that this study has received no financial support
+References
+Arunraj, N. S., & Ahrens, D. (2015). A hybrid seasonal autoregressive integrated moving average and quantile 
+regression for daily food sales forecasting. International Journal of Production Economics, 170, 321-335. https://
+doi.org/10.1016/j.ijpe.2015.09.037
+Badorf, F., & Hoberg, K. (2020). The impact of daily weather on retail sales: An empirical study in brick-and-mortar 
+stores. Journal of Retailing and Consumer Services, 52, 101921. https://doi.org/10.1016/j.jretconser.2019.101921
+--- PAGE 16 ---
+30
+Journal of Data Applications
+Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+Buitinck, L., Louppe, G., Blondel, M., Pedregosa, F., Mueller, A., Grisel, O., Niculae, V ., Prettenhofer, P., Gramfort, 
+A., Grobler, J., Layton, R., VanderPlas, J., Joly, A., Holt, B., & Varoquaux, G. (2013). API design for machine 
+learning software: experiences from the scikit-learn project. arXiv preprint arXiv:1309.0238.
+Jha, B. K., & Pande, S. (2021, April). Time series forecasting model for supermarket sales using FB-prophet. In 2021 
+5th International Conference on Computing Methodologies and Communication (ICCMC) (pp. 547-554). IEEE. 
+https://doi.org/10.1109/ICCMC51019.2021.9418184
+Loureiro, A. L., Miguéis, V . L., & Da Silva, L. F. (2018). Exploring the use of deep neural networks for sales 
+forecasting in fashion retail. Decision Support Systems, 114, 81-93. https://doi.org/10.1016/j.dss.2018.08.009
+OpenWeatherMap. (2024). API documentation. OpenWeatherMap. Retrieved from https://openweathermap.org/api
+Posch, K., Truden, C., Hungerländer, P., & Pilz, J. (2022). A Bayesian approach for predicting food and beverage sales 
+in staff canteens and restaurants. International Journal of Forecasting, 38(1), 321-338. https://doi.org/10.1016/j.
+ijforecast.2021.02.008
+Ramos, P., Santos, N., & Rebelo, R. (2015). Performance of state space and ARIMA models for consumer retail 
+sales forecasting. Robotics and Computer-Integrated Manufacturing, 34, 151-163. https://doi.org/10.1016/j.
+rcim.2014.12.001
+Shilong, Z. (2021, January). Machine learning model for sales forecasting by using XGBoost. In 2021 IEEE 
+International Conference on Consumer Electronics and Computer Engineering (ICCECE) (pp. 480-483). IEEE. 
+https://doi.org/10.1109/ICCECE51280.2021.9342336
+Taylor, S. J., & Letham, B. (2018). Forecasting at scale. The American Statistician, 72(1), 37-45. https://doi.org/10
+.1080/00031305.2017.1380080
+Thomassey, S. (2010). Sales forecasts in the clothing industry: The key success factor of the supply chain management. 
+International Journal of Production Economics, 128(2), 470-483. https://doi.org/10.1016/j.ijpe.2010.07.007
+Tsoumakas, G. (2019). A survey of machine learning techniques for food sales prediction. Artificial Intelligence 
+Review, 52(1), 441-447. https://doi.org/10.1007/s10462-018-9656-1
+Yusof, U. K., Khalid, M. N. A., Hussain, A., & Shamsudin, H. (2020, December). Financial time series forecasting 
+using Prophet. In International Conference of Reliable Information and Communication Technology (pp. 485-
+495). Cham: Springer International Publishing. https://doi.org/10.1007/978-3-030-33582-3_42
+Zunic, E., Korjenic, K., Hodzic, K., & Donko, D. (2020). Application of facebook’s prophet algorithm for successful 
+sales forecasting based on real-world data. arXiv preprint arXiv:2005.07575.
