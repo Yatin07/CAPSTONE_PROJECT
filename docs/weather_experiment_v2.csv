@@ -1,0 +1,55 @@
+fold,fold_name,model,WAPE,n_test
+1,Early Summer Ramp,prophet_only,24.5736,239
+1,Early Summer Ramp,prophet_era5,24.0859,239
+1,Early Summer Ramp,prophet_fcst,23.9692,239
+1,Early Summer Ramp,hybrid,24.0357,239
+1,Early Summer Ramp,hybrid_era5,25.1544,239
+1,Early Summer Ramp,hybrid_fcst,25.2836,239
+1,Early Summer Ramp,ensemble_avg,24.1499,239
+1,Early Summer Ramp,ensemble_era5,24.231,239
+1,Early Summer Ramp,ensemble_fcst,24.2594,239
+2,Mid-Summer Peak,prophet_only,16.5003,238
+2,Mid-Summer Peak,prophet_era5,16.8379,238
+2,Mid-Summer Peak,prophet_fcst,16.875,238
+2,Mid-Summer Peak,hybrid,16.4895,238
+2,Mid-Summer Peak,hybrid_era5,16.9769,238
+2,Mid-Summer Peak,hybrid_fcst,16.7028,238
+2,Mid-Summer Peak,ensemble_avg,16.4757,238
+2,Mid-Summer Peak,ensemble_era5,16.6783,238
+2,Mid-Summer Peak,ensemble_fcst,16.5228,238
+3,August Holiday,prophet_only,18.5125,238
+3,August Holiday,prophet_era5,18.7791,238
+3,August Holiday,prophet_fcst,18.6401,238
+3,August Holiday,hybrid,20.5551,238
+3,August Holiday,hybrid_era5,19.8463,238
+3,August Holiday,hybrid_fcst,19.6629,238
+3,August Holiday,ensemble_avg,19.4678,238
+3,August Holiday,ensemble_era5,19.1004,238
+3,August Holiday,ensemble_fcst,18.9304,238
+4,Late Summer Turn,prophet_only,36.8046,202
+4,Late Summer Turn,prophet_era5,36.8622,202
+4,Late Summer Turn,prophet_fcst,37.1048,202
+4,Late Summer Turn,hybrid,38.5322,202
+4,Late Summer Turn,hybrid_era5,37.7573,202
+4,Late Summer Turn,hybrid_fcst,37.5779,202
+4,Late Summer Turn,ensemble_avg,37.5479,202
+4,Late Summer Turn,ensemble_era5,37.0759,202
+4,Late Summer Turn,ensemble_fcst,37.2135,202
+5,Autumn Normal,prophet_only,18.8962,227
+5,Autumn Normal,prophet_era5,19.4105,227
+5,Autumn Normal,prophet_fcst,19.3679,227
+5,Autumn Normal,hybrid,19.3938,227
+5,Autumn Normal,hybrid_era5,19.2237,227
+5,Autumn Normal,hybrid_fcst,19.3007,227
+5,Autumn Normal,ensemble_avg,18.5037,227
+5,Autumn Normal,ensemble_era5,18.2925,227
+5,Autumn Normal,ensemble_fcst,18.4192,227
+6,Late September,prophet_only,21.6464,215
+6,Late September,prophet_era5,22.0454,215
+6,Late September,prophet_fcst,22.3675,215
+6,Late September,hybrid,21.4786,215
+6,Late September,hybrid_era5,23.3922,215
+6,Late September,hybrid_fcst,22.4982,215
+6,Late September,ensemble_avg,21.2879,215
+6,Late September,ensemble_era5,21.8116,215
+6,Late September,ensemble_fcst,21.6014,215

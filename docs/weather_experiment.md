@@ -1,4 +1,10 @@
-# RestockIQ - Weather Feature Experiment Report
+> **⚠ INVALID — pipeline did not reproduce the verified backtest; do not cite.**
+> Root causes: (1) wrong CSV separator caused 0 training rows → only 4 folds ran;
+> (2) Prophet-only scored 1,696% WAPE in fold 1 vs 21.74% in verified backtest;
+> (3) fold 1 trained on only 96 open days (minimum required: 540).
+> Superseded by docs/weather_experiment_v2.md.
+
+# RestockIQ - Weather Feature Experiment Report [INVALID]
 
 **Location:** Guerande, 44350, France
 **Coordinates (Open-Meteo geocoding):** lat=47.3283, lon=-2.4293
