@@ -12,7 +12,7 @@
 This audit resolves three critical production defects identified during device walkthroughs, establishes 100% catalog integrity across all application surfaces, and executes a full three-tier test verification (Unit, Integration, and System).
 
 ### Issue A: "Waking up server (retrying 3/3)..." Long Login Delay
-* **Observed Behavior:** When attempting to log in on a physical mobile device with normal walkthrough credentials (`admin@test.com` / `123456`), the UI froze on "Waking up server..." followed by retry rounds (2/3 and 3/3), taking over 75–90 seconds before entering the app.
+* **Observed Behavior:** When attempting to log in on a physical mobile device with default walkthrough credentials (`admin@test.com` / `[DEMO_KEY]`), the UI froze on "Waking up server..." followed by retry rounds (2/3 and 3/3), taking over 75–90 seconds before entering the app.
 * **Root Cause Analysis:** In `APP/lib/services/api_service.dart`, `defaultBaseUrl` in debug mode was configured to return `http://10.0.2.2:8000/api/v1`. While `10.0.2.2` routes to host loopback inside an Android Studio Emulator, it **does not exist on a physical phone connected over Wi-Fi or USB**. Consequently, every login HTTP request stalled through connection timeouts:
   - Attempt 1: 40 seconds timeout + 2.5s timer triggering "Waking up server..."
   - Attempt 2: 2 seconds backoff + 15 seconds timeout ("retrying 2/3")
@@ -20,7 +20,7 @@ This audit resolves three critical production defects identified during device w
   - Cumulative hang: ~76.5 seconds. Only after total failure did offline fallback trigger.
 * **Resolution:**
   1. Updated `defaultBaseUrl` to route to the live cloud backend (`https://restockiq-backend.onrender.com/api/v1`) by default for physical devices and production.
-  2. For walkthrough credentials (`admin@test.com` / `123456`), restricted cold-start timeout to a snappy 4-second probe. If the server is cold or sleeping, it immediately activates an authenticated session (`_token`, `_userName`, `_userId`, `isAuthenticated = true`) without blocking the user.
+  2. For walkthrough credentials (`admin@test.com`), restricted cold-start timeout to a snappy 4-second probe. If the server is cold or sleeping, it immediately activates an authenticated session (`_token`, `_userName`, `_userId`, `isAuthenticated = true`) without blocking the user.
   3. Total login duration reduced from **76 seconds to < 1 second**.
 
 ---
@@ -189,7 +189,7 @@ Follow these steps on your connected mobile phone (Xiaomi Redmi Note 10 Pro) to 
 1. Launch the **RestockIQ** app from your home screen.
 2. Enter normal credentials:
    - **Email:** `admin@test.com`
-   - **Password:** `123456`
+   - **Password:** `[CONFIGURED_WALKTHROUGH_PASSWORD]`
 3. Tap **Login**.
 4. **Verification Point:** Notice that the screen transitions into the app **almost instantly** (under 1 second). You will **not** be stuck for 80 seconds on "Waking up server (retrying 3/3)...".
 

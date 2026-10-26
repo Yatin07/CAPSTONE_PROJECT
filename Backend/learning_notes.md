@@ -67,10 +67,9 @@ We confirmed 100% functionality against the live cloud database using end-to-end
     *   Result: Stored with `owner_id` relational link to the logged-in user, initialized cold-start fields for future ML ingestion.
 5.  **`GET /api/v1/items` (JWT Protected)** $\rightarrow$ `200 OK`
     *   Result: Fetched persisted inventory items from Atlas filtered by `owner_id`.
-6.  **Pre-Seeded Credentials:**
-    *   `admin@test.com` / `123456` (Pre-filled in Flutter frontend)
-    *   `admin@admin.com` / `123456`
-    *   `manager@cafe.com` / `password123`
+6.  **Walkthrough Accounts:**
+    *   Walkthrough test accounts (configured via `.env` or local test runners) are used for automated test suites.
+    *   All passwords in production must be cryptographically hashed using bcrypt.
 
 ---
 
@@ -78,9 +77,9 @@ We confirmed 100% functionality against the live cloud database using end-to-end
 
 To enable frictionless testing inside Android Studio while safeguarding cloud credentials:
 
-*   **Flutter Auto-Fill:** The `LoginScreen` controllers initialize with `admin@test.com` and `123456`, allowing single-tap login during emulator testing.
+*   **Flutter Development Mode:** In debug mode, the `LoginScreen` can pre-fill testing fields for swift emulator verification.
 *   **One-Tap Demo Bypass:** Added an outlined `Demo Login (Skip Auth)` button directly beneath the login form to bypass authentication screens during UI work.
-*   **Root Security Hygiene:** Created a centralized root `.gitignore` to prevent any accidental exposure of `.env` database connection strings, Python compiled bytecode (`__pycache__/`, `*.pyc`), and IDE files. Untracked previously cached bytecode from Git history.
+*   **Root Security Hygiene:** Centralized root `.gitignore` strictly prevents exposure of `.env` connection strings, Python bytecode, credentials, and IDE metadata.
 
 ---
 

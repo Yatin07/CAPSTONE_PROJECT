@@ -51,9 +51,9 @@ Backend/
 
 | Variable | Required | Description | Example |
 | :--- | :--- | :--- | :--- |
-| `MONGODB_URI` | Yes | MongoDB Atlas connection string | `mongodb+srv://...` |
+| `MONGODB_URI` | Yes | MongoDB Atlas connection string | `mongodb+srv://<user>:<password>@cluster.mongodb.net/restockiq` |
 | `JWT_SECRET` | Yes | Secret key for signing HS256 auth tokens | *(Cryptographically random 32+ bytes)* |
-| `GEMINI_API_KEY` | Optional | Google Gemini API key for assistant features | `AIzaSy...` |
+| `GEMINI_API_KEY` | Optional | Google Gemini API key for assistant features | *(API key from Google AI Studio)* |
 | `GEMINI_MODEL` | Optional | Model identifier (defaults to `gemini-2.5-flash`) | `gemini-2.5-flash` |
 | `ALLOWED_ORIGINS`| Yes | Comma-separated list of allowed CORS domains | `https://restockiq.com,http://localhost:3000` |
 | `ALLOW_DEMO_SEED`| No | Enables demo database seeding endpoint | `false` |
