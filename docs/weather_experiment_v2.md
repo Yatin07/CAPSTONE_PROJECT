@@ -25,12 +25,14 @@ Adopt weather features **IF AND ONLY IF**:
 
 ## 2. Model Performance Summary (Pooled vs Fold-Mean WAPE)
 
+> **Accuracy Scope Note:** Metrics in this table reflect the **6 summer ramp folds (July–September 2022)** where Prophet-only achieves **21.74%** pooled WAPE and Hybrid achieves **22.37%** (or **22.51%** depending on trailing history padding). Evaluated across the full-year **38 weekly rolling folds (January–September 2022)**, Prophet-only achieves **27.95%** pooled WAPE and Hybrid achieves **28.26%** (see `docs/accuracy_experiments_v2.md`).
+
 | Model | Pooled WAPE (%) | Fold-Mean WAPE (%) | Fold Wins (vs Baseline) | Bootstrap 95% CI (Improvement pp) | Decision |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Prophet-only (Baseline) | **21.74%** | 22.82% | 0/6 | Baseline | **REJECT** |
+| Prophet-only (Baseline) | **21.74%** | 22.82% | 0/6 | Baseline | **Baseline** |
 | Prophet + ERA5 Weather | **21.87%** | 23.00% | 1/6 | [-0.48, +0.23] | **REJECT** |
 | Prophet + Forecast Weather | **21.87%** | 23.05% | 1/6 | [-0.50, +0.27] | **REJECT** |
-| Hybrid (Baseline) | **22.37%** | 23.41% | 3/6 | [-2.00, +0.48] | **REJECT** |
+| Hybrid (Baseline) | **22.37%** | 23.41% | 3/6 | [-2.00, +0.48] | **Benchmark** |
 | Hybrid + ERA5 Weather | **22.62%** | 23.73% | 0/6 | [-1.99, +0.34] | **REJECT** |
 | Hybrid + Forecast Weather | **22.44%** | 23.50% | 0/6 | [-1.72, +0.41] | **REJECT** |
 | Average (Prophet + Hybrid) | **21.90%** | 22.91% | 4/6 | [-0.87, +0.44] | **REJECT** |
@@ -75,8 +77,8 @@ Adopt weather features **IF AND ONLY IF**:
 - **Why ERA5 was initially selected:** In Open-Meteo documentation, `archive-api.open-meteo.com` defaults to ERA5 reanalysis (the gold standard for historical climate backtesting). The dedicated Historical Forecast API (`historical-forecast-api.open-meteo.com`) is a newer endpoint providing archived Numerical Weather Prediction (NWP) model runs.
 - **Coverage Check:** The Historical Forecast API was queried for Guérande coordinates (`lat=47.32829, lon=-2.42934`) from `2021-01-01` to `2022-09-30`. It returned **638 days (100% complete, 0 nulls)**.
 - **Evaluation Finding:** Re-running the entire ablation with Historical Forecast weather confirms that weather features provide no statistically significant gain:
-  - `Prophet + Forecast` pooled WAPE is **21.84%** (vs 21.74% baseline, $-0.10$ pp change, 2/6 fold wins).
-  - `Hybrid + Forecast` pooled WAPE is **23.59%** (vs 23.43% baseline, $-0.16$ pp change, 2/6 fold wins).
+  - `Prophet + Forecast` pooled WAPE is **21.87%** (vs 21.74% baseline, $-0.13$ pp change, 1/6 fold wins).
+  - `Hybrid + Forecast` pooled WAPE is **22.44%** (vs 22.37% baseline, $-0.07$ pp change, 0/6 fold wins).
   - Neither ERA5 reanalysis nor live forecast weather passes the pre-registered threshold.
 
 ---

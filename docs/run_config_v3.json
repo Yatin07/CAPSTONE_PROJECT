@@ -1,0 +1,12 @@
+{
+  "random_seed": 42,
+  "n_bootstrap_draws": 2000,
+  "n_placebo_shifts": 200,
+  "placebo_shift_range": [
+    30,
+    300
+  ],
+  "eval_protocol": "38 Weekly Rolling Origin Folds (2022-01-02 to 2022-09-23)",
+  "decision_rule": "Improvement >= 0.5 pp, Wins >= 60% (23/38), 95% Cluster CI excludes 0",
+  "timestamp": "2026-10-26 15:44:40"
+}

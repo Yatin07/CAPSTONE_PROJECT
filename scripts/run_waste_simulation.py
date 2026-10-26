@@ -47,11 +47,27 @@ def run_simulation_sensitivity():
     df['month'] = df['ds'].dt.month
     df['is_tourist_season'] = df['month'].isin([7, 8]).astype(int)
 
-    # Calendar-aligned lags (same calendar weekday 7*k days ago)
+    # Calendar-aligned lags (same calendar weekday 7*k days ago; closure days excluded)
     lookup = df.set_index(['article', 'ds'])['y'].to_dict()
+    def get_snaive(art, d):
+        for k in [1, 2, 3, 4, 5]:
+            val = lookup.get((art, d - pd.Timedelta(days=7*k)))
+            if val is not None and not np.isnan(val):
+                return val
+        return 0.0
+
+    def get_weekday4w(art, d):
+        vals = []
+        for k in [1, 2, 3, 4]:
+            v = lookup.get((art, d - pd.Timedelta(days=7*k)))
+            if v is not None and not np.isnan(v):
+                vals.append(v)
+        return np.mean(vals) if len(vals) > 0 else 0.0
+
+    df['pred_snaive_cal'] = [get_snaive(a, d) for a, d in zip(df['article'], df['ds'])]
+    df['pred_weekday4w_cal'] = [get_weekday4w(a, d) for a, d in zip(df['article'], df['ds'])]
     for k in [1, 2, 3, 4]:
         df[f'y_lag_{7*k}_cal'] = [lookup.get((art, d - pd.Timedelta(days=7*k)), np.nan) for art, d in zip(df['article'], df['ds'])]
-    df['pred_weekday4w_cal'] = df[[f'y_lag_{7*k}_cal' for k in [1, 2, 3, 4]]].mean(axis=1)
 
     # Day-ahead features: prior operating day lag and 7-day rolling mean
     df['y_lag_1'] = df.groupby('article')['y'].shift(1)
@@ -105,7 +121,7 @@ def run_simulation_sensitivity():
     # Predict in-sample on training set to compute TRAINING RESIDUAL SIGMA ONLY (Zero Leakage)
     train_clean['pred_hybrid'] = np.maximum(gbdt.predict(train_clean[features_h]), 0.0)
     train_clean['pred_prophet_only'] = np.maximum(train_clean['yhat'], 0.0)
-    train_clean['pred_snaive'] = np.maximum(train_clean['y_lag_7_cal'], 0.0)
+    train_clean['pred_snaive'] = np.maximum(train_clean['pred_snaive_cal'], 0.0)
     train_clean['pred_ma7'] = np.maximum(train_clean['y_roll_7'], 0.0)
 
     # Compute training residual standard deviation per model per item: sigma_e = sqrt(sum((y - yhat)^2) / (N-1))
@@ -119,7 +135,7 @@ def run_simulation_sensitivity():
     # Predict on simulation period
     sim_df['pred_prophet_only'] = np.maximum(sim_df['yhat'], 0.0)
     sim_df['pred_hybrid'] = np.maximum(gbdt.predict(sim_df[features_h]), 0.0)
-    sim_df['pred_snaive'] = np.maximum(sim_df['y_lag_7_cal'], 0.0)
+    sim_df['pred_snaive'] = np.maximum(sim_df['pred_snaive_cal'], 0.0)
     sim_df['pred_ma7'] = np.maximum(sim_df['y_roll_7'], 0.0)
 
     sim_df['unit_price'] = sim_df['article'].astype(str).map(unit_prices).fillna(1.15).astype(float)

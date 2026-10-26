@@ -11,6 +11,10 @@ KEEP only if pooled WAPE improves by $\ge 0.5$ points, wins $\ge 60\%$ of folds 
 
 ## 1. Executive Summary & Decision Table
 
+> **Side-by-Side Accuracy Scale Comparison:**
+> - **6 Summer Ramp Folds (July–September 2022, Peak Season):** Prophet-only = **21.74%** pooled WAPE, Canonical Hybrid = **22.37%** (or **22.51%** without trailing padding).
+> - **38 Weekly Rolling Folds (January–September 2022, Full Year):** Prophet-only = **27.95%** pooled WAPE, Canonical Hybrid = **28.26%**, Model A (1-Day-Ahead Hybrid) = **26.06%**, Model B (Prophet+Calendar) = **26.55%**.
+
 ### A. Overall (All 38 Rolling Folds: ~266 Out-of-Sample Days)
 | Model | Pooled WAPE (%) | Fold-Mean WAPE (%) | Fold Wins | Win % | Bootstrap 95% CI (Improvement pp) | Pre-Registered Decision |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|

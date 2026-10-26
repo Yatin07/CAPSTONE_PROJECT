@@ -10,15 +10,21 @@ KEEP only if pooled WAPE improves by $\ge 0.5$ points, wins $\ge 4$ of 6 folds, 
 
 ## 1. Executive Summary & Decision Table
 
+> **Accuracy Scope Note:** This document evaluates models across the **6 summer ramp folds (July–September 2022)**, where the Prophet-only baseline is **21.74%** and the corrected Hybrid benchmark is **22.37%** (or **22.51%** without pre-fold trailing padding). When evaluated across the **38 weekly rolling folds (January–September 2022)**, the Prophet-only baseline is **27.95%** and the 7-day Hybrid is **28.26%** (see `docs/accuracy_experiments_v2.md`).
+>
+> **Canonical Hybrid Definition:** The single canonical hybrid model is defined as the calendar-aligned HistGradientBoostingRegressor combining calendar lags (`day_of_week`, `month`, `is_tourist_season`, calendar-aligned `y_lag_7_cal`, `pred_weekday4w`) with Prophet component features (`trend`, `weekly`, `yearly`, `holidays`, `yhat`). The previously cited **23.43%** figure belonged to the original prototype with unaligned row shifts that mismatched weekdays across Wednesday store closures; the corrected calendar-aligned hybrid achieves **22.37%** (or **22.51%**).
+
 | Experiment | Model Description | Pooled WAPE (%) | Fold-Mean WAPE (%) | Fold Wins (vs Baseline) | Bootstrap 95% CI (Improvement pp) | Pre-Registered Decision |
 |---|---|:---:|:---:|:---:|:---:|:---:|
-| prophet_only | Prophet-only (Verified Baseline) | **21.74%** | 22.82% | 0/6 | Baseline | **REJECT** |
-| hybrid_7d | Hybrid (7-day horizon comparison) | **22.37%** | 23.41% | 3/6 | [-2.00, +0.48] | **REJECT** |
-| model_a_day_ahead | Model A: 1-Day-Ahead Hybrid | **21.59%** | 22.42% | 4/6 | [-1.31, +1.53] | **REJECT** |
-| model_b_calendar | Model B: Prophet + Enhanced Calendar | **21.50%** | 22.94% | 3/6 | [-0.53, +0.85] | **REJECT** |
+| prophet_only | Prophet-only (Verified Baseline) | **21.74%** | 22.82% | 0/6 | Baseline | **Baseline** |
+| hybrid_7d | Hybrid (7-day horizon comparison) | **22.37%** | 23.41% | 3/6 | [-2.00, +0.48] | **Benchmark** |
+| model_a_day_ahead | Model A: 1-Day-Ahead Hybrid | **21.59%** | 22.42% | 4/6 | [-1.31, +1.53] | **REJECT (6-Fold)** *(KEEP in 38-Fold: +1.89 pp)* |
+| model_b_calendar | Model B: Prophet + Enhanced Calendar | **21.50%** | 22.94% | 3/6 | [-0.53, +0.85] | **REJECT (6-Fold)** *(KEEP in 38-Fold: +1.40 pp)* |
 | model_c_tier_routing | Model C: Tier Routing (Prophet/Hybrid) | **21.74%** | 22.83% | 2/6 | [-0.03, +0.03] | **REJECT** |
 | model_d_ensemble_avg | Model D1: Simple Ensemble (50/50 Avg) | **21.90%** | 22.91% | 4/6 | [-0.87, +0.44] | **REJECT** |
-| model_d_ensemble_wt | Model D2: Weighted Ensemble (Train-fit Wt) | **21.74%** | 22.82% | 0/6 | [+0.00, +0.00] | **REJECT** |
+| model_d_ensemble_wt | Model D2: Weighted Ensemble (Train-fit Wt) | **21.74%** | 22.82% | 0/6 | [+0.00, +0.00]* | **REJECT** |
+
+*\*Note on Degenerate CI `[+0.00, +0.00]` for Model D2: Across all 6 folds, the inner validation optimization selected weight $w = 1.0$ (100% Prophet, 0% Hybrid). As a result, Model D2 predictions were mathematically identical to Prophet-only on every test day, causing every bootstrap replicate delta to be identically 0.00.*
 
 ---
 
@@ -54,9 +60,9 @@ KEEP only if pooled WAPE improves by $\ge 0.5$ points, wins $\ge 4$ of 6 folds, 
 ### Experiment A: 1-Day-Ahead Evaluation
 - **Methodology:** Rather than assuming static 7-day horizon features, daily store re-ordering operates day-ahead. For each test day $t$, actual sales up to $t-1$ are ingested to compute `y_lag_1`, `y_lag_7`, and `rolling_7` mean prior to making predictions.
 - **Results:**
-  - Old 7-Day Horizon Hybrid: **23.43%** pooled WAPE.
+  - Standard 7-Day Horizon Hybrid: **22.37%** pooled WAPE (22.51% without trailing padding; earlier unaligned prototype was 23.43%).
   - 1-Day-Ahead Hybrid: **21.59%** pooled WAPE (Fold wins: 4/6 vs Prophet baseline).
-- **Decision:** **REJECT**. Day-ahead evaluation demonstrates substantial improvement over the 7-day batch horizon, showing that recent lag information is a primary driver of GBDT performance.
+- **Decision:** **REJECT** under the 6-fold test (improvement +0.15 pp was below the 0.50 pp threshold). However, in the 38-fold weekly test (`docs/accuracy_experiments_v2.md`), Model A achieves **26.06%** vs Prophet's **27.95%** (+1.89 pp gain, 29/38 wins, 95% CI strictly positive), qualifying as a verified improvement (**KEEP**).
 
 ### Experiment B: Calendar Features for Prophet
 - **Features Tested:**
@@ -65,7 +71,7 @@ KEEP only if pooled WAPE improves by $\ge 0.5$ points, wins $\ge 4$ of 6 folds, 
   3. Official French School Holidays: Zone B (Académie de Nantes, covering Guérande) from `data.education.gouv.fr`.
 - **Source Citation:** `VERIFIED (data.education.gouv.fr: fr-en-calendrier-scolaire, Nantes Academy / Zone B)`.
 - **Results:** Pooled WAPE = **21.50%** vs baseline 21.74% (Improvement: +0.24 pp, 3/6 wins).
-- **Decision:** **REJECT**.
+- **Decision:** **REJECT** under 6-fold test. In the 38-fold weekly evaluation, Model B achieves **26.55%** vs 27.95% (+1.40 pp gain, 25/38 wins, **KEEP**).
 
 ### Experiment C: Tier Routing
 - **Methodology:** Time-based validation inside each fold's training history (last 28 days of training set). For each volume tier (Top 10, Mid, Low), the model with lower inner validation WAPE is selected, with zero test leakage.
@@ -78,7 +84,7 @@ KEEP only if pooled WAPE improves by $\ge 0.5$ points, wins $\ge 4$ of 6 folds, 
   - Model D2 (Trained weight): $w \times \text{Prophet} + (1-w) \times \text{Hybrid}$, where $w$ is optimized via 1D grid search on the inner validation window.
 - **Results:**
   - Simple 50/50 Ensemble: **21.90%** pooled WAPE (4/6 wins).
-  - Weighted Ensemble: **21.74%** pooled WAPE (0/6 wins).
+  - Weighted Ensemble: **21.74%** pooled WAPE (0/6 wins; $w=1.0$ selected on all folds).
 - **Decision:** **REJECT** / **REJECT**.
 
 ---

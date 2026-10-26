@@ -1,0 +1,201 @@
+bias_adjusted,shelf_life_days,policy_name,policy_category,safety_factor_z,cogs_pct,model_key,model_name,orders,sales,waste_units,waste_pct,stockout_units,stockout_rate_pct,service_level_pct,gross_profit_eur
+False,1,Target 80% Service Level,target_service,0.8416,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",79718,64570,15148,19.0,4313,6.26,84.36,40225.26
+False,1,Target 80% Service Level,target_service,0.8416,40,pred_model_a,Model A (1-Day-Ahead Hybrid),76594,64181,12413,16.21,4702,6.83,75.73,41417.69
+False,1,Target 80% Service Level,target_service,0.8416,40,pred_prophet_only,Prophet-only (Engine),75512,62777,12735,16.86,6106,8.86,75.04,40312.19
+False,1,Target 80% Service Level,target_service,0.8416,40,pred_ma7,7-Day Moving Average,87358,64396,22962,26.28,4487,6.51,84.33,36333.79
+False,1,Target 80% Service Level,target_service,0.8416,40,pred_snaive,Seasonal Naive (Lag 7 cal),88585,64628,23957,27.04,4255,6.18,81.8,35804.7
+False,1,Target 90% Service Level,target_service,1.2816,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",86303,65768,20535,23.79,3115,4.52,89.96,38000.84
+False,1,Target 90% Service Level,target_service,1.2816,40,pred_model_a,Model A (1-Day-Ahead Hybrid),82180,65536,16644,20.25,3347,4.86,84.09,39993.76
+False,1,Target 90% Service Level,target_service,1.2816,40,pred_prophet_only,Prophet-only (Engine),82044,64592,17452,21.27,4291,6.23,83.27,39020.39
+False,1,Target 90% Service Level,target_service,1.2816,40,pred_ma7,7-Day Moving Average,96956,65979,30977,31.95,2904,4.22,90.78,33132.76
+False,1,Target 90% Service Level,target_service,1.2816,40,pred_snaive,Seasonal Naive (Lag 7 cal),98669,66344,32325,32.76,2539,3.69,89.45,32427.98
+False,1,Target 95% Service Level,target_service,1.6449,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",91728,66511,25217,27.49,2372,3.44,93.27,35796.35
+False,1,Target 95% Service Level,target_service,1.6449,40,pred_model_a,Model A (1-Day-Ahead Hybrid),86812,66343,20469,23.58,2540,3.69,88.46,38365.57
+False,1,Target 95% Service Level,target_service,1.6449,40,pred_prophet_only,Prophet-only (Engine),87455,65644,21811,24.94,3239,4.7,88.08,37327.68
+False,1,Target 95% Service Level,target_service,1.6449,40,pred_ma7,7-Day Moving Average,104929,66892,38037,36.25,1991,2.89,93.92,29929.56
+False,1,Target 95% Service Level,target_service,1.6449,40,pred_snaive,Seasonal Naive (Lag 7 cal),107006,67170,39836,37.23,1713,2.49,93.17,28744.94
+False,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",67215,60325,6890,10.25,8558,12.42,60.7,41466.97
+False,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),65941,59853,6088,9.23,9030,13.11,53.57,41566.75
+False,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_prophet_only,Prophet-only (Engine),62915,57138,5777,9.18,11745,17.05,51.86,39824.97
+False,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ma7,7-Day Moving Average,68967,58940,10027,14.54,9943,14.43,59.68,39032.63
+False,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),69015,57928,11087,16.06,10955,15.9,56.06,37444.89
+False,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",74635,63286,11349,15.21,5597,8.13,76.31,41340.22
+False,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_model_a,Model A (1-Day-Ahead Hybrid),72304,62729,9575,13.24,6154,8.93,68.32,41905.97
+False,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_prophet_only,Prophet-only (Engine),70389,60849,9540,13.55,8034,11.66,66.61,40626.28
+False,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ma7,7-Day Moving Average,79928,62714,17214,21.54,6169,8.96,77.64,38195.92
+False,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_snaive,Seasonal Naive (Lag 7 cal),80572,62549,18023,22.37,6334,9.2,73.75,37434.98
+False,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",82106,65048,17058,20.78,3835,5.57,86.75,39481.07
+False,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),78641,64720,13921,17.7,4163,6.04,78.76,40948.37
+False,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_prophet_only,Prophet-only (Engine),77853,63497,14356,18.44,5386,7.82,77.91,39950.14
+False,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ma7,7-Day Moving Average,90790,65042,25748,28.36,3841,5.58,87.3,35316.34
+False,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),92185,65357,26828,29.1,3526,5.12,85.18,34700.81
+False,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",91801,66517,25284,27.54,2366,3.43,93.27,35765.78
+False,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_model_a,Model A (1-Day-Ahead Hybrid),86889,66355,20534,23.63,2528,3.67,88.53,38323.87
+False,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_prophet_only,Prophet-only (Engine),87539,65659,21880,24.99,3224,4.68,88.15,37295.07
+False,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ma7,7-Day Moving Average,105021,66906,38115,36.29,1977,2.87,93.92,29900.84
+False,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_snaive,Seasonal Naive (Lag 7 cal),107006,67170,39836,37.23,1713,2.49,93.17,28744.94
+False,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",70965,61991,8974,12.65,6892,10.01,69.27,41635.9
+False,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_model_a,Model A (1-Day-Ahead Hybrid),69063,61379,7684,11.13,7504,10.89,60.6,41904.4
+False,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_prophet_only,Prophet-only (Engine),66756,59161,7595,11.38,9722,14.11,59.68,40401.11
+False,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ma7,7-Day Moving Average,74494,61065,13429,18.03,7818,11.35,68.83,38926.17
+False,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_snaive,Seasonal Naive (Lag 7 cal),75282,60713,14569,19.35,8170,11.86,68.01,37831.73
+False,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",75018,63396,11622,15.49,5487,7.97,76.92,51032.76
+False,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_model_a,Model A (1-Day-Ahead Hybrid),72601,62847,9754,13.44,6036,8.76,68.79,51299.26
+False,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_prophet_only,Prophet-only (Engine),70742,61001,9741,13.77,7882,11.44,67.19,49802.74
+False,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ma7,7-Day Moving Average,80413,62836,17577,21.86,6047,8.78,77.94,48476.64
+False,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_snaive,Seasonal Naive (Lag 7 cal),80832,62634,18198,22.51,6249,9.07,73.92,47862.67
+False,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",67215,60325,6890,10.25,8558,12.42,60.7,32874.1
+False,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_model_a,Model A (1-Day-Ahead Hybrid),65941,59853,6088,9.23,9030,13.11,53.57,33143.45
+False,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_prophet_only,Prophet-only (Engine),62915,57138,5777,9.18,11745,17.05,51.86,31780.9
+False,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ma7,7-Day Moving Average,68967,58940,10027,14.54,9943,14.43,59.68,30243.25
+False,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_snaive,Seasonal Naive (Lag 7 cal),69015,57928,11087,16.06,10955,15.9,56.06,28640.72
+False,2,Target 80% Service Level,target_service,0.8416,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",65605,64575,931,1.42,4308,6.25,84.4,48403.82
+False,2,Target 80% Service Level,target_service,0.8416,40,pred_model_a,Model A (1-Day-Ahead Hybrid),64837,64183,594,0.92,4700,6.82,75.79,48296.89
+False,2,Target 80% Service Level,target_service,0.8416,40,pred_prophet_only,Prophet-only (Engine),63572,62780,732,1.15,6103,8.86,75.08,47213.37
+False,2,Target 80% Service Level,target_service,0.8416,40,pred_ma7,7-Day Moving Average,66020,64396,1431,2.17,4487,6.51,84.33,47933.67
+False,2,Target 80% Service Level,target_service,0.8416,40,pred_snaive,Seasonal Naive (Lag 7 cal),67277,64697,2437,3.62,4186,6.08,82.55,47536.89
+False,2,Target 90% Service Level,target_service,1.2816,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",67448,65771,1522,2.26,3112,4.52,90.0,48904.18
+False,2,Target 90% Service Level,target_service,1.2816,40,pred_model_a,Model A (1-Day-Ahead Hybrid),66628,65536,998,1.5,3347,4.86,84.09,49097.1
+False,2,Target 90% Service Level,target_service,1.2816,40,pred_prophet_only,Prophet-only (Engine),65891,64593,1189,1.8,4290,6.23,83.3,48316.61
+False,2,Target 90% Service Level,target_service,1.2816,40,pred_ma7,7-Day Moving Average,68906,65979,2637,3.83,2904,4.22,90.78,48399.72
+False,2,Target 90% Service Level,target_service,1.2816,40,pred_snaive,Seasonal Naive (Lag 7 cal),70457,66377,3848,5.46,2506,3.64,90.03,47929.96
+False,2,Target 95% Service Level,target_service,1.6449,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",68891,66511,2169,3.15,2372,3.44,93.27,48973.33
+False,2,Target 95% Service Level,target_service,1.6449,40,pred_model_a,Model A (1-Day-Ahead Hybrid),67889,66343,1425,2.1,2540,3.69,88.46,49417.29
+False,2,Target 95% Service Level,target_service,1.6449,40,pred_prophet_only,Prophet-only (Engine),67499,65644,1694,2.51,3239,4.7,88.08,48766.9
+False,2,Target 95% Service Level,target_service,1.6449,40,pred_ma7,7-Day Moving Average,71221,66892,3963,5.56,1991,2.89,93.92,48279.56
+False,2,Target 95% Service Level,target_service,1.6449,40,pred_snaive,Seasonal Naive (Lag 7 cal),72817,67183,5319,7.3,1700,2.47,93.38,47586.42
+False,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",60637,60337,274,0.45,8546,12.41,60.87,45297.74
+False,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),60060,59863,175,0.29,9020,13.09,53.67,44993.45
+False,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_prophet_only,Prophet-only (Engine),57405,57157,228,0.4,11726,17.02,52.0,43033.53
+False,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ma7,7-Day Moving Average,59261,58942,276,0.47,9941,14.43,59.68,44275.33
+False,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),59004,58164,817,1.38,10719,15.56,57.84,43270.18
+False,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",63954,63294,599,0.94,5589,8.11,76.41,47554.3
+False,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_model_a,Model A (1-Day-Ahead Hybrid),63149,62731,375,0.59,6152,8.93,68.32,47260.53
+False,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_prophet_only,Prophet-only (Engine),61362,60854,465,0.76,8029,11.66,66.64,45855.32
+False,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ma7,7-Day Moving Average,63649,62715,807,1.27,6168,8.95,77.64,47024.7
+False,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_snaive,Seasonal Naive (Lag 7 cal),64375,62668,1628,2.53,6215,9.02,74.97,46426.84
+False,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",66317,65054,1144,1.73,3829,5.56,86.82,48610.79
+False,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),65519,64720,727,1.11,4163,6.04,78.76,48642.37
+False,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_prophet_only,Prophet-only (Engine),64447,63499,872,1.35,5384,7.82,77.94,47686.92
+False,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ma7,7-Day Moving Average,67060,65042,1789,2.67,3841,5.58,87.3,48222.72
+False,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),68468,65409,2884,4.21,3474,5.04,85.9,47792.69
+False,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",68905,66517,2177,3.16,2366,3.43,93.27,48973.66
+False,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_model_a,Model A (1-Day-Ahead Hybrid),67908,66355,1431,2.11,2528,3.67,88.53,49425.03
+False,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_prophet_only,Prophet-only (Engine),67531,65659,1711,2.53,3224,4.68,88.15,48763.25
+False,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ma7,7-Day Moving Average,71254,66906,3980,5.59,1977,2.87,93.92,48280.4
+False,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_snaive,Seasonal Naive (Lag 7 cal),72817,67183,5319,7.3,1700,2.47,93.38,47586.42
+False,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",62452,62000,417,0.67,6883,9.99,69.41,46603.23
+False,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_model_a,Model A (1-Day-Ahead Hybrid),61668,61382,253,0.41,7501,10.89,60.67,46217.3
+False,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_prophet_only,Prophet-only (Engine),59543,59169,344,0.58,9714,14.1,59.75,44582.29
+False,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ma7,7-Day Moving Average,61630,61067,477,0.77,7816,11.35,68.9,45892.23
+False,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_snaive,Seasonal Naive (Lag 7 cal),62143,60876,1223,1.97,8007,11.62,69.55,45266.69
+False,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",64084,63404,616,0.96,5479,7.95,77.02,55812.72
+False,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_model_a,Model A (1-Day-Ahead Hybrid),63280,62849,387,0.61,6034,8.76,68.79,55383.2
+False,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_prophet_only,Prophet-only (Engine),61530,61005,480,0.78,7878,11.44,67.22,53801.74
+False,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ma7,7-Day Moving Average,63818,62836,849,1.33,6047,8.78,77.94,55209.62
+False,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_snaive,Seasonal Naive (Lag 7 cal),64475,62751,1643,2.55,6132,8.9,75.18,54717.8
+False,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",60637,60337,274,0.45,8546,12.41,60.87,37654.75
+False,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_model_a,Model A (1-Day-Ahead Hybrid),60060,59863,175,0.29,9020,13.09,53.67,37421.0
+False,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_prophet_only,Prophet-only (Engine),57405,57157,228,0.4,11726,17.02,52.0,35781.85
+False,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ma7,7-Day Moving Average,59261,58942,276,0.47,9941,14.43,59.68,36795.85
+False,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_snaive,Seasonal Naive (Lag 7 cal),59004,58164,817,1.38,10719,15.56,57.84,35810.48
+True,1,Target 80% Service Level,target_service,0.8416,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",78021,64179,13842,17.74,4704,6.83,80.68,40669.96
+True,1,Target 80% Service Level,target_service,0.8416,40,pred_model_a,Model A (1-Day-Ahead Hybrid),74880,63640,11240,15.01,5243,7.61,72.14,41665.14
+True,1,Target 80% Service Level,target_service,0.8416,40,pred_prophet_only,Prophet-only (Engine),78208,63632,14576,18.64,5251,7.62,75.04,40095.62
+True,1,Target 80% Service Level,target_service,0.8416,40,pred_ma7,7-Day Moving Average,86910,64299,22611,26.02,4584,6.65,83.78,36482.98
+True,1,Target 80% Service Level,target_service,0.8416,40,pred_snaive,Seasonal Naive (Lag 7 cal),86243,64076,22167,25.7,4807,6.98,80.44,36264.56
+True,1,Target 90% Service Level,target_service,1.2816,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",84579,65523,19056,22.53,3360,4.88,88.29,38693.2
+True,1,Target 90% Service Level,target_service,1.2816,40,pred_model_a,Model A (1-Day-Ahead Hybrid),80490,65153,15337,19.05,3730,5.41,80.71,40484.32
+True,1,Target 90% Service Level,target_service,1.2816,40,pred_prophet_only,Prophet-only (Engine),84783,65187,19596,23.11,3696,5.37,82.25,38674.35
+True,1,Target 90% Service Level,target_service,1.2816,40,pred_ma7,7-Day Moving Average,96521,65911,30610,31.71,2972,4.31,90.51,33310.88
+True,1,Target 90% Service Level,target_service,1.2816,40,pred_snaive,Seasonal Naive (Lag 7 cal),96766,66058,30708,31.73,2825,4.1,89.01,32913.43
+True,1,Target 95% Service Level,target_service,1.6449,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",89992,66329,23663,26.29,2554,3.71,92.25,36609.47
+True,1,Target 95% Service Level,target_service,1.6449,40,pred_model_a,Model A (1-Day-Ahead Hybrid),85118,66085,19033,22.36,2798,4.06,86.72,39016.39
+True,1,Target 95% Service Level,target_service,1.6449,40,pred_prophet_only,Prophet-only (Engine),90171,66130,24041,26.66,2753,4.0,87.13,36990.74
+True,1,Target 95% Service Level,target_service,1.6449,40,pred_ma7,7-Day Moving Average,104441,66844,37597,36.0,2039,2.96,93.68,30167.63
+True,1,Target 95% Service Level,target_service,1.6449,40,pred_snaive,Seasonal Naive (Lag 7 cal),105349,67011,38338,36.39,1872,2.72,93.1,29338.51
+True,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",65466,59468,5998,9.16,9415,13.67,55.45,41275.77
+True,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),64176,58879,5297,8.25,10004,14.52,48.28,41182.68
+True,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_prophet_only,Prophet-only (Engine),65670,58807,6863,10.45,10076,14.63,53.64,40038.85
+True,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ma7,7-Day Moving Average,68556,58745,9811,14.31,10138,14.72,58.42,38975.84
+True,1,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),67033,56867,10166,15.17,12016,17.44,53.19,37056.39
+True,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",72939,62731,10208,14.0,6152,8.93,72.17,41563.0
+True,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_model_a,Model A (1-Day-Ahead Hybrid),70515,62004,8511,12.07,6879,9.99,62.99,41938.27
+True,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_prophet_only,Prophet-only (Engine),73124,62024,11100,15.18,6859,9.96,66.99,40586.99
+True,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ma7,7-Day Moving Average,79452,62581,16871,21.23,6302,9.15,76.72,38280.45
+True,1,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_snaive,Seasonal Naive (Lag 7 cal),78403,61863,16540,21.1,7020,10.19,71.22,37643.02
+True,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",80392,64705,15687,19.51,4178,6.07,84.06,40003.04
+True,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),76878,64246,12632,16.43,4637,6.73,75.76,41355.73
+True,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_prophet_only,Prophet-only (Engine),80583,64241,16342,20.28,4642,6.74,77.74,39641.54
+True,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ma7,7-Day Moving Average,90353,64931,25422,28.14,3952,5.74,86.72,35382.19
+True,1,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),89881,64913,24968,27.78,3970,5.76,83.68,35411.35
+True,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",90073,66338,23735,26.35,2545,3.69,92.32,36566.79
+True,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_model_a,Model A (1-Day-Ahead Hybrid),85182,66097,19085,22.4,2786,4.04,86.75,38991.29
+True,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_prophet_only,Prophet-only (Engine),90247,66144,24103,26.71,2739,3.98,87.2,36972.96
+True,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ma7,7-Day Moving Average,104571,66858,37713,36.06,2025,2.94,93.72,30108.6
+True,1,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_snaive,Seasonal Naive (Lag 7 cal),105611,67043,38568,36.52,1840,2.67,93.24,29257.85
+True,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",69272,61297,7975,11.51,7586,11.01,64.39,41636.89
+True,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_model_a,Model A (1-Day-Ahead Hybrid),67450,60615,6835,10.13,8268,12.0,55.96,41757.91
+True,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_prophet_only,Prophet-only (Engine),69471,60605,8866,12.76,8278,12.02,60.67,40551.71
+True,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ma7,7-Day Moving Average,74067,60916,13151,17.76,7967,11.57,68.21,38957.87
+True,1,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_snaive,Seasonal Naive (Lag 7 cal),72910,59721,13189,18.09,9162,13.3,63.95,37732.72
+True,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",73292,62851,10441,14.25,6032,8.76,72.89,51007.81
+True,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_model_a,Model A (1-Day-Ahead Hybrid),70808,62124,8684,12.26,6759,9.81,63.64,51069.12
+True,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_prophet_only,Prophet-only (Engine),73484,62157,11327,15.41,6726,9.76,67.63,49902.84
+True,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ma7,7-Day Moving Average,79986,62714,17272,21.59,6169,8.96,77.33,48485.4
+True,1,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_snaive,Seasonal Naive (Lag 7 cal),78837,62016,16821,21.34,6867,9.97,71.83,47809.04
+True,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",65466,59468,5998,9.16,9415,13.67,55.45,32951.4
+True,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_model_a,Model A (1-Day-Ahead Hybrid),64176,58879,5297,8.25,10004,14.52,48.28,33031.52
+True,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_prophet_only,Prophet-only (Engine),65670,58807,6863,10.45,10076,14.63,53.64,31832.75
+True,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ma7,7-Day Moving Average,68556,58745,9811,14.31,10138,14.72,58.42,30253.17
+True,1,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_snaive,Seasonal Naive (Lag 7 cal),67033,56867,10166,15.17,12016,17.44,53.19,28523.5
+True,2,Target 80% Service Level,target_service,0.8416,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",65035,64185,762,1.17,4698,6.82,80.78,48167.52
+True,2,Target 80% Service Level,target_service,0.8416,40,pred_model_a,Model A (1-Day-Ahead Hybrid),64173,63642,476,0.74,5241,7.61,72.14,47909.14
+True,2,Target 80% Service Level,target_service,0.8416,40,pred_prophet_only,Prophet-only (Engine),64538,63638,818,1.27,5245,7.61,75.11,47457.78
+True,2,Target 80% Service Level,target_service,0.8416,40,pred_ma7,7-Day Moving Average,65833,64299,1346,2.04,4584,6.65,83.78,47899.3
+True,2,Target 80% Service Level,target_service,0.8416,40,pred_snaive,Seasonal Naive (Lag 7 cal),66466,64158,2182,3.28,4725,6.86,81.43,47284.15
+True,2,Target 90% Service Level,target_service,1.2816,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",66976,65525,1308,1.95,3358,4.87,88.36,48834.04
+True,2,Target 90% Service Level,target_service,1.2816,40,pred_model_a,Model A (1-Day-Ahead Hybrid),66055,65154,820,1.24,3729,5.41,80.74,48905.9
+True,2,Target 90% Service Level,target_service,1.2816,40,pred_prophet_only,Prophet-only (Engine),66623,65189,1295,1.94,3694,5.36,82.31,48488.39
+True,2,Target 90% Service Level,target_service,1.2816,40,pred_ma7,7-Day Moving Average,68728,65911,2529,3.68,2972,4.31,90.51,48412.66
+True,2,Target 90% Service Level,target_service,1.2816,40,pred_snaive,Seasonal Naive (Lag 7 cal),69845,66098,3527,5.05,2785,4.04,89.55,47887.12
+True,2,Target 95% Service Level,target_service,1.6449,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",68412,66329,1888,2.76,2554,3.71,92.25,49032.37
+True,2,Target 95% Service Level,target_service,1.6449,40,pred_model_a,Model A (1-Day-Ahead Hybrid),67415,66085,1219,1.81,2798,4.06,86.72,49350.69
+True,2,Target 95% Service Level,target_service,1.6449,40,pred_prophet_only,Prophet-only (Engine),68139,66131,1817,2.67,2752,4.0,87.16,48944.84
+True,2,Target 95% Service Level,target_service,1.6449,40,pred_ma7,7-Day Moving Average,71060,66844,3852,5.42,2039,2.96,93.68,48313.25
+True,2,Target 95% Service Level,target_service,1.6449,40,pred_snaive,Seasonal Naive (Lag 7 cal),72342,67029,5015,6.93,1854,2.69,93.41,47641.26
+True,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",59700,59485,198,0.33,9398,13.64,55.58,44609.65
+True,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),59033,58891,123,0.21,9992,14.51,48.48,44162.62
+True,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_prophet_only,Prophet-only (Engine),59110,58823,266,0.45,10060,14.6,53.67,43551.65
+True,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_ma7,7-Day Moving Average,59048,58746,258,0.44,10137,14.72,58.45,44097.58
+True,2,Fixed z = 0.0 (Zero Buffer),fixed_z,0.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),57869,57131,719,1.24,11752,17.06,55.0,42486.4
+True,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",63261,62741,468,0.74,6142,8.92,72.31,47168.77
+True,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_model_a,Model A (1-Day-Ahead Hybrid),62341,62006,296,0.47,6877,9.98,63.02,46698.49
+True,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_prophet_only,Prophet-only (Engine),62619,62032,542,0.87,6851,9.95,67.02,46225.75
+True,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_ma7,7-Day Moving Average,63470,62582,767,1.21,6301,9.15,76.72,46924.89
+True,2,Fixed z = 0.5 (Light Buffer),fixed_z,0.5,40,pred_snaive,Seasonal Naive (Lag 7 cal),63514,62001,1451,2.28,6882,9.99,72.58,46013.26
+True,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",65752,64710,933,1.42,4173,6.06,84.09,48460.42
+True,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_model_a,Model A (1-Day-Ahead Hybrid),64892,64246,582,0.9,4637,6.73,75.76,48339.17
+True,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_prophet_only,Prophet-only (Engine),65309,64245,958,1.47,4638,6.73,77.81,47883.7
+True,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_ma7,7-Day Moving Average,66876,64931,1723,2.58,3952,5.74,86.72,48142.71
+True,2,Fixed z = 1.0 (Standard Buffer),fixed_z,1.0,40,pred_snaive,Seasonal Naive (Lag 7 cal),67706,64976,2574,3.8,3907,5.67,84.36,47644.36
+True,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",68433,66338,1899,2.77,2545,3.69,92.32,49027.71
+True,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_model_a,Model A (1-Day-Ahead Hybrid),67434,66097,1226,1.82,2786,4.04,86.75,49353.59
+True,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_prophet_only,Prophet-only (Engine),68165,66145,1829,2.68,2738,3.97,87.23,48951.92
+True,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_ma7,7-Day Moving Average,71095,66858,3870,5.44,2025,2.94,93.72,48310.26
+True,2,Fixed z = 1.65 (High Availability),fixed_z,1.65,40,pred_snaive,Seasonal Naive (Lag 7 cal),72428,67060,5067,7.0,1823,2.65,93.55,47637.8
+True,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",61666,61308,328,0.53,7575,11.0,64.49,46048.9
+True,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_model_a,Model A (1-Day-Ahead Hybrid),60838,60619,192,0.32,8264,12.0,56.03,45604.39
+True,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_prophet_only,Prophet-only (Engine),61034,60614,389,0.64,8269,12.0,60.74,45072.51
+True,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_ma7,7-Day Moving Average,61436,60919,437,0.71,7964,11.56,68.25,45774.73
+True,2,Critical Ratio (COGS=40% Base),critical_ratio,0.2533,40,pred_snaive,Seasonal Naive (Lag 7 cal),61000,59914,1054,1.73,8969,13.02,65.45,44548.95
+True,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",63394,62862,478,0.75,6021,8.74,73.06,55318.12
+True,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_model_a,Model A (1-Day-Ahead Hybrid),62471,62127,306,0.49,6756,9.81,63.67,54721.47
+True,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_prophet_only,Prophet-only (Engine),62773,62165,560,0.89,6718,9.75,67.67,54223.71
+True,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_ma7,7-Day Moving Average,63639,62715,798,1.25,6168,8.95,77.33,55117.89
+True,2,Critical Ratio (COGS=30% Sensitivity),critical_ratio,0.5244,30,pred_snaive,Seasonal Naive (Lag 7 cal),63700,62153,1481,2.32,6730,9.77,73.16,54230.98
+True,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ctrl3_gbdt,"Control 3 (GBDT lag_1, No Prophet)",59700,59485,198,0.33,9398,13.64,55.58,37108.5
+True,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_model_a,Model A (1-Day-Ahead Hybrid),59033,58891,123,0.21,9992,14.51,48.48,36749.55
+True,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_prophet_only,Prophet-only (Engine),59110,58823,266,0.45,10060,14.6,53.67,36210.38
+True,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_ma7,7-Day Moving Average,59048,58746,258,0.44,10137,14.72,58.45,36655.1
+True,2,Critical Ratio (COGS=50% Sensitivity),critical_ratio,0.0,50,pred_snaive,Seasonal Naive (Lag 7 cal),57869,57131,719,1.24,11752,17.06,55.0,35185.92
