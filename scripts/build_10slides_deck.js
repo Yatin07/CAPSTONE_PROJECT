@@ -857,7 +857,7 @@ function addSlideBullets(slide, bullets, x = 0.8, y = 5.75, w = 11.733, h = 1.35
     {
       name: "Overall WAPE (%)",
       labels: ["Prophet", "Hybrid", "GBDT", "MA 7d", "SNaive", "Wkday4W"],
-      values: [21.74, 23.43, 27.29, 30.70, 32.06, 41.63]
+      values: [21.74, 22.51, 27.29, 30.70, 32.06, 41.63]
     }
   ];
 
