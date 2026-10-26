@@ -51,4 +51,10 @@ Thumbs.db
 *.local
 scratch/
 
+# Capstone Reference Files (Classmate references, university templates, draft docs)
+Documentation/reference/
+reference/
+refernce/
+
+
 
