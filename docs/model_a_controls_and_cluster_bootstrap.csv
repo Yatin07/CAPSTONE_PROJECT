@@ -1,0 +1,9 @@
+model_key,model_name,pooled_wape,fold_mean_wape,fold_wins,total_folds,win_pct,gain_pp,cluster_ci_lower,cluster_ci_upper
+prophet_only,Prophet-only (Baseline),27.95,30.19,0,38,0.0,0.0,0.0,0.0
+hybrid_corr,Hybrid (Corrected 7-Day),28.26,30.16,19,38,50.0,-0.31,-0.91,0.29
+model_a_day_ahead,Model A (1-Day-Ahead Hybrid),26.07,27.85,28,38,73.7,1.88,0.96,2.87
+model_b_cal,Model B (Prophet + Enhanced Calendar),26.55,28.27,25,38,65.8,1.4,0.21,3.0
+prophet_weather,Prophet + Weather (Forecast API),27.63,30.04,24,38,63.2,0.32,-0.22,0.87
+ctrl1_snaive_1d,Control 1: 1-Day-Ahead SNaive (lag_1),38.57,42.06,5,38,13.2,-10.62,-13.87,-7.17
+ctrl2_ma7_1d,Control 2: 1-Day-Ahead MA (trailing 7d),35.63,38.15,4,38,10.5,-7.68,-11.02,-5.03
+ctrl3_gbdt_no_prophet,Control 3: GBDT with lag_1 (No Prophet),25.48,26.71,27,38,71.1,2.47,0.53,4.77

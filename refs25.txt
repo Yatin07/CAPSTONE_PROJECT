@@ -1,0 +1,200 @@
+[1] Key: gartner2024automated
+Title: Automated Demand Forecasting in Small to Medium-Sized Enterprises
+Author: Thomas G{"a}rtner and Christoph Lippert and Stefan Konigorski
+Venue: 2024 IEEE International Conference on Industrial Engineering and Engineering Management (IEEM) [CONFIRM: Venue]
+Year: 2024
+DOI: [CONFIRM: DOI]
+Notes: Automated forecasting architectures for SMEs under data scarcity
+
+[2] Key: access2025supply
+Title: Demand Forecasting in Supply Chain Management for Rossmann Stores using Weather Enhanced Deep Learning Model
+Author: Nameer Ul Haq Qureshi and Salman Javed and Kamran Javed and Syed Meesam Raza Naqvi and Ali Raza and Zubair Saeed
+Venue: IEEE Access
+Year: 2025
+DOI: 10.1109/ACCESS.2017.DOI
+Notes: Supply chain demand forecasting review and baseline benchmarks
+
+[3] Key: ganguly2024enhancing
+Title: Enhancing Retail Sales Forecasting with Optimized Machine Learning Models
+Author: Priyam Ganguly and Isha Mukherjee
+Venue: 2024 IEEE International Conference on Smart Information Systems (ICSIS) [CONFIRM: Venue]
+Year: 2024
+DOI: [CONFIRM: DOI]
+Notes: Comparison of tree-based models and classical time series in retail
+
+[4] Key: guler2023forecasting
+Title: Forecasting Restaurant Sales with the Sensitivity of Weather Conditions and Special Days Using Facebook Prophet
+Author: Ali Kerem G{"u}ler and Ali Musa and Mustafa Tar{\i}m and Osman Sara{\c{c}} and Mehmet G{"o}kt{"u}rk
+Venue: Journal of Data Applications
+Year: 2023
+DOI: 10.26650/JODA.1450459
+Notes: Sensitivity analysis of weather and calendar covariates in food service
+
+[5] Key: groene2024introduction
+Title: Introduction of AI-based sales forecasting: how to drive digital transformation in food and beverage outlets
+Author: Nicole Groene and Sergii Zakharov
+Venue: Discover Artificial Intelligence
+Year: 2024
+DOI: 10.1007/s44163-023-00097-x
+Notes: Operational hurdles and adoption factors of predictive AI in F&B outlets
+
+[6] Key: jatte2025optimization
+Title: Optimization of Forecasting Performance in the Retail Sector Using Artificial Intelligence
+Author: Hoda Jatte and Sara Belattar and El Khatir Haimoudi
+Venue: Engineering Proceedings (MDPI)
+Year: 2025
+DOI: 10.3390/engproc2025112037
+Notes: Hyperparameter optimization of ML models for retail SKU demand
+
+[7] Key: cherian2025demand
+Title: Demand Forecasting System for Small Business Optimization
+Author: Mary Cherian and Aniket Jane and Deepak and G. Sinchana and Md. Modasscer
+Venue: 2025 International Conference on Intelligent Technologies (CONIT)
+Year: 2025
+DOI: 10.1109/CONIT65521.2025.11167430
+Notes: Lightweight demand forecasting system tailored for small enterprise margins
+
+[8] Key: iconstem2025aidriven
+Title: AI-Driven Predictive Analytics for Sustainable Restaurant Operations and Waste Minimization
+Author: Padmavathy M. and Dharmendra H. and K. Thilagavathi and Burri Naresh and P. Praba Devi and Mohit Tiwari
+Venue: 2025 International Conference on Science, Technology, Engineering and Management (ICONSTEM)
+Year: 2025
+DOI: 10.1109/ICONSTEM65670.2025.11374322
+Notes: Food waste reduction in hospitality using predictive production scheduling
+
+[9] Key: avuduri2025smartstock
+Title: Smart Stock: Automating Inventory Management for Small Warehouses with Real-Time Intelligence
+Author: Kathyani Avuduri and Muthu Lakshmi V. and Sowmiya L.
+Venue: 2025 International Conference on Computer Communication and Informatics (ICCES)
+Year: 2025
+DOI: 10.1109/ICCES67310.2025.11336945
+Notes: Automated replenishment buffers and cloud-connected tracking for small warehouses
+
+[10] Key: chowdhury2025predictive
+Title: Predictive Analytics in Food Supply Chain and Waste Management
+Author: Soummya Chowdhury and Shankarpally Swetha
+Venue: 2025 IEEE Advances in Electrical and Computer Engineering (AECE)
+Year: 2025
+DOI: 10.1109/AECE67531.2025.11386707
+Notes: Perishable goods shelf-life dynamics and waste management analytics
+
+[11] Key: icci2026mobile
+Title: A Mobile Application for Inventory Management to Support Digital Transformation in Small Retail Businesses
+Author: Thanakrit Janchidfah and Pisit Chansuek and Pirat Worasiri
+Venue: 2026 IEEE International Conference on Computational Intelligence (ICCI)
+Year: 2026
+DOI: 10.1109/ICCI68752.2026.11506505
+Notes: Cross-platform mobile interfaces for front-line store inventory restocking
+
+[12] Key: iccraids2026comparative
+Title: Comparative Evaluation of SARIMA, FB Prophet, and LSTM for Hourly Demand Forecasting in Saudagar Kopi
+Author: Kevina Syahla Aqila and Rahma James Galliano Setiardi
+Venue: 2026 International Conference on Cyber Resilience and Intelligent Systems (ICCRAIDS)
+Year: 2026
+DOI: 10.1109/ICCRAIDS67816.2026.11519726
+Notes: Empirical comparison of Prophet and deep models on café sales
+
+[13] Key: lalitha2025enhanced
+Title: Enhanced sales forecasting of perishable and non-perishable goods using weather data with insights on Imports and price sensitivity
+Author: Lalitha R. and Sreelekha Ponugoti and Aisvarya S.
+Venue: 2025 IEEE Recent Advances in Manufacturing and Materials Engineering (RMKMATE)
+Year: 2025
+DOI: 10.1109/RMKMATE64874.2025.11042488
+Notes: Exogenous weather regressors and price sensitivity for perishable food items
+
+[14] Key: iccraids2026evaluation
+Title: Evaluation of Optimized LSTM and Moving Average in SME Inventory Forecasting and Simulation
+Author: Intan Rahmatillah and Patah Herwanto
+Venue: 2026 International Conference on Cyber Resilience and Intelligent Systems (ICCRAIDS)
+Year: 2026
+DOI: 10.1109/ICCRAIDS67816.2026.11519654
+Notes: Moving average baselines and neural simulation in small enterprise inventory
+
+[15] Key: icbir2026factors
+Title: Factors influencing audit quality through the acceptance and use of AI by auditors in Thailand, affiliated with SMEs audit firms
+Author: Kacha Somjaipeng and Watchareewan Jitsakul
+Venue: 2026 9th International Conference on Business and Industrial Research (ICBIR)
+Year: 2026
+DOI: 10.1109/ICBIR69932.2026.11584822
+Notes: Technology acceptance model (UTAUT) in small business operational AI adoption
+
+[16] Key: munawar2026lstm
+Title: LSTM-Based Hourly Sales Forecasting in SME Food and Beverage Retail
+Author: Moch Azis Munawar and Ivan Diryana Sudirman
+Venue: 2026 International Symposium on Information and Business Electronic Resources (ISIBER)
+Year: 2026
+DOI: 10.1109/ISIBER68248.2026.11469764
+Notes: Intraday and hourly transaction volume modeling in SME bakery/beverage shops
+
+[17] Key: icalter2024mobile
+Title: Mobile Application for the Intelligent Management of Small Shops using the GPT-4 Model
+Author: Gonzalo Sakuda and Jack Leon
+Venue: 2024 IEEE International Conference on Automatics (ICALTER)
+Year: 2024
+DOI: 10.1109/ICALTER65499.2024.10819203
+Notes: Integrating LLM natural language interfaces into mobile point-of-sale systems
+
+[18] Key: sera2025optimizing
+Title: Optimizing Supply Chain Management for Small and Medium-Sized Businesses Using AI: A Comparative Analysis of GPT-4.5, Grok 3, Gemini 2.0, and DeepSeek R-1
+Author: Shreeyash Vyakarnam and Bharath Raju Kanchipuram Baburavi and Lawanya Awasthi
+Venue: 2025 IEEE 23rd International Conference on Software Engineering Research, Management and Applications (SERA)
+Year: 2025
+DOI: 10.1109/SERA65747.2025.11154630
+Notes: Comparative prompt engineering and grounding of foundation models for SME inventory decisions
+
+[19] Key: susanto2023performance
+Title: Performance Analysis of Time Series Models to Predict Sales Activity of SMEs
+Author: Justine Christian Susanto and Maureen Letitia Wiratama and Patrick Christian Nathaniel
+Venue: 2023 International Symposium on Information and Business Electronic Resources (ISIBER)
+Year: 2023
+DOI: 10.1109/ISIBER68248.2026.11470090
+Notes: Empirical comparison of classical statistical moving averages vs tree regressors
+
+[20] Key: iciptm2026predictive
+Title: Predictive Marketing and Sales Analytics Using Machine Learning for Small and Medium E-Commerce Enterprises
+Author: Swati Srivastava and Ramneek Kelsang Bawa and Neha Nagar
+Venue: 2026 5th International Conference on Innovative Practices in Technology and Management (ICIPTM)
+Year: 2026
+DOI: 10.1109/ICIPTM69057.2026.11465324
+Notes: Multi-SKU sales clustering and gradient boosting across intermittent transaction series
+
+[21] Key: sandeep2023smart
+Title: Smart Sales Forecasting Machine Learning Models for Demand Prediction in Retail
+Author: Sandeep V. and Gowri R. and Kandavel N.
+Venue: 2023 International Conference on Data Intelligence and Cognitive Informatics (IDCIOT)
+Year: 2023
+DOI: 10.1109/IDCIOT64235.2025.10915120
+Notes: Gradient boosted decision trees and regression baselines for supermarket SKU turnover
+
+[22] Key: ictmod2025state
+Title: State-Level Drug Retail Sales Forecasting Using XGBoost and Facebook Prophet
+Author: Mohit Kamboj
+Venue: 2025 IEEE International Conference on Technology Management, Operations and Decisions (ICTMOD)
+Year: 2025
+DOI: 10.1109/ICTMOD66732.2025.11371982
+Notes: Hybrid combination of Prophet additive decomposition with XGBoost gradient boosting
+
+[23] Key: yuniarty2025technology
+Title: Technology Acceptance and Security Influences on AI Adoption among Small and Medium Enterprises
+Author: Yuniarty and Hartiwi Prabowo and Noe Enriquez
+Venue: 2025 International Conference on Informatics and Computing (ICIMCIS)
+Year: 2025
+DOI: 10.1109/ICIMCIS68501.2025.11327244
+Notes: Trust, privacy, and manager willingness to adopt automated replenishment recommendations
+
+[24] Key: timesicon2025technology
+Title: Technology Adoption of MSMEs in Food Supply Chain: The Role of AI in Traceability and Transparency
+Author: Teerarat Aree and Pittawat Ueasangkomsate
+Venue: 2025 8th International Conference on Technology, Innovation, Management and Engineering Science (TIMES-iCON)
+Year: 2025
+DOI: 10.1109/TIMES-ICON67125.2025.11488133
+Notes: Food waste auditing and inventory traceability adoption challenges in MSMEs
+
+[25] Key: jain2024weather
+Title: Weather-Integrated Recommendations for Food Choices with SHAP Explanation
+Author: Nikunj Jain and Priyanshu Jha and Jawed Hawari
+Venue: 2024 IEEE International Conference on Computing, Robotics and Intelligent Systems (ICC-ROBINS)
+Year: 2024
+DOI: 10.1109/ICC-ROBINS60238.2024.10533954
+Notes: SHAP feature attribution analysis of weather covariates on consumer food choices
+

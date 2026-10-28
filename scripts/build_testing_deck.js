@@ -579,7 +579,7 @@ function addSourceCaption(slide, sourceText, x = 0.8, y = 7.02, w = 11.7, h = 0.
     line: { color: C.borderSoft, width: 1 },
     rectRadius: 0.08
   });
-  slide.addText("STATUS SUMMARY: 9 RESOLVED & REGRESSION-TESTED | 2 HONESTLY OPEN\n[DEF-008: 4-Week Calendar Skew (Open) | DEF-011: Legacy Donation State (Open)]", {
+  slide.addText("STATUS SUMMARY: 12 RESOLVED & REGRESSION-TESTED | 1 HONESTLY OPEN\n[DEF-013: Legacy Charity Donation State (Open Backlog)]", {
     x: 6.9, y: 4.8, w: 5.4, h: 0.50,
     fontFace: F.title, fontSize: 8, bold: true, color: C.primaryDark,
     align: 'center', valign: 'middle'
@@ -587,12 +587,12 @@ function addSourceCaption(slide, sourceText, x = 0.8, y = 7.02, w = 11.7, h = 0.
 
   addSlideBullets(slide, [
     "Conceptual Defect Propagation: Demonstrates how a developer's mistaken loopback assumption introduced a static configuration fault that produced a 76-second freeze during physical device testing.",
-    "Empirical Defect Classification: Eleven verified defects logged across git history reveal primary defect clusters in layout rendering, mock data desynchronization, and network configuration.",
-    "Transparent Resolution Accounting: Nine defects are fully resolved with regression test coverage; two defects remain honestly documented as open (DEF-008 calendar lag alignment and DEF-011 legacy donation state)."
+    "Empirical Defect Classification: Thirteen verified defects logged across git history reveal primary defect clusters in layout rendering, security/cryptography, mock data desynchronization, and network configuration.",
+    "Transparent Resolution Accounting: Twelve defects are fully resolved with regression test coverage; one defect remains honestly documented as open (DEF-013 legacy charity donation state)."
   ], 0.8, 5.65, 11.7, 1.35);
 
   addSourceCaption(slide, "Git log commits 6b294a5e..49caa0ef; Verified defect taxonomy in docs/TESTING_AND_INTEGRITY_REPORT.md.");
-  slide.addNotes("Slide 5 illustrates the formal difference between errors, defects, and failures using the physical device login hang. It presents a native stacked column chart categorizing all 11 logged defects across the project lifecycle.");
+  slide.addNotes("Slide 5 illustrates the formal difference between errors, defects, and failures using the physical device login hang. It presents a native stacked column chart categorizing all 13 logged defects across the project lifecycle.");
 }
 
 // ============================================================================

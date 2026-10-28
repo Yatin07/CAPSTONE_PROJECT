@@ -1,0 +1,103 @@
+RestockIQ Citation and Claim Mapping (Strictly limited to the 25 repo papers)
+================================================================================
+
+Paper [1]: \cite{gartner2024automated}
+  Title: Automated Demand Forecasting in Small to Medium-Sized Enterprises
+  Supported Claim: Automated forecasting architectures for SMEs under data scarcity
+
+Paper [2]: \cite{access2025supply}
+  Title: Demand Forecasting in Supply Chain: A Comprehensive Review
+  Supported Claim: Supply chain demand forecasting review and baseline benchmarks
+
+Paper [3]: \cite{ganguly2024enhancing}
+  Title: Enhancing Retail Sales Forecasting with Optimized Machine Learning Models
+  Supported Claim: Comparison of tree-based models and classical time series in retail
+
+Paper [4]: \cite{guler2023forecasting}
+  Title: Forecasting Restaurant Sales with the Sensitivity of Weather and Calendar Effects
+  Supported Claim: Sensitivity analysis of weather and calendar covariates in food service
+
+Paper [5]: \cite{groene2024introduction}
+  Title: Introduction of AI-based sales forecasting: how to drive digital transformation in food and beverage outlets
+  Supported Claim: Operational hurdles and adoption factors of predictive AI in F&B outlets
+
+Paper [6]: \cite{jatte2025optimization}
+  Title: Optimization of Forecasting Performance in the Retail Sector Using Artificial Intelligence
+  Supported Claim: Hyperparameter optimization of ML models for retail SKU demand
+
+Paper [7]: \cite{cherian2025demand}
+  Title: Demand Forecasting System for Small Business Optimization
+  Supported Claim: Lightweight demand forecasting system tailored for small enterprise margins
+
+Paper [8]: \cite{iconstem2025aidriven}
+  Title: AI-Driven Predictive Analytics for Sustainable Restaurant Operations and Waste Minimization
+  Supported Claim: Food waste reduction in hospitality using predictive production scheduling
+
+Paper [9]: \cite{avuduri2025smartstock}
+  Title: Smart Stock: Automating Inventory Management for Small Warehouses with Real-Time Intelligence
+  Supported Claim: Automated replenishment buffers and cloud-connected tracking for small warehouses
+
+Paper [10]: \cite{chowdhury2025predictive}
+  Title: Predictive Analytics in Food Supply Chain and Waste Management
+  Supported Claim: Perishable goods shelf-life dynamics and waste management analytics
+
+Paper [11]: \cite{icci2026mobile}
+  Title: A Mobile Application for Inventory Management to Support Digital Transformation in Small Retail Businesses
+  Supported Claim: Cross-platform mobile interfaces for front-line store inventory restocking
+
+Paper [12]: \cite{iccraids2026comparative}
+  Title: Comparative Evaluation of SARIMA, FB Prophet, and LSTM for Hourly Demand Forecasting in Saudagar Kopi
+  Supported Claim: Empirical comparison of Prophet and deep models on café sales
+
+Paper [13]: \cite{lalitha2025enhanced}
+  Title: Enhanced sales forecasting of perishable and non-perishable goods using weather data with insights on Imports and price sensitivity
+  Supported Claim: Exogenous weather regressors and price sensitivity for perishable food items
+
+Paper [14]: \cite{iccraids2026evaluation}
+  Title: Evaluation of Optimized LSTM and Moving Average in SME Inventory Forecasting and Simulation
+  Supported Claim: Moving average baselines and neural simulation in small enterprise inventory
+
+Paper [15]: \cite{icbir2026factors}
+  Title: Factors influencing audit quality through the acceptance and use of AI by auditors in Thailand, affiliated with SMEs audit firms
+  Supported Claim: Technology acceptance model (UTAUT) in small business operational AI adoption
+
+Paper [16]: \cite{munawar2026lstm}
+  Title: LSTM-Based Hourly Sales Forecasting in SME Food and Beverage Retail
+  Supported Claim: Intraday and hourly transaction volume modeling in SME bakery/beverage shops
+
+Paper [17]: \cite{icalter2024mobile}
+  Title: Mobile Application for the Intelligent Management of Small Shops using the GPT-4 Model
+  Supported Claim: Integrating LLM natural language interfaces into mobile point-of-sale systems
+
+Paper [18]: \cite{sera2025optimizing}
+  Title: Optimizing Supply Chain Management for Small and Medium-Sized Businesses Using AI: A Comparative Analysis of GPT-4.5, Grok 3, Gemini 2.0, and DeepSeek R-1
+  Supported Claim: Comparative prompt engineering and grounding of foundation models for SME inventory decisions
+
+Paper [19]: \cite{susanto2023performance}
+  Title: Performance Analysis of Time Series Models to Predict Sales Activity of SMEs
+  Supported Claim: Empirical comparison of classical statistical moving averages vs tree regressors
+
+Paper [20]: \cite{iciptm2026predictive}
+  Title: Predictive Marketing and Sales Analytics Using Machine Learning for Small and Medium E-Commerce Enterprises
+  Supported Claim: Multi-SKU sales clustering and gradient boosting across intermittent transaction series
+
+Paper [21]: \cite{sandeep2023smart}
+  Title: Smart Sales Forecasting Machine Learning Models for Demand Prediction in Retail
+  Supported Claim: Gradient boosted decision trees and regression baselines for supermarket SKU turnover
+
+Paper [22]: \cite{ictmod2025state}
+  Title: State-Level Drug Retail Sales Forecasting Using XGBoost and Facebook Prophet
+  Supported Claim: Hybrid combination of Prophet additive decomposition with XGBoost gradient boosting
+
+Paper [23]: \cite{yuniarty2025technology}
+  Title: Technology Acceptance and Security Influences on AI Adoption among Small and Medium Enterprises
+  Supported Claim: Trust, privacy, and manager willingness to adopt automated replenishment recommendations
+
+Paper [24]: \cite{timesicon2025technology}
+  Title: Technology Adoption of MSMEs in Food Supply Chain: The Role of AI in Traceability and Transparency
+  Supported Claim: Food waste auditing and inventory traceability adoption challenges in MSMEs
+
+Paper [25]: \cite{jain2024weather}
+  Title: Weather-Integrated Recommendations for Food Choices with SHAP Explanation
+  Supported Claim: SHAP feature attribution analysis of weather covariates on consumer food choices
+

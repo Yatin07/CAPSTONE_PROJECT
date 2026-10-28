@@ -699,11 +699,11 @@ function addSlideBullets(slide, bullets, x = 0.8, y = 5.75, w = 11.733, h = 1.35
       { text: "Category", options: { bold: true, fill: { color: C.tagBg }, fontFace: F.title, fontSize: 14.5, color: C.primaryDark, align: 'center' } },
       { text: "Status", options: { bold: true, fill: { color: C.tagBg }, fontFace: F.title, fontSize: 14.5, color: C.primaryDark, align: 'center' } }
     ],
-    ["DEF-001", "Item setup bottom overflow on small viewports", "UI/Layout", "Fixed (SingleChildScrollView)"],
-    ["DEF-004", "Waste alert calculation lag on initial catalog load", "Functional", "Fixed (Pre-warmed cache)"],
-    ["DEF-008", "37 missing calendar days causing weekday shift mismatch", "ML Align", "Open (DEF-008 Shift)"],
-    ["DEF-009", "Hardcoded loopback IP caused 76s physical phone hang", "Config/Net", "Fixed (Dynamic IP + Gating)"],
-    ["DEF-011", "Legacy donation endpoint retained vs commercial rule", "Requirement", "Open (DEF-011 State)"]
+    ["DEF-001", "Hardcoded loopback IP (10.0.2.2) caused 76s physical phone hang", "Config/Net", "Fixed (Cloud URL + Probe)"],
+    ["DEF-003", "Hardcoded JWT fallback secret in backend configuration", "Security", "Fixed (Fail-fast Startup)"],
+    ["DEF-008", "37 store closure dates skewing 4-week lag calculation", "ML Align", "Resolved & Verified (Calendar Lookup)"],
+    ["DEF-011", "Item setup form bottom overflow on small viewports", "UI/Layout", "Fixed (SingleChildScrollView)"],
+    ["DEF-013", "Legacy donation endpoint retained vs commercial markdown", "Requirement", "Open (Documented V2 Backlog)"]
   ];
 
   slide.addTable(defRows, {
@@ -719,8 +719,8 @@ function addSlideBullets(slide, bullets, x = 0.8, y = 5.75, w = 11.733, h = 1.35
 
   addSlideBullets(slide, [
     "Traced root causes from developer assumptions to runtime failures.",
-    "Eleven defects logged across git history: nine resolved, two open.",
-    "Two non-critical architectural findings remain openly tracked."
+    "Thirteen defects logged across git history: twelve resolved, one open.",
+    "One non-critical architectural finding remains openly tracked (DEF-013)."
   ], 0.8, 5.75, 11.733, 1.35);
 
   slide.addNotes("Slide 7 demonstrates defect lifecycle management. At the top, we illustrate the progression from human error to code defect to runtime failure using DEF-009: a developer assumed the emulator loopback IP was universally reachable, creating a defect that caused a real 76-second freeze on physical hardware. Below, our defect table shows 11 historical defects tracked: 9 are resolved and regression tested, while 2 remain open.");
