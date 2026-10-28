@@ -76,3 +76,59 @@ Every entry documents:
   ```powershell
   git checkout HEAD -- Backend/main.py ML/batch_forecast.py scripts/manage_demo_user.py scripts/manage_test_users.py
   ```
+
+---
+
+## Stage 1: Review Existing Fixes, Audit Integrity, and Multi-Tenant Lifecycle
+
+### 1. Fix RenderFlex Overflow in LoginScreen
+- **What**: Replaced rigid `Row` with flexible `Wrap` for the "Don't have an account? Register" link.
+- **Why**: Fixes a 109px layout overflow on compact mobile viewports (width <= 364px) that broke 4 Flutter widget/integration tests.
+- **Files**:
+  - `APP/lib/screens/login_screen.dart` (Lines 372-397)
+- **How to Test**:
+  ```powershell
+  flutter test
+  ```
+  Result: 44/44 tests passing.
+- **How to Revert**:
+  ```powershell
+  git checkout HEAD -- APP/lib/screens/login_screen.dart
+  ```
+
+---
+
+### 2. Live API Logical Backup for Demo Manager
+- **What**: Created `scripts/logical_backup_api.py` to dump `items`, `forecasts/today`, and `waste-alerts` directly through authenticated API endpoints when direct Atlas port 27017 is blocked.
+- **Why**: Provides verifiable, uncorrupted snapshots of the demo manager's live operational state into the gitignored `backups/` directory.
+- **Files**:
+  - `scripts/logical_backup_api.py`
+  - `backups/api_items_demo_manager.json`
+  - `backups/api_forecasts_today_demo_manager.json`
+  - `backups/api_waste_alerts_demo_manager.json`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe scripts/logical_backup_api.py
+  ```
+- **How to Revert**:
+  ```powershell
+  rm scripts/logical_backup_api.py
+  ```
+
+---
+
+### 3. Multi-Tenant Lifecycle Test Suite (Mock-DB & Real-DB Staging)
+- **What**: Implemented `Backend/test_tenant_lifecycle_mongomock.py` covering 2 owners across items isolation, forecasts isolation, intraday sales isolation, and scoped delete cascade.
+- **Why**: Proves that tenant scoping strictly isolates data and that delete operations cascade only to the deleting owner's records. Labels tests explicitly as `[MOCK-DB]` or `[REAL-DB]` (marking real-DB skipped with `NOT RUN` when Atlas port 27017 is unreachable).
+- **Files**:
+  - `Backend/test_tenant_lifecycle_mongomock.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_tenant_lifecycle_mongomock.py -v
+  ```
+  Result: 4 mock-DB tests passed; 1 real-DB test skipped (`NOT RUN: Atlas port 27017 unreachable`).
+- **How to Revert**:
+  ```powershell
+  rm Backend/test_tenant_lifecycle_mongomock.py
+  ```
+
