@@ -118,25 +118,24 @@ def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict
     }
 
 
-def generate_daily_briefing(items: List[Dict[str, Any]], alerts: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Generates a natural-language executive briefing for the store manager.
-    ZERO-MATH CONSTRAINT: The LLM narrates and prioritizes verified data only.
-    It does NOT hallucinate confidence intervals or compute new forecasts.
-    """
-    global _client
-    if not _client:
-        return _build_deterministic_fallback(items, alerts)
+def build_briefing_prompt(items: List[Dict[str, Any]], alerts: List[Dict[str, Any]]) -> str:
+    from constants import DEFAULT_FALLBACK_DEMAND, DEFAULT_FALLBACK_SAFETY
 
-    # Compile sanitized metrics for LLM grounding
     inventory_summary = []
     for it in items[:15]:
+        curr = it.get("currentStock", 0)
+        dem = it.get("predictedDemand") or DEFAULT_FALLBACK_DEMAND
+        saf = it.get("safetyStock") or DEFAULT_FALLBACK_SAFETY
+        restock = max(0, dem + saf - curr)
+        tier = it.get("tier") or ("sparse_cold_start" if it.get("isNew") else "primary")
         inventory_summary.append({
             "name": it.get("name"),
             "category": it.get("category"),
-            "current_stock": it.get("currentStock"),
-            "predicted_demand": it.get("predictedDemand"),
-            "safety_stock": it.get("safetyStock"),
+            "current_stock": curr,
+            "predicted_demand": dem,
+            "safety_stock": saf,
+            "recommended_restock": restock,
+            "tier": tier,
             "price": it.get("price"),
             "risk_level": it.get("riskLevel"),
         })
@@ -146,13 +145,13 @@ def generate_daily_briefing(items: List[Dict[str, Any]], alerts: List[Dict[str, 
         pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
         alerts_summary.append({
             "name": a.get("itemName") or a.get("name"),
-            "risk_level": a.get("severityLabel") or a.get("riskLevel"),
+            "tier": a.get("tier") or a.get("severityLabel") or a.get("riskLevel"),
             "sales_pace_ratio": pace,
             "current_stock": a.get("currentStock"),
-            "recommended_action": a.get("recommendedActionText") or a.get("recommendedAction"),
+            "recommended_action": a.get("recommended_action") or a.get("recommendedActionText") or a.get("recommendedAction"),
         })
 
-    prompt = f"""
+    return f"""
 You are RestockIQ's Executive Inventory & Waste Mitigation AI Assistant.
 Analyze this morning's store operational data and write a concise, professional executive briefing for the store manager.
 
@@ -170,6 +169,64 @@ ACTIVE INTRADAY WASTE ALERTS:
 {json.dumps(alerts_summary, indent=2)}
 """
 
+
+def build_assistant_prompt(
+    user_query: str,
+    items: List[Dict[str, Any]],
+    alerts: List[Dict[str, Any]],
+) -> str:
+    from constants import DEFAULT_FALLBACK_DEMAND, DEFAULT_FALLBACK_SAFETY
+
+    inventory_context = []
+    for it in items[:20]:
+        curr = it.get("currentStock", 0)
+        dem = it.get("predictedDemand") or DEFAULT_FALLBACK_DEMAND
+        saf = it.get("safetyStock") or DEFAULT_FALLBACK_SAFETY
+        restock = max(0, dem + saf - curr)
+        tier = it.get("tier") or ("sparse_cold_start" if it.get("isNew") else "primary")
+        inventory_context.append(
+            f"- {it.get('name')}: Stock={curr}, Demand={dem}, Safety={saf}, Restock={restock}, Risk={it.get('riskLevel', 'normal')}, Tier={tier}"
+        )
+
+    alerts_context = []
+    for a in alerts[:15]:
+        a_name = a.get("itemName") or a.get("name")
+        a_tier = a.get("tier") or a.get("severityLabel") or a.get("riskLevel")
+        a_action = a.get("recommended_action") or a.get("recommendedActionText") or a.get("recommendedAction")
+        a_pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
+        alerts_context.append(f"- Alert on {a_name}: Tier={a_tier}, Action={a_action}, Pace={a_pace}")
+
+    return f"""
+You are the RestockIQ On-Duty Store Assistant.
+Answer the store manager's question using the store's verified inventory data below.
+
+RULES:
+- Answer directly in 2 to 4 sentences.
+- Use only facts from the store data. Never hallucinate items or metrics not listed.
+- If the item or information is not present, clearly state that it is not in today's active catalog.
+
+STORE INVENTORY:
+{chr(10).join(inventory_context)}
+
+WASTE ALERTS:
+{chr(10).join(alerts_context)}
+
+STORE MANAGER'S QUESTION:
+{user_query}
+"""
+
+
+def generate_daily_briefing(items: List[Dict[str, Any]], alerts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Generates a natural-language executive briefing for the store manager.
+    ZERO-MATH CONSTRAINT: The LLM narrates and prioritizes verified data only.
+    It does NOT hallucinate confidence intervals or compute new forecasts.
+    """
+    global _client
+    if not _client:
+        return _build_deterministic_fallback(items, alerts)
+
+    prompt = build_briefing_prompt(items, alerts)
     text = _call_gemini_with_retry(prompt)
     if not text:
         logger.warning("Gemini generation failed or timed out; falling back to deterministic engine.")
@@ -230,37 +287,7 @@ def answer_assistant_chat(
             "model": "rule-based",
         }
 
-    inventory_context = [
-        f"- {it.get('name')}: Stock={it.get('currentStock')}, Demand={it.get('predictedDemand')}, Safety={it.get('safetyStock')}, Risk={it.get('riskLevel')}"
-        for it in items[:20]
-    ]
-
-    alerts_context = []
-    for a in alerts[:15]:
-        a_name = a.get("itemName") or a.get("name")
-        a_risk = a.get("severityLabel") or a.get("riskLevel")
-        a_action = a.get("recommendedActionText") or a.get("recommendedAction")
-        a_pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
-        alerts_context.append(f"- Alert on {a_name}: Risk={a_risk}, Action={a_action}, Pace={a_pace}")
-
-    prompt = f"""
-You are the RestockIQ On-Duty Store Assistant.
-Answer the store manager's question using the store's verified inventory data below.
-
-RULES:
-- Answer directly in 2 to 4 sentences.
-- Use only facts from the store data. Never hallucinate items or metrics not listed.
-- If the item or information is not present, clearly state that it is not in today's active catalog.
-
-STORE INVENTORY:
-{chr(10).join(inventory_context)}
-
-WASTE ALERTS:
-{chr(10).join(alerts_context)}
-
-STORE MANAGER'S QUESTION:
-{user_query}
-"""
+    prompt = build_assistant_prompt(user_query, items, alerts)
 
     text = _call_gemini_with_retry(prompt)
     if not text:

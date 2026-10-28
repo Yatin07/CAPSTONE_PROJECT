@@ -64,9 +64,110 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Centralized fallback constants for cold-start / unforecasted items
-DEFAULT_FALLBACK_DEMAND = 20
-DEFAULT_FALLBACK_SAFETY = 4
+from constants import (
+    DEFAULT_FALLBACK_DEMAND,
+    DEFAULT_FALLBACK_SAFETY,
+    STORE_OPEN_HOUR,
+    STORE_CLOSE_HOUR,
+    DEFAULT_STORE_TIMEZONE,
+)
+
+def get_store_timezone(user: Optional[Dict[str, Any]] = None, item: Optional[Dict[str, Any]] = None):
+    tz_str = (user.get("timezone") if user else None) or (item.get("timezone") if item else None) or os.getenv("STORE_TIMEZONE") or DEFAULT_STORE_TIMEZONE
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(tz_str)
+    except Exception:
+        return timezone.utc
+
+def get_store_local_now(user: Optional[Dict[str, Any]] = None, item: Optional[Dict[str, Any]] = None) -> datetime:
+    tz = get_store_timezone(user, item)
+    return datetime.now(tz)
+
+async def rollover_if_new_day(item: dict, user: Optional[dict] = None) -> dict:
+    """
+    Lazy, idempotent daily state rollover keyed on the store's local calendar date (item.intradayDate).
+    Only resets intradaySales, alert flags, and discount prices when intradayDate != today_local.
+    Guarantees that nightly batch or mid-day reads never contaminate live counters.
+    """
+    if not item:
+        return item
+
+    now_local = get_store_local_now(user, item)
+    today_local_str = now_local.strftime("%Y-%m-%d")
+
+    if item.get("intradayDate") == today_local_str:
+        return item
+
+    item_id = item["_id"]
+    owner_id = item.get("owner_id")
+
+    # Revert promotional discount to base price if applied
+    base_price = item.get("originalPrice") if item.get("discountApplied") else item.get("price")
+
+    update_fields = {
+        "intradaySales": 0,
+        "intradayDate": today_local_str,
+        "isDismissed": False,
+        "isPrimaryActionDone": False,
+        "isRecommendedActionDone": False,
+        "discountApplied": False,
+        "flaggedForDonation": False,
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+    if base_price is not None and item.get("discountApplied"):
+        update_fields["price"] = base_price
+
+    if db is not None:
+        try:
+            query = {"_id": item_id}
+            if owner_id:
+                query["owner_id"] = owner_id
+            await db.items.update_one(query, {"$set": update_fields})
+        except Exception:
+            pass
+
+    item.update(update_fields)
+    return item
+
+async def rollup_daily_sales(target_date: str) -> dict:
+    """
+    Aggregates db.intraday_sales by date for any past or target day.
+    Upserts into db.daily_sales with compound unique index (owner_id, item_id, date).
+    100% idempotent and safe to run multiple times.
+    """
+    if db is None:
+        return {"status": "skipped", "reason": "db is None"}
+
+    pipeline = [
+        {"$match": {"date": target_date}},
+        {"$group": {
+            "_id": {
+                "owner_id": "$owner_id",
+                "item_id": "$item_id",
+            },
+            "total_units": {"$sum": "$quantity"},
+        }}
+    ]
+    cursor = db.intraday_sales.aggregate(pipeline)
+    count = 0
+    now_iso = datetime.now(timezone.utc).isoformat()
+    async for doc in cursor:
+        owner_id = doc["_id"]["owner_id"]
+        item_id = doc["_id"]["item_id"]
+        units = doc["total_units"]
+        await db.daily_sales.update_one(
+            {"owner_id": owner_id, "item_id": item_id, "date": target_date},
+            {"$set": {
+                "units": units,
+                "source": "rollup",
+                "updatedAt": now_iso,
+            }},
+            upsert=True
+        )
+        count += 1
+    return {"status": "success", "date": target_date, "records_rolled_up": count}
+
 
 # ---------------------------------------------------------------------------- #
 # Rate Limiting
@@ -138,6 +239,7 @@ async def startup_db():
         await client.admin.command("ping")
         print("[DB] Connected to MongoDB Atlas successfully.")
         await db.users.create_index("email", unique=True)
+        await db.daily_sales.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
         
         # Guarded demo user seeding
         if ALLOW_DEMO_SEED:
@@ -377,6 +479,7 @@ async def get_items(current_user=Depends(get_current_user)):
     cursor = db.items.find({"owner_id": current_user["_id"]})
     items = []
     async for doc in cursor:
+        doc = await rollover_if_new_day(doc, current_user)
         items.append({
             "id": doc["_id"],
             "name": doc["name"],
@@ -470,6 +573,7 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
     action_required_count = 0
 
     async for doc in cursor:
+        doc = await rollover_if_new_day(doc, current_user)
         # Check if pre-computed forecast exists in forecasts collection
         forecast = await db.forecasts.find_one(
             {"item_id": doc["_id"], "owner_id": current_user["_id"]},
@@ -538,6 +642,7 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    item = await rollover_if_new_day(item, current_user)
 
     forecast = await db.forecasts.find_one(
         {"item_id": item_id, "owner_id": current_user["_id"]},
@@ -599,24 +704,32 @@ async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(ge
     item = await db.items.find_one({"_id": req.item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    item = await rollover_if_new_day(item, current_user)
 
     new_intraday = item.get("intradaySales", 0) + req.quantity
     new_stock = max(0, item.get("currentStock", 0) - req.quantity)
     now_iso = datetime.now(timezone.utc).isoformat()
+    now_local = get_store_local_now(current_user, item)
+    today_local = now_local.strftime("%Y-%m-%d")
 
-    # Log individual sales event
+    # Log individual sales event with store-local calendar date
     await db.intraday_sales.insert_one({
         "item_id": req.item_id,
         "owner_id": current_user["_id"],
         "quantity": req.quantity,
         "timestamp": now_iso,
-        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "date": today_local,
     })
 
-    # Update item state in Atlas
+    # Update item state in Atlas with intradayDate
     await db.items.update_one(
         {"_id": req.item_id, "owner_id": current_user["_id"]},
-        {"$set": {"intradaySales": new_intraday, "currentStock": new_stock, "updatedAt": now_iso}}
+        {"$set": {
+            "intradaySales": new_intraday,
+            "intradayDate": today_local,
+            "currentStock": new_stock,
+            "updatedAt": now_iso,
+        }}
     )
 
     return {
@@ -681,23 +794,29 @@ def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stoc
 
 @app.get("/api/v1/waste-alerts")
 async def get_waste_alerts(current_user=Depends(get_current_user)):
+    now_local = get_store_local_now(current_user)
+    current_hour = now_local.hour + (now_local.minute / 60.0)
+    
+    open_hour = STORE_OPEN_HOUR
+    close_hour = STORE_CLOSE_HOUR
+    
+    # Store operating hours check: closed outside open-close hours
+    if current_hour < open_hour or current_hour >= close_hour:
+        return {
+            "alerts": [],
+            "total_alerts": 0,
+            "store_status": "closed",
+            "message": f"Store is currently closed. Operating hours: {int(open_hour):02d}:00 - {int(close_hour):02d}:00 local time.",
+            "local_time": now_local.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+    elapsed_fraction = (current_hour - open_hour) / (close_hour - open_hour)
+    
     cursor = db.items.find({"owner_id": current_user["_id"], "isPerishable": True})
     alerts = []
     
-    # Store operates 8:00 AM (8) to 8:00 PM (20) in local store timezone
-    store_tz_offset = float(os.getenv("STORE_TZ_OFFSET_HOURS", "0"))
-    now_local = datetime.now(timezone.utc) + timedelta(hours=store_tz_offset)
-    current_hour = now_local.hour + (now_local.minute / 60.0)
-    
-    # Operational fraction of 12-hour day elapsed (8am to 8pm); minimum 25% for morning pace grace period
-    if current_hour < 8:
-        elapsed_fraction = 0.25
-    elif current_hour >= 20:
-        elapsed_fraction = 1.0
-    else:
-        elapsed_fraction = max(0.25, min(1.0, (current_hour - 8) / 12.0))
-
     async for item in cursor:
+        item = await rollover_if_new_day(item, current_user)
         if item.get("isDismissed", False):
             continue
 
@@ -761,7 +880,7 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
                 "foodType": food_type,
             })
 
-    return {"alerts": alerts, "total_alerts": len(alerts)}
+    return {"alerts": alerts, "total_alerts": len(alerts), "store_status": "open"}
 
 
 @app.post("/api/v1/waste-alerts/{item_id}/apply-discount")
@@ -769,6 +888,7 @@ async def apply_discount_action(item_id: str, current_user=Depends(get_current_u
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    item = await rollover_if_new_day(item, current_user)
 
     # Static 20% discount mapping
     current_price = item.get("price") or 5.0
@@ -798,6 +918,7 @@ async def flag_donation_action(item_id: str, current_user=Depends(get_current_us
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    item = await rollover_if_new_day(item, current_user)
 
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.items.update_one(
@@ -819,12 +940,25 @@ async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_us
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    item = await rollover_if_new_day(item, current_user)
 
     await db.items.update_one(
         {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {"isDismissed": True}}
     )
     return {"status": "dismissed", "item_id": item_id}
+
+
+@app.post("/api/v1/jobs/rollup-daily-sales")
+async def trigger_daily_sales_rollup(target_date: Optional[str] = None, current_user=Depends(get_current_user)):
+    """
+    Idempotent daily sales rollup job. Aggregates intraday_sales into daily_sales for target_date.
+    """
+    if not target_date:
+        now_local = get_store_local_now(current_user)
+        target_date = now_local.strftime("%Y-%m-%d")
+    result = await rollup_daily_sales(target_date)
+    return result
 
 
 # ---------------------------------------------------------------------------- #

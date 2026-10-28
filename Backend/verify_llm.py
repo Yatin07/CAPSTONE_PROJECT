@@ -14,8 +14,12 @@ def test_zero_math_compliance(briefing_dict, input_items, input_alerts):
     executive summary and actions was present in the input context (or is a
     benign list counter / percentage representation).
     """
-    # Collect all numbers from input context
-    input_text = str(input_items) + " " + str(input_alerts)
+    # Collect all numbers from input context including computed recommended_restock sent to LLM
+    restock_values = [
+        str(max(0, it.get("predictedDemand", 0) + it.get("safetyStock", 0) - it.get("currentStock", 0)))
+        for it in input_items
+    ]
+    input_text = str(input_items) + " " + str(input_alerts) + " " + " ".join(restock_values)
     input_numbers = set(re.findall(r"\b\d+(?:\.\d+)?\b", input_text))
 
     # Collect numbers from LLM output

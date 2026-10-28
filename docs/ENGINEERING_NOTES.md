@@ -132,3 +132,109 @@ Every entry documents:
   rm Backend/test_tenant_lifecycle_mongomock.py
   ```
 
+---
+
+## Stage 2: Correct Daily State, Lazy Rollover, and Batch Idempotency
+
+### 1. Single Source of Truth Constants Module
+- **What**: Created `Backend/constants.py` defining fallback demand (`20`), fallback safety stock (`4`), default store operating hours (`08:00` - `20:00`), and default timezone (`UTC`).
+- **Why**: Eliminates magic numbers across FastAPI endpoints, ML batch forecasting, and LLM prompt constructors.
+- **Files**:
+  - `Backend/constants.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -c "import constants; print(constants.DEFAULT_FALLBACK_DEMAND, constants.STORE_OPEN_HOUR)"
+  ```
+- **How to Revert**:
+  ```powershell
+  rm Backend/constants.py
+  ```
+
+---
+
+### 2. Batch Forecast Non-Mutation of Live State & Historical Invariance
+- **What**: Removed intraday sales appending, price resets, and action flag wipes from `ML/batch_forecast.py`. Added `--dry-run` and `--as-of DATE` CLI flags. Made DB connection non-blocking on import. Sourced historical sales strictly from finalized `daily_sales` aggregation.
+- **Why**: Guarantees that running the batch job mid-day, twice in one day, or 6 hours late never mutates live manager state or duplicates sales history.
+- **Files**:
+  - `ML/batch_forecast.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_acceptance_lifecycle.py -v
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout faf9a31a -- ML/batch_forecast.py
+  ```
+
+---
+
+### 3. Store-Local Timezone and Lazy Daily Rollover
+- **What**: Added `get_store_timezone()`, `get_store_local_now()`, and `rollover_if_new_day(item, user)` in `Backend/main.py`. Wrapped all read/write paths for items, intraday sales, and alerts.
+- **Why**: Ensures that state rollover occurs at store-local midnight rather than UTC, and resets `intradaySales`, reverts promotional discounts to original prices, and clears action flags seamlessly upon the first manager access of a new calendar day.
+- **Files**:
+  - `Backend/main.py`
+  - `Backend/test_timezone_and_alerts.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_timezone_and_alerts.py -v
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout faf9a31a -- Backend/main.py
+  ```
+
+---
+
+### 4. Timezone-Aware Operating Hours Fraction and Waste Alerts
+- **What**: Updated `/api/v1/waste-alerts` to calculate `elapsed_fraction = (current_hour - open_hour) / (close_hour - open_hour)`. Returns `"store_status": "closed"` with 0 alerts outside operating hours (e.g. 20:00 - 08:00).
+- **Why**: Solves the UTC drift issue where stores in Asian/European timezones saw critical alerts prematurely or late at night.
+- **Files**:
+  - `Backend/main.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_timezone_and_alerts.py -v
+  ```
+
+---
+
+### 5. daily_sales Rollup & Aggregation
+- **What**: Implemented `rollup_daily_sales(target_date)` and added unique compound index `(owner_id, item_id, date)` on collection `daily_sales`.
+- **Why**: Allows idempotent background or cron aggregation of intraday sales receipts into permanent historical daily sales records.
+- **Files**:
+  - `Backend/main.py`
+  - `Backend/test_acceptance_lifecycle.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_acceptance_lifecycle.py -v
+  ```
+
+---
+
+### 6. LLM Grounding Enrichment & Zero-Math Audit
+- **What**: Added `recommended_restock`, `tier`, and `recommended_action` to briefing and assistant context builders in `Backend/services/llm_service.py`. Extracted `build_briefing_prompt` and `build_assistant_prompt`.
+- **Why**: Allows the LLM assistant to directly quote reorder requirements and operational actions without performing hallucinated arithmetic.
+- **Files**:
+  - `Backend/services/llm_service.py`
+  - `Backend/verify_llm.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe Backend/verify_llm.py
+  ```
+
+---
+
+### 7. Acceptance Test Suite
+- **What**: Created `Backend/test_acceptance_lifecycle.py` verifying:
+  1. Batch run twice on same day leaves history unchanged.
+  2. Batch run mid-day does not mutate live intradaySales or prices.
+  3. Batch run 6 hours late does not merge morning sales with yesterday.
+  4. Day 1 sales transition to Day 2 resets intradaySales and clears flags.
+  5. `daily_sales` aggregation is 100% idempotent.
+- **Files**:
+  - `Backend/test_acceptance_lifecycle.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_acceptance_lifecycle.py -v
+  ```
+
+
