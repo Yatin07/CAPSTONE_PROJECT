@@ -35,7 +35,8 @@ print("=" * 60)
 
 # Connect to Atlas
 client = MongoClient(MONGO_URI, server_api=ServerApi("1"), serverSelectionTimeoutMS=10000)
-db = client["restockiq"]
+db_name = os.getenv("MONGODB_DB", "restockiq")
+db = client[db_name]
 
 try:
     client.admin.command("ping")

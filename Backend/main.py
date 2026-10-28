@@ -131,7 +131,8 @@ async def startup_db():
         serverSelectionTimeoutMS=5000,   # Fail fast, don't block startup
         connectTimeoutMS=5000,
     )
-    db = client["restockiq"]
+    db_name = os.getenv("MONGODB_DB", "restockiq")
+    db = client[db_name]
     # Non-blocking: try ping but continue if network blocks port 27017
     try:
         await client.admin.command("ping")

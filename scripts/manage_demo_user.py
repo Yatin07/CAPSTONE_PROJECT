@@ -19,7 +19,8 @@ async def main():
         return
 
     client = AsyncIOMotorClient(mongo_uri)
-    db = client["restockiq"]
+    db_name = os.getenv("MONGODB_DB", "restockiq")
+    db = client[db_name]
 
     print("[1] Querying for admin@test.com in database...")
     user = await db.users.find_one({"email": "admin@test.com"})
