@@ -64,6 +64,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Centralized fallback constants for cold-start / unforecasted items
+DEFAULT_FALLBACK_DEMAND = 20
+DEFAULT_FALLBACK_SAFETY = 4
+
 # ---------------------------------------------------------------------------- #
 # Rate Limiting
 # ---------------------------------------------------------------------------- #
@@ -395,7 +399,7 @@ async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    update_data = {k: v for k, v in req.dict().items() if v is not None}
+    update_data = {k: v for k, v in req.model_dump().items() if v is not None}
     update_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
 
     await db.items.update_one({"_id": item_id, "owner_id": current_user["_id"]}, {"$set": update_data})
@@ -420,7 +424,7 @@ async def delete_item(item_id: str, current_user=Depends(get_current_user)):
     res = await db.items.delete_one({"_id": item_id, "owner_id": current_user["_id"]})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
-    await db.forecasts.delete_many({"item_id": item_id})
+    await db.forecasts.delete_many({"item_id": item_id, "owner_id": current_user["_id"]})
     return {"status": "deleted", "item_id": item_id}
 
 
@@ -467,20 +471,20 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
     async for doc in cursor:
         # Check if pre-computed forecast exists in forecasts collection
         forecast = await db.forecasts.find_one(
-            {"item_id": doc["_id"]},
+            {"item_id": doc["_id"], "owner_id": current_user["_id"]},
             sort=[("forecast_date", -1)]
         )
 
         if forecast:
-            predicted_demand = forecast.get("predictedDemand", doc.get("predictedDemand") or 15)
-            safety_stock = forecast.get("safetyStock", doc.get("safetyStock") or 3)
+            predicted_demand = forecast.get("predictedDemand", doc.get("predictedDemand") or DEFAULT_FALLBACK_DEMAND)
+            safety_stock = forecast.get("safetyStock", doc.get("safetyStock") or DEFAULT_FALLBACK_SAFETY)
             description = forecast.get("explanation", doc.get("description", "Demand steady — standard restocking pattern"))
             risk_level = forecast.get("riskLevel", doc.get("riskLevel", "normal"))
             tier = forecast.get("tier", "primary")
         else:
             # Fallback for cold-start / new item (TSB tier)
-            predicted_demand = doc.get("predictedDemand") or 15
-            safety_stock = doc.get("safetyStock") or 3
+            predicted_demand = doc.get("predictedDemand") or DEFAULT_FALLBACK_DEMAND
+            safety_stock = doc.get("safetyStock") or DEFAULT_FALLBACK_SAFETY
             description = doc.get("description") or "Cold-start analysis active — learning sales pace"
             risk_level = doc.get("riskLevel") or "normal"
             tier = "sparse_cold_start" if doc.get("isNew", True) else "primary"
@@ -535,12 +539,12 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
         raise HTTPException(status_code=404, detail="Item not found")
 
     forecast = await db.forecasts.find_one(
-        {"item_id": item_id},
+        {"item_id": item_id, "owner_id": current_user["_id"]},
         sort=[("forecast_date", -1)]
     )
 
-    predicted_demand = (forecast.get("predictedDemand") if forecast else item.get("predictedDemand")) or 25
-    safety_stock = (forecast.get("safetyStock") if forecast else item.get("safetyStock")) or 5
+    predicted_demand = (forecast.get("predictedDemand") if forecast else item.get("predictedDemand")) or DEFAULT_FALLBACK_DEMAND
+    safety_stock = (forecast.get("safetyStock") if forecast else item.get("safetyStock")) or DEFAULT_FALLBACK_SAFETY
     curr_stock = item.get("currentStock", 0)
     restock_qty = max(0, predicted_demand + safety_stock - curr_stock)
     denom = max(1, predicted_demand + safety_stock)
@@ -679,21 +683,30 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
     cursor = db.items.find({"owner_id": current_user["_id"], "isPerishable": True})
     alerts = []
     
-    # Store operates 8:00 AM (8) to 8:00 PM (20)
-    now_utc = datetime.now(timezone.utc)
-    current_hour = now_utc.hour
+    # Store operates 8:00 AM (8) to 8:00 PM (20) in local store timezone
+    store_tz_offset = float(os.getenv("STORE_TZ_OFFSET_HOURS", "0"))
+    now_local = datetime.now(timezone.utc) + timedelta(hours=store_tz_offset)
+    current_hour = now_local.hour + (now_local.minute / 60.0)
     
-    # Operational fraction of day elapsed (minimum 25% to allow initial morning pace)
-    elapsed_fraction = max(0.25, min(1.0, (current_hour - 8 + 1) / 12.0))
+    # Operational fraction of 12-hour day elapsed (8am to 8pm); minimum 25% for morning pace grace period
+    if current_hour < 8:
+        elapsed_fraction = 0.25
+    elif current_hour >= 20:
+        elapsed_fraction = 1.0
+    else:
+        elapsed_fraction = max(0.25, min(1.0, (current_hour - 8) / 12.0))
 
     async for item in cursor:
         if item.get("isDismissed", False):
             continue
 
         item_id = item["_id"]
-        # Fetch latest daily forecast
-        forecast = await db.forecasts.find_one({"item_id": item_id}, sort=[("forecast_date", -1)])
-        predicted_daily = (forecast.get("predictedDemand") if forecast else item.get("predictedDemand")) or 30
+        # Fetch latest daily forecast strictly for this tenant
+        forecast = await db.forecasts.find_one(
+            {"item_id": item_id, "owner_id": current_user["_id"]},
+            sort=[("forecast_date", -1)]
+        )
+        predicted_daily = (forecast.get("predictedDemand") if forecast else item.get("predictedDemand")) or DEFAULT_FALLBACK_DEMAND
         
         actual_sold = item.get("intradaySales", 0)
         expected_by_now = max(1.0, predicted_daily * elapsed_fraction)

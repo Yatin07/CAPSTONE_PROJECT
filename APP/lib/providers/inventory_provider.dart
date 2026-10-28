@@ -126,13 +126,12 @@ class InventoryProvider extends ChangeNotifier {
       final dashboardData = await ApiService.instance.fetchTodayDashboard();
       if (dashboardData != null && dashboardData['items'] != null) {
         final liveItems = dashboardData['items'] as List<InventoryItem>;
-        if (liveItems.isNotEmpty) {
-          _items.clear();
-          _items.addAll(liveItems);
-          _dashboardSummary = dashboardData['summary']?.toString() ?? _dashboardSummary;
-          _actionRequiredCount = (dashboardData['action_required_count'] as num?)?.toInt() ?? 0;
-          if (kDebugMode) print('[Provider] Successfully synced ${_items.length} items from Atlas.');
-        }
+        _items.clear();
+        _items.addAll(liveItems);
+        _dashboardSummary = dashboardData['summary']?.toString() ?? 
+            (liveItems.isEmpty ? "No inventory items found. Add items to enable AI forecasting." : _dashboardSummary);
+        _actionRequiredCount = (dashboardData['action_required_count'] as num?)?.toInt() ?? 0;
+        if (kDebugMode) print('[Provider] Successfully synced ${_items.length} items from Atlas.');
       }
     } catch (e) {
       _errorMessage = 'Could not sync with cloud. Displaying cached inventory.';

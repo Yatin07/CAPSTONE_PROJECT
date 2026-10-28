@@ -11,6 +11,7 @@ import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
 import 'forgot_password_screen.dart';
 import 'item_setup_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -102,10 +103,77 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // One-tap demo bypass — skips auth for Android Studio testing
   void _handleDemoLogin() {
+    ApiService.instance.setWalkthroughSession();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => const ItemSetupScreen(),
+      ),
+    );
+  }
+
+  void _showServerSwitchDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Backend Server Target'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select server target for demonstration (useful if Render cloud is cold):',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.cloud_outlined, color: AppColors.primary),
+              title: const Text('Cloud (Render Live)'),
+              subtitle: const Text('https://restockiq-backend.onrender.com/api/v1', style: TextStyle(fontSize: 10)),
+              onTap: () {
+                setState(() {
+                  ApiService.instance.baseUrl = 'https://restockiq-backend.onrender.com/api/v1';
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Target: Cloud (Render Live)')),
+                );
+              },
+            ),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.flash_on_rounded, color: Colors.green),
+              title: const Text('Local Emulator (0ms delay)'),
+              subtitle: const Text('http://10.0.2.2:8000/api/v1', style: TextStyle(fontSize: 10)),
+              onTap: () {
+                setState(() {
+                  ApiService.instance.baseUrl = 'http://10.0.2.2:8000/api/v1';
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Target: Local Emulator (10.0.2.2:8000)')),
+                );
+              },
+            ),
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.laptop_chromebook_rounded, color: Colors.blue),
+              title: const Text('Localhost (PC / Web)'),
+              subtitle: const Text('http://127.0.0.1:8000/api/v1', style: TextStyle(fontSize: 10)),
+              onTap: () {
+                setState(() {
+                  ApiService.instance.baseUrl = 'http://127.0.0.1:8000/api/v1';
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Target: Localhost (127.0.0.1:8000)')),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -297,6 +365,48 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Register / Sign-up Link
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
+                            style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Register',
+                              style: AppTypography.bodyMd.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Quick Server Switcher Link
+                      GestureDetector(
+                        onTap: _showServerSwitchDialog,
+                        child: Text(
+                          'Server: ${ApiService.instance.baseUrl.contains('render') ? 'Cloud (Render)' : 'Localhost'} ⚙️',
+                          style: AppTypography.captionBold.copyWith(
+                            color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
                       if (kDebugMode) ...[
                         const SizedBox(height: 16),

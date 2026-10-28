@@ -224,7 +224,11 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Rain is forecast tomorrow, which usually slows foot traffic slightly, but weekend demand still outweighs it...',
+                  (widget.item.description != null && widget.item.description!.isNotEmpty)
+                      ? widget.item.description!
+                      : (widget.item.isPerishable && widget.item.currentStock > _predictedDemand * 1.5)
+                          ? 'Current stock of ${widget.item.currentStock} ${widget.item.unit.toLowerCase()} exceeds tomorrow\'s predicted demand of $_predictedDemand. High spoilage risk — monitor afternoon pace.'
+                          : 'AI demand projection: $_predictedDemand ${widget.item.unit.toLowerCase()} forecasted tomorrow. Safety stock of $_safetyStock recommended to absorb peak sales swings.',
                   style: AppTypography.bodyMd.copyWith(
                     fontSize: 13,
                     height: 1.45,

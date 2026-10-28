@@ -87,7 +87,10 @@ def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict
         if it.get("currentStock", 0) <= it.get("safetyStock", 0)
         or it.get("currentStock", 0) < it.get("predictedDemand", 0)
     ]
-    urgent_alerts = [a for a in alerts if a.get("riskLevel") in ["high", "critical"]]
+    urgent_alerts = [
+        a for a in alerts
+        if (a.get("severityLabel") or a.get("riskLevel") or "").lower() in ["high", "critical", "low pace"]
+    ]
 
     summary = (
         f"Operational status: {len(items)} items tracked. "
@@ -100,7 +103,7 @@ def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict
         names = ", ".join([it.get("name", "Item") for it in restock_needed[:3]])
         actions.append(f"Restock priority items: {names}.")
     if urgent_alerts:
-        alert_names = ", ".join([a.get("name", "Item") for a in urgent_alerts[:2]])
+        alert_names = ", ".join([a.get("itemName") or a.get("name", "Item") for a in urgent_alerts[:2]])
         actions.append(f"Review waste alerts for {alert_names} to apply scheduled discount or donation.")
     else:
         actions.append("Inventory levels stable with standard turnover pace.")
@@ -140,12 +143,13 @@ def generate_daily_briefing(items: List[Dict[str, Any]], alerts: List[Dict[str, 
 
     alerts_summary = []
     for a in alerts[:10]:
+        pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
         alerts_summary.append({
-            "name": a.get("name"),
-            "risk_level": a.get("riskLevel"),
-            "sales_pace_ratio": a.get("sales_pace_ratio"),
+            "name": a.get("itemName") or a.get("name"),
+            "risk_level": a.get("severityLabel") or a.get("riskLevel"),
+            "sales_pace_ratio": pace,
             "current_stock": a.get("currentStock"),
-            "recommended_action": a.get("recommendedAction"),
+            "recommended_action": a.get("recommendedActionText") or a.get("recommendedAction"),
         })
 
     prompt = f"""
@@ -231,10 +235,13 @@ def answer_assistant_chat(
         for it in items[:20]
     ]
 
-    alerts_context = [
-        f"- Alert on {a.get('name')}: Risk={a.get('riskLevel')}, Action={a.get('recommendedAction')}, Pace={a.get('sales_pace_ratio')}"
-        for a in alerts[:15]
-    ]
+    alerts_context = []
+    for a in alerts[:15]:
+        a_name = a.get("itemName") or a.get("name")
+        a_risk = a.get("severityLabel") or a.get("riskLevel")
+        a_action = a.get("recommendedActionText") or a.get("recommendedAction")
+        a_pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
+        alerts_context.append(f"- Alert on {a_name}: Risk={a_risk}, Action={a_action}, Pace={a_pace}")
 
     prompt = f"""
 You are the RestockIQ On-Duty Store Assistant.

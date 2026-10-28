@@ -290,11 +290,23 @@ def run_batch_job():
             forecast_result = compute_primary_forecast(item)
 
         current_stock = item.get("currentStock", 0)
+        owner_id = item.get("owner_id")
+        
+        # Archive intraday sales into sales history (rolling 90-day window)
+        updated_sales_history = list(sales_history)
+        intraday_sales = item.get("intradaySales", 0)
+        if intraday_sales > 0 or len(updated_sales_history) > 0:
+            updated_sales_history.append(intraday_sales)
+            if len(updated_sales_history) > 90:
+                updated_sales_history = updated_sales_history[-90:]
+
+        # Restore original price if a promotional intraday discount was applied
+        base_price = item.get("originalPrice") if item.get("discountApplied") else item.get("price")
         
         # Store in forecasts collection
         forecast_doc = {
             "item_id": item_id,
-            "owner_id": item.get("owner_id"),
+            "owner_id": owner_id,
             "forecast_date": today_str,
             "predictedDemand": forecast_result["predictedDemand"],
             "safetyStock": forecast_result["safetyStock"],
@@ -308,23 +320,34 @@ def run_batch_job():
             "updatedAt": datetime.now(timezone.utc).isoformat(),
         }
         
-        # Upsert forecast for today
+        # Upsert forecast for today with strict owner_id binding
         db.forecasts.update_one(
-            {"item_id": item_id, "forecast_date": today_str},
+            {"item_id": item_id, "forecast_date": today_str, "owner_id": owner_id},
             {"$set": forecast_doc},
             upsert=True
         )
         
-        # Also sync item denormalized fields
+        # Also sync item denormalized fields and perform overnight operational reset
+        item_update = {
+            "predictedDemand": forecast_result["predictedDemand"],
+            "safetyStock": forecast_result["safetyStock"],
+            "description": forecast_result["explanation"],
+            "riskLevel": forecast_result["riskLevel"],
+            "salesHistory": updated_sales_history,
+            "intradaySales": 0,  # Reset intraday counter for fresh morning shift
+            "isDismissed": False,  # Reset waste alert dismissal for new business day
+            "isPrimaryActionDone": False,
+            "isRecommendedActionDone": False,
+            "discountApplied": False,
+            "flaggedForDonation": False,
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        }
+        if base_price is not None:
+            item_update["price"] = base_price
+
         db.items.update_one(
             {"_id": item_id},
-            {"$set": {
-                "predictedDemand": forecast_result["predictedDemand"],
-                "safetyStock": forecast_result["safetyStock"],
-                "description": forecast_result["explanation"],
-                "riskLevel": forecast_result["riskLevel"],
-                "updatedAt": datetime.now(timezone.utc).isoformat(),
-            }}
+            {"$set": item_update}
         )
         
         processed_count += 1

@@ -56,7 +56,7 @@ class WasteAlertsProvider extends ChangeNotifier {
 
     try {
       final cloudAlerts = await ApiService.instance.fetchWasteAlerts();
-      if (cloudAlerts != null && cloudAlerts.isNotEmpty) {
+      if (cloudAlerts != null) {
         _alerts.clear();
         _alerts.addAll(cloudAlerts);
       }
