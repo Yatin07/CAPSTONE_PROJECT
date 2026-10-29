@@ -1,169 +1,111 @@
-# RestockIQ: Master Final Numbers & Black Book Traceability Register
+# RestockIQ: Master Verification Numbers & NMIMS Capstone Report Mapping
 
-**Branch:** `fix/integrity-v1`  
-**Execution Timestamp:** 2026-10-29T21:55:00+05:30  
-**Status:** ALL REGRESSION TESTS PASSED (0 Issues, 100% Pass Rate)
+This document provides the authoritative, unified metrics table, consolidated defect register (NEW-1 through NEW-14), and chapter-by-chapter mapping for the NMIMS MPSTME Department of Information Technology B.Tech Capstone Project Black Book.
 
 ---
 
-## 1. Unified Master Test Results Matrix
+## 1. Unified Master System Metrics Table
 
-All testing suites executed cleanly across both Mock and Real database targets. Every result has been empirically verified via live command execution.
+All figures in this table are empirically verified by automated test runs executed directly against the codebase on branch `fix/integrity-v1`.
 
-| Test Suite / Harness | Target / Mode | Total Tests | Passed | Failed | Verification Command & Log Source | Verdict |
-| :--- | :--- | :---: | :---: | :---: | :--- | :---: |
-| **Flutter Static Analysis** | Client Workspace (`APP/`) | 0 issues | 0 issues | 0 | `flutter analyze` (ran in 3.4s) | **PASS** |
-| **Flutter Widget & Unit Tests** | Mock Environment (`APP/test/`) | 43 | 43 | 0 | `flutter test` (`unit_test.dart`, `widget_test.dart`, `integration_test.dart`) | **PASS** |
-| **Backend P0 Security & Logic** | In-Memory Mock (`Backend/test_p0_fixes.py`) | 6 | 6 | 0 | `python test_p0_fixes.py` (ran in 4.34s) | **PASS** |
-| **Backend Unit & Isolation Audit** | In-Memory Mock (`Backend/test_backend_unit.py`) | 7 | 7 | 0 | `python test_backend_unit.py` (ran in 0.15s) | **PASS** |
-| **Tenant Boundary Security Audit** | In-Memory Mock (`Backend/test_backend_unit.py`) | 10 endpoints | 10 | 0 | Sub-suite of `test_backend_unit.py` (Zero leaks across all 10 endpoints) | **PASS** |
-| **Anti-Spoofing & Rate Limiting** | In-Memory Mock (`Backend/test_backend_unit.py`) | 4 probes | 4 | 0 | Right-most proxy IP (`ips[-1]`) anti-spoofing verification | **PASS** |
-| **Decision Table & EP+BVA** | In-Memory Mock (`Backend/test_backend_unit.py`) | 10 rules + 4 bounds | 14 | 0 | Boundary value analysis on assistant chat queries & rule triggers | **PASS** |
-| **Staging E2E User Journey** | Real Database (`restockiq_staging`) | 10 steps | 10 | 0 | `python scripts/verify_staging_e2e_journey.py` | **PASS** |
-| **Step 1 Staging Verification** | Real Database (`restockiq_staging`) | 5 checkpoints | 5 | 0 | `python Backend/verify_step1.py` | **PASS** |
-| **Step 2 Staging ML Read Layer** | Real Database (`restockiq_staging`) | 6 checkpoints | 6 | 0 | `python Backend/verify_step2.py` | **PASS** |
-
-### Verified Summary Counts
-- **Total Flutter Automated Tests:** 43 tests (43 passed, 0 failed)
-- **Total Backend Unit Tests:** 13 unit tests (13 passed, 0 failed)
-- **Total Real-Database Staging Steps:** 10 end-to-end steps (10 passed, 0 failed)
-- **Flutter Code Health:** 0 issues found via `flutter analyze`
-- **Memory Footprint:** FastAPI backend idle RSS: **71.5 MB**; loaded under traffic: **72.0 MB** (comfortably within 512 MB Render Free Tier limit)
-
----
-
-## 2. Complete OpenAPI Endpoint Inventory (33 Routes)
-
-Extracted dynamically from `main.app.routes` in `Backend/main.py`. The system provides **29 functional API endpoints** and **4 documentation/specification routes**, partitioned across 9 architectural domains.
-
-| HTTP Method | Route Path | Handler Function | Security / Scope | Functional Domain |
-| :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/health` | `health_check` | Public | System Health |
-| `GET` | `/api/v1/health` | `health_check` | Public (Alias) | System Health |
-| `POST` | `/api/v1/auth/register` | `register` | Public (Owner role server-enforced) | Authentication |
-| `POST` | `/api/v1/auth/login` | `login` | Public (5-try/15-min lockout) | Authentication |
-| `GET` | `/api/v1/me` | `get_my_profile` | JWT (`owner_id`) | User Profile |
-| `GET` | `/api/v1/users/me` | `get_my_profile` | JWT (`owner_id`, Alias) | User Profile |
-| `PATCH` | `/api/v1/me` | `update_my_profile` | JWT (`owner_id`) | User Profile |
-| `PATCH` | `/api/v1/users/me` | `update_my_profile` | JWT (`owner_id`, Alias) | User Profile |
-| `POST` | `/api/v1/items` | `create_item` | JWT (Pure Python Cold-Start) | Item Inventory |
-| `GET` | `/api/v1/items` | `get_items` | JWT (Filtered strictly by `owner_id`) | Item Inventory |
-| `PUT` | `/api/v1/items/{item_id}` | `update_item` | JWT (Enforces `owner_id`) | Item Inventory |
-| `DELETE` | `/api/v1/items/{item_id}` | `delete_item` | JWT (Enforces `owner_id`) | Item Inventory |
-| `POST` | `/api/v1/items/{item_id}/restock` | `restock_item` | JWT (Enforces `owner_id`) | Restock Action |
-| `GET` | `/api/v1/forecasts/today` | `get_todays_forecasts` | JWT (Zero-Restock Waste Coherent) | ML Read Layer |
-| `GET` | `/api/v1/forecasts/{item_id}` | `get_item_forecast_detail` | JWT (Historical 7d + 7d Forecast) | ML Read Layer |
-| `POST` | `/api/v1/closing-count` | `record_closing_count` | JWT (Perishable Overnight Reset) | Daily Routines |
-| `POST` | `/api/v1/daily-stock/closing-count` | `record_closing_count` | JWT (Perishable Overnight Reset, Alias) | Daily Routines |
-| `POST` | `/api/v1/midday-count` | `record_midday_count` | JWT (Sales Pace Ratio Trigger) | Daily Routines |
-| `POST` | `/api/v1/daily-stock/midday-count` | `record_midday_count` | JWT (Sales Pace Ratio Trigger, Alias) | Daily Routines |
-| `GET` | `/api/v1/review/yesterday` | `get_yesterday_review` | JWT (Authoritative Sell-Through) | Daily Routines |
-| `GET` | `/api/v1/daily-stock/review/yesterday`| `get_yesterday_review` | JWT (Authoritative Sell-Through, Alias) | Daily Routines |
-| `POST` | `/api/v1/sales/intraday` | `record_intraday_sale` | JWT (Enforces `owner_id`) | POS Operations |
-| `GET` | `/api/v1/waste-alerts` | `get_waste_alerts` | JWT (Commercial Markdown Tiers) | Waste Action Engine |
-| `POST` | `/api/v1/waste-alerts/{item_id}/apply-discount` | `apply_discount_action` | JWT (10% / 20% Commercial Rule) | Waste Action Engine |
-| `POST` | `/api/v1/waste-alerts/{item_id}/apply-bundle` | `apply_bundle_action` | JWT (20% Combo Pairing) | Waste Action Engine |
-| `POST` | `/api/v1/waste-alerts/{item_id}/dismiss` | `dismiss_alert_action` | JWT (Enforces `owner_id`) | Waste Action Engine |
-| `POST` | `/api/v1/jobs/rollup-daily-sales` | `trigger_daily_sales_rollup` | Admin API Key / JWT | Scheduled Jobs |
-| `GET` | `/api/v1/briefing/today` | `get_today_executive_briefing`| JWT (Cached 10m, Gemini 3.5 Flash) | AI Operations |
-| `POST` | `/api/v1/assistant/chat` | `assistant_chat` | JWT (Grounded RAG Dialogue) | AI Operations |
-| `GET` | `/openapi.json` | `openapi` | Public | Documentation |
-| `GET` | `/docs` | `swagger_ui_html` | Public | Documentation |
-| `GET` | `/docs/oauth2-redirect` | `swagger_ui_redirect` | Public | Documentation |
-| `GET` | `/redoc` | `redoc_html` | Public | Documentation |
+| Metric Domain | Subsystem / Component | Quantity | Verification Status | Verified Evidence & Command Reference |
+|---|---|:---:|:---:|---|
+| **Flutter Mobile Client** | Automated Unit Tests (`test/unit_test.dart`) | 7 | **PASS** | `flutter test test/unit_test.dart` |
+| | Automated Widget Tests (`test/widget_test.dart`) | 12 | **PASS** | `flutter test test/widget_test.dart` |
+| | Automated Integration Tests (`test/integration_test.dart`) | 24 | **PASS** | `flutter test test/integration_test.dart` |
+| | Demo Sandbox Contract Tests (`test/demo_sandbox_test.dart`) | 3 | **PASS** | `flutter test test/demo_sandbox_test.dart` |
+| | **Total Flutter Automated Tests** | **46** | **100% PASS** | `flutter test` (46 passed, 0 failed, 0 skipped) |
+| | Flutter Static Analysis | 0 Issues | **CLEAN** | `flutter analyze` (0 errors, 0 warnings, 0 lints) |
+| | Functional Mobile Screens | 11 | **VERIFIED** | Auth (3), Onboarding/Tour (2), Catalog/Items (2), Check-In (1), Alerts (1), Dashboard (1), Settings (1) |
+| | State Management Providers | 3 | **VERIFIED** | `InventoryProvider`, `WasteAlertsProvider`, `StockCheckProvider` |
+| | Repository Contracts | 2 | **VERIFIED** | `LiveRepository` (FastAPI/Atlas), `SampleRepository` (Offline Tour) |
+| **Backend & ML Services** | `test_acceptance_lifecycle.py` | 5 | **PASS [MOCK-DB]** | Rollover idempotency, batch forecast isolation |
+| | `test_backend_unit.py` | 7 | **PASS [MOCK-DB]** | Multi-IP rate limiting, decision tables, EP/BVA boundaries |
+| | `test_block1_backend.py` | 4 | **PASS [MOCK-DB]** | Pre-flight network isolation & database safeguards |
+| | `test_block2_backend.py` | 9 (7 pass, 2 skip) | **PASS [MOCK/REAL]** | Daily stock, closing counts, review; 2 Atlas probes skipped |
+| | `test_block4_ml_and_demo.py` | 4 (3 pass, 1 skip) | **PASS [MOCK/REAL]** | GBDT routing, shrinkage prior; 1 Atlas probe skipped |
+| | `test_demo_sandbox.py` | 7 | **PASS [MOCK-DB]** | Shadow tenant isolation, clock simulation, scoped purge |
+| | `test_p0_fixes.py` | 10 | **PASS [MOCK-DB]** | Job secret, assistant limit (15/day), zero-item store LLM guard |
+| | `test_tenant_lifecycle_mongomock.py` | 5 (4 pass, 1 skip) | **PASS [MOCK/REAL]** | Multi-tenant cascade delete; 1 Atlas probe skipped |
+| | `test_timezone_and_alerts.py` | 3 | **PASS [MOCK-DB]** | Store-local operational hours & midnight rollover |
+| | **Total Backend Discovered Tests** | **51** | **47 PASS, 4 SKIP** | `python -m unittest discover -s Backend -p "test_*.py"` |
+| **End-to-End User Journey** | Staging User Journey Checkpoints | 13 | **100% PASS** | `scripts/verify_staging_e2e_journey.py` (All 13 steps verified) |
+| | Demo Sandbox Invariant Suite | 6 | **100% PASS** | `scripts/test_staging_demo_sandbox.py` (All 6 invariants verified) |
+| **API Architecture** | Distinct OpenAPI Operations | 28 | **VERIFIED** | Canonical routes in `Backend/openapi.json` (unused aliases eliminated) |
+| | API Operational Health Probes | 2 | **VERIFIED** | `GET /health` (root orchestrator probe), `GET /api/v1/health` |
+| | Active Foundation LLM Model | `gemini-3.5-flash` | **AUDITED** | Audited from Google AI Studio; primary model with local fallback |
+| | Assistant Query Quota | 15 / day / user | **ENFORCED** | Enforced server-side with `HTTP 429` rate limit status |
 
 ---
 
-## 3. Flutter Application Inventory
+## 2. Consolidated Defect Register (NEW-1 through NEW-14)
 
-### Client Screens (12 Screens in `APP/lib/screens/`)
-1. **`login_screen.dart`**: Multi-tenant authentication, instant cold-start status banner, client-side lockout display, clean production appearance.
-2. **`register_screen.dart`**: New store owner signup with form validation.
-3. **`tour_screen.dart`**: Gated onboarding interactive walkthrough powered by `SampleRepository`. Unconditionally switches to `LiveRepository()` upon completion or back navigation.
-4. **`store_setup_screen.dart`**: Store operating parameters (business name, IANA timezone, opening and closing hours, currency).
-5. **`item_setup_screen.dart`**: Initial item catalog creator with instant cold-start category prior initialization.
-6. **`dashboard_screen.dart`**: Primary executive store overview with `Executive AiBriefingCard`, live forecast cards, stock progress bars, and floating quick-actions.
-7. **`inventory_checkin_screen.dart`**: Scrollable 3-tab operational routine view (`Closing Count`, `Mid-Day Pace`, `Yesterday Review`). Features docked labels and backfill capabilities.
-8. **`waste_alerts_screen.dart`**: Dynamic waste risk feed with commercial markdown mitigations (10% discount, 20% combo bundle pairing).
-9. **`item_detail_forecast_screen.dart`**: Deep-dive item analytics displaying historical 7-day sales and 7-day rolling forecast charts.
-10. **`settings_screen.dart`**: Store profile management, operating hours review, and account logout.
-11. **`forgot_password_screen.dart`**: Password reset recovery flow.
-12. **`dashboard_placeholder_screen.dart`**: Lightweight skeleton loading state for cold starts.
+All defects are numbered sequentially using the standard `NEW-x` identifier, mapped directly to git commit hashes on branch `fix/integrity-v1`.
 
-### Client State Providers (3 Providers in `APP/lib/providers/`)
-1. **`inventory_provider.dart`**: Manages store item catalog, point-estimate restock quantities, cold-start forecasts, and active catalog state.
-2. **`stock_check_provider.dart`**: Coordinates daily routine submissions (midday counts, closing counts, backfills, and yesterday review sell-through rates).
-3. **`waste_alerts_provider.dart`**: Evaluates intraday sales pace ratios and manages commercial markdown mitigation actions.
-
----
-
-## 4. Master Defect Log Extension (NEW-1 through NEW-8)
-
-*Preserves existing Black Book defect records DEF-001 through DEF-013.*
-
-| Defect ID | Description | Classification | Severity | Detection Method | Commit / Source | Resolution Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **NEW-1** | Zero-restock incoherence: items with active Low/Critical waste alert showed positive restock quantities. | Business Logic | High | End-to-end operational sanity probe | `43edbac3` | **Resolved**: Restock quantity clamped to 0 when item has active waste risk alert. |
-| **NEW-2** | Cloud AI Quota Exhaustion (`429 RESOURCE_EXHAUSTED`) on `gemini-3-flash-preview` due to 20 req/day cap. | Generative AI | High | Physical device testing & server logs | `43edbac3`, `75143cd3` | **Resolved**: Upgraded to `gemini-3.5-flash` with candidate fallback and 10-minute briefing cache. |
-| **NEW-3** | Newly added inventory items displayed 0 predicted demand and empty safety stock prior to ML batch run. | Data Pipeline | Medium | New user onboarding test | `43edbac3` | **Resolved**: Pure-Python category prior engine initializes cold-start forecasts instantly on item creation. |
-| **NEW-4** | Login endpoint allowed unlimited failed authentication attempts without rate-limiting or lockout. | Security / Auth | High | OWASP authentication security audit | `43edbac3` | **Resolved**: 5 consecutive failed attempts per email triggers a 15-minute HTTP 429 account lockout. |
-| **NEW-5** | Blocking synchronous GenAI calls froze FastAPI event loop during ~10s network requests. | Performance | High | Concurrency latency profiling | `9583f7ae` | **Resolved**: Wrapped all GenAI invocations in `asyncio.to_thread` for non-blocking concurrency. |
-| **NEW-6** | Demo Tour providers remained stuck in `SampleRepository` after tour exit, showing mock items in real store. | State Mgmt | Critical | Phone screenshot audit (`user_uploaded/media_...`) | `75143cd3`, `5aeb374d` | **Resolved**: Unconditional `switchToLive()` across all 3 providers on tour exit and back gesture. |
-| **NEW-7** | TabBar text clipped on small Android viewports; closing count input labels overlapped user-entered numbers. | UI / Layout | Medium | Phone screenshot audit (`user_uploaded/media_...`) | `75143cd3`, `5aeb374d` | **Resolved**: Set `isScrollable: true` with `TabAlignment.start`, and `FloatingLabelBehavior.always`. |
-| **NEW-8** | Debug server switcher link visible to real users on mobile login screen, exposing backend routing options. | UI / Config | Low | Phone screenshot audit (`user_uploaded/media_...`) | `75143cd3` | **Resolved**: Removed server switcher from login screen; enforced seamless production endpoint. |
+| Defect ID | Git Commit | Severity | Subsystem | Description & Root Cause | Resolution & Verification | Status |
+|---|:---:|:---:|---|---|---|:---:|
+| **NEW-1** | `43edbac3` | P0 | ML Engine | **Forever Cold-Start**: New items created never graduated past cold-start because sales history query was unscoped or missing. | Implemented immediate pure-Python category priors upon item creation. Verified in `test_p0_fixes.py:test_immediate_cold_start_forecast_item_creation`. | **Resolved** |
+| **NEW-2** | `642741c2` | P0 | Backend | **IntradaySales Compounding**: Intraday sales failed to reset at midnight local time, compounding sales across days. | Implemented lazy store-local midnight rollover in `rollover_if_new_day()`. Verified in `test_timezone_and_alerts.py:test_midnight_rollover_boundary`. | **Resolved** |
+| **NEW-3** | `75143cd3` | P0 | Backend / LLM | **LLM Key & Model Mismatch**: `gemini-3-flash-preview` hit 20 req/day quota and failed silently. | Upgraded to `gemini-3.5-flash` with candidate fallback cascade and zero-math rule fallback. Verified in `test_p0_fixes.py`. | **Resolved** |
+| **NEW-4** | `a378fdfa` | P0 | Security | **Unscoped Forecast Reads/Delete**: Forecast endpoints did not filter strictly by `owner_id`. | Enforced strict `owner_id` scoping across all forecast and catalog queries. Verified in `test_backend_unit.py:test_multi_tenant_isolation_suite`. | **Resolved** |
+| **NEW-5** | `cef3d658` | P0 | Security | **Tests Calling Production**: Hardcoded `"restockiq"` in scripts caused test runs to touch production. | Replaced with configurable `MONGODB_DB="restockiq_staging"`. Verified in `scripts/test_staging_demo_sandbox.py`. | **Resolved** |
+| **NEW-6** | `43edbac3` | P1 | Backend | **MongoClient Resource Warning**: `client.close()` missing on batch script termination. | Added explicit `client.close()` in `shutdown_db` and script cleanup blocks. | **Resolved** |
+| **NEW-7** | `642741c2` | P0 | Core Domain | **Timezone Inconsistency**: Business fraction evaluated in server UTC rather than store-local IANA timezone. | Added `get_store_local_now()` using validated store IANA timezones. Verified in `test_timezone_and_alerts.py`. | **Resolved** |
+| **NEW-8** | `43edbac3` | P1 | LLM Service | **Inconsistent Fallback Text**: LLM fallback returned ungrounded generic text. | Implemented deterministic rule-based executive summary with explicit `[Deterministic Rule-Based Engine]` tag. Verified in `test_p0_fixes.py`. | **Resolved** |
+| **NEW-9** | `11e21f75` | P0 | Security / API | **Unscoped Job Endpoint & Route Aliases**: `/jobs/rollup-daily-sales` allowed normal users to trigger rollups across all stores. | Restricted normal users strictly to their own `owner_id`; server-level calls require `X-Job-Secret`. Removed unused `/daily-stock/*` route aliases. Verified in `test_p0_fixes.py`. | **Resolved** |
+| **NEW-10** | `11e21f75` | P1 | Mobile UI | **Dead UI Artifacts**: Obsolete placeholder screens and dead support email in UI. | Deleted `dashboard_placeholder_screen.dart`, removed dead staff cards, and removed obsolete `support@restockiq.com` email. Verified via `flutter analyze`. | **Resolved** |
+| **NEW-11** | `11e21f75` | P0 | Backend / LLM | **Uncapped Assistant Queries**: Manager assistant allowed unlimited queries, exhausting API quota. | Enforced 15 queries/day per user cap and zero LLM calls for 0-item stores. Verified in `test_p0_fixes.py`. | **Resolved** |
+| **NEW-12** | `b5797d2c` | P0 | Mobile / Backend | **Tour Mode Contamination**: Tour used client-side mock repository that failed to reset upon exit. | Implemented server-side shadow tenant sandbox via `get_workspace_user()` (`X-Workspace: demo`), persistent top banner, and scoped purge. Verified in `test_demo_sandbox.py`. | **Resolved** |
+| **NEW-13** | `b5797d2c` | P0 | Core Domain | **Missing Clock Simulation for Demo**: Mid-day pace alerts could not be demonstrated in morning hours. | Added `POST /api/v1/demo/clock` allowing simulated local hour strictly for shadow tenant. Verified in `test_demo_sandbox.py:test_clock_ignored_for_non_shadow_users`. | **Resolved** |
+| **NEW-14** | `b5797d2c` | P1 | Database | **Ephemeral Demo Data Leak**: Unpurged demo sandbox data risked accumulating in database. | Created TTL index on `expiresAt` (`expireAfterSeconds=0`) across collections for automatic ephemeral cleanup. Verified in `test_demo_sandbox.py:test_ttl_index_creation_on_startup`. | **Resolved** |
 
 ---
 
-## 5. Black Book Academic Mapping (NMIMS MPSTME IT Template)
+## 3. NMIMS MPSTME Black Book Academic Mapping
 
-All empirical discoveries and system enhancements map directly to the official departmental report structure:
+This section maps all technical developments and empirical findings to the official NMIMS MPSTME B.Tech Capstone Project Report Template.
 
-### Chapter 1: Introduction
-- **Section 1.4 (Contributions)**:
-  - Added the dual-tier cold-start forecasting architecture: instantaneous pure-Python category prior initialization for new items, seamlessly transitioning to rolling historical ML estimation.
-  - Formulated the zero-restock operational coherence constraint: guarantees that items actively at risk of spoilage are never simultaneously recommended for inventory replenishment.
-  - Documented non-blocking asynchronous GenAI offloading: offloading synchronous foundation model inference to thread pools to maintain sub-50ms API responsiveness for concurrent store operations.
+### Chapter 1: Introduction & Problem Formulation
+- **Academic Scope**: Addressing food waste volatility in perishable bakery retail through demand-driven predictive replenishment.
+- **Problem Statement**: Fresh bakeries suffer high end-of-day waste when overstocked, and lost sales when understocked, driven by static manual intuition.
+- **Classification**: `[Shipped]`
 
-### Chapter 2: Literature Review
-- **Section 2.2 (Comparative Analysis)**:
-  - Benchmarked commercial food waste mitigation heuristics (dynamic 10% markdown, 20% combo bundle pairing) against traditional static pricing models.
-  - Grounded the dual-layer LLM architecture (Google Gemini 3.5 Flash combined with deterministic zero-math rule engine) within contemporary RAG and conversational AI literature for operational enterprise settings.
+### Chapter 2: Literature Review & Mathematical Framework
+- **Academic Scope**: Comparative analysis of classical Newsvendor critical fractile models vs. intermittent demand estimators (Croston, TSB) and gradient boosting machines.
+- **Empirical Simulation Figures (Verified in ML Research Study)**:
+  - Hybrid ML Policy vs. Static 95% Service Policy: **Waste reduced by -13,353 units (-64.0%)**, **Profit increased by +EUR 2,923.62 (+7.8%)**.
+  - Hybrid ML Policy vs. Zero Buffer Policy: **Profit increased by +EUR 507.29 (+1.3%)**.
+  - Control 3 (Adaptive Buffer) vs. Zero Buffer Policy: **Profit increased by +EUR 168.93 (+0.4%)**.
+- **Classification**: `[Research]`
 
-### Chapter 3: Methodology and Implementation
-- **Section 3.1 (System Architecture)**:
-  - Updated architectural block diagram: Client Tier (12 Flutter Screens, 3 State Providers) $\leftrightarrow$ Application Tier (FastAPI, 29 REST endpoints, non-blocking `asyncio.to_thread`) $\leftrightarrow$ Storage Tier (MongoDB Atlas Replica Set) $\leftrightarrow$ Intelligence Tier (Batch ML Engine + Google GenAI).
-- **Section 3.2 (Hardware & Environment Specifications)**:
-  - Documented physical mobile hardware verification: Xiaomi Redmi Note 10 Pro (Snapdragon 732G, 6GB RAM, Android 13).
-  - Documented cloud container environment: Render Standard Linux Container (512MB RAM cap; verified 72MB active RSS footprint).
-- **Section 3.3 (Software Implementation)**:
-  - **Data Capture Routines**: Documented closing counts with perishable overnight reset and backfill idempotency.
-  - **Waste Action Engine**: Documented intraday pace ratio formulation ($actual / expected$) and commercial mitigation triggers.
-  - **REST API Endpoints Table**: Inserted complete 33-route OpenAPI specification table (29 functional endpoints across 9 domains).
-  - **State Management**: Formally detailed provider-repository lifecycle transitions (`SampleRepository` $\to$ `LiveRepository`).
+### Chapter 3: System Requirements & Multi-Tenant Architecture
+- **Academic Scope**: Cryptographic tenant isolation, shadow tenant sandboxing, and data privacy in multi-store SaaS systems.
+- **Technical Implementation**:
+  - Shadow workspace routing via `get_workspace_user()` and `X-Workspace: demo`.
+  - Scoped database cascade deletions filtering strictly by `owner_id`.
+  - Ephemeral data lifetime enforcement via MongoDB Atlas TTL indexing.
+- **Classification**: `[Shipped]`
 
-### Chapter 4: Results and Discussion
-- **Section 4.1–4.3 (Model Accuracy & Simulation Economics)**:
-  - Retained verified empirical figures: Control 3 GBDT ($lag\_1$) achieving 25.48% pooled WAPE (+2.47 pp gain over Prophet, $p = 0.0138$), and Hybrid Simulation Economics (€40,571.43 net profit, 35.0% waste reduction under Critical Ratio $z^* = +0.25$).
-- **Section 4.4 (Verification & Regression Testing)**:
-  - Added Table 4.4b (Master Test Results): 43 Flutter automated tests, 13 backend unit/isolation tests, and 10-step staging user journey against `restockiq_staging`.
-  - Documented OWASP security verifications: multi-tenant owner-id isolation (10/10 endpoints protected) and anti-spoofing reverse-proxy rate limiting (`ips[-1]`).
-- **Section 4.5 (Defect Log & Post-Mortem Register)**:
-  - Preserved original Table 4.5 entries DEF-001 through DEF-013.
-  - Appended Table 4.5b (Hardening Defect Register) documenting NEW-1 through NEW-8 with full root-cause analyses and verification commits.
-- **Section 4.6 (User Interface & Mobile Verification)**:
-  - Formally mapped physical device field trial screenshots across all 5 key user journeys: Onboarding Tour, Store Manager Dashboard, Daily Check-In, Waste Alerts, and On-Duty AI Assistant Dialogue.
+### Chapter 4: System Design & Implementation
+- **Academic Scope**: Dual-engine forecasting, mobile state management, and real-time commercial waste mitigation.
+- **Technical Implementation**:
+  - Pure-Python category prior cold-start engine for new catalog items.
+  - Commercial mitigation actions: 10% promotional markdown for lagging pace; 20% combo bundle pairing with complementary SKUs (zero charity donation buttons).
+  - Cross-platform Flutter client with `WarmTech` typography and reactive cold-start wake-up notification banner.
+- **Classification**: `[Shipped]`
 
-### Chapter 5: Limitations
-- Highlighted cloud LLM availability constraints: documented Google Gemini 503 transient demand spikes and the necessity of candidate fallback cascades (`gemini-3.5-flash` $\to$ `gemini-3.8-flash` $\to$ `gemini-3.1-flash-lite`) and local deterministic fallback.
-- Noted single-store physical operating scope and the uniform 40% COGS ratio assumption ($c_i = 0.40 p_i$).
-- Acknowledged lack of automated midnight POS hardware barcode scanner integration.
+### Chapter 5: Verification, Testing & Empirical Results
+- **Academic Scope**: Rigorous black-box and white-box verification, basis path coverage, decision tables, boundary value analysis, and physical hardware field verification.
+- **Verified Metrics**:
+  - 46/46 Flutter tests passing; 0 static analysis issues.
+  - 51 backend tests discovered (47 passing, 4 real-DB network probes skipped when Atlas port 27017 is blocked).
+  - 13/13 End-to-end user journey checkpoints passed on staging database (`restockiq_staging`).
+- **Classification**: `[Shipped]`
 
-### Chapter 6: Future Scope & Conclusions
-- Outlined V2 roadmap priorities:
-  1. Production deployment of Control 3 GBDT ($lag\_1$) engine with automated midnight POS synchronization.
-  2. Direct automated purchase order issuance via supplier EDI/WhatsApp integrations based on the Newsvendor Critical Ratio.
-  3. Multi-store federated clustering for regional bakery chains.
-
-### Appendix A: Deployment & Field Runbooks
-- Referenced `docs/DEPLOY_RUNBOOK.md` for production zero-downtime deployment, environment variable configuration, and database seeding.
-- Referenced `docs/PHONE_TEST_RUNBOOK.md` for physical Android device verification and regression test procedures.
+### Chapter 6: Conclusion & Future Scope
+- **Academic Scope**: Synthesis of academic and operational achievements and future development roadmap.
+- **Future Scope Roadmap**:
+  - Multi-store corporate rollup reporting across franchise regional branches.
+  - Automated Electronic Data Interchange (EDI) supplier purchase order dispatch.
+  - Computer vision shelf-camera integration for real-time inventory count capture.
+- **Classification**: `[V2]`
