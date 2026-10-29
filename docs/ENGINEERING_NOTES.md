@@ -542,3 +542,123 @@ Every entry documents:
   ```powershell
   git checkout HEAD~1 -- docs/DEPLOY_CHECKLIST.md
   ```
+
+---
+
+## Block 6: Physical Phone Field Verification & UI Hardening
+
+### 1. Physical Phone Field Test Runbook (`docs/PHONE_TEST_RUNBOOK.md`)
+- **What**: Authored a detailed 12-step field verification runbook for testing on physical Android hardware (Xiaomi Redmi Note 10 Pro) via ADB. Covers APK build, cold-start waking banner, onboarding tour lifecycle, store profile setup, closing count routines, mid-day pace alerts, executive briefing narration, and assistant dialogue.
+- **Why**: Validates end-to-end functionality under real-world cellular network latency, physical screen dimensions, and Android OS lifecycle events.
+- **Files**:
+  - `docs/PHONE_TEST_RUNBOOK.md`
+- **How to Test**:
+  ```powershell
+  adb devices
+  flutter run -d <device-id>
+  ```
+- **How to Revert**:
+  ```powershell
+  git rm docs/PHONE_TEST_RUNBOOK.md
+  ```
+
+---
+
+### 2. Multi-Tenant Onboarding Isolation & Provider Lifecycle Hardening
+- **What**:
+  1. Fixed state stickiness where `InventoryProvider`, `WasteAlertsProvider`, and `StockCheckProvider` remained bound to `SampleRepository` after exiting the Demo Tour.
+  2. Enforced unconditional `switchToLive()` across all three providers in `TourScreen._finishTour` and `TourScreen`'s `PopScope`.
+  3. Ensured `ItemSetupScreen._handleSaveAndContinue` updates `onboardingCompleted: true` on the user profile in MongoDB Atlas.
+- **Why**: Eliminates cross-tenant contamination where demo tour items ("Whole Milk", "Baguette", "Croissant") leaked into newly registered users' dashboards.
+- **Files**:
+  - `APP/lib/screens/tour_screen.dart`
+  - `APP/lib/screens/item_setup_screen.dart`
+  - `APP/lib/providers/inventory_provider.dart`
+  - `APP/lib/providers/stock_check_provider.dart`
+  - `APP/lib/providers/waste_alerts_provider.dart`
+- **How to Test**:
+  Complete demo walkthrough on physical device, create a new user, and verify only explicitly added items appear in the dashboard.
+- **How to Revert**:
+  ```powershell
+  git checkout HEAD~1 -- APP/lib/screens/tour_screen.dart APP/lib/screens/item_setup_screen.dart
+  ```
+
+---
+
+### 3. Foundation Model Upgrade & Asynchronous Thread Offloading
+- **What**:
+  1. Replaced `gemini-3-flash-preview` (exhausted 20 req/day quota) with **`gemini-3.5-flash`** in `Backend/.env` and `Backend/services/llm_service.py`.
+  2. Implemented candidate model fallback cascade (`gemini-3.5-flash` -> `gemini-3.8-flash` -> `gemini-3.1-flash-lite`).
+  3. Increased client-side network timeout in `APP/lib/services/api_service.dart` from 15s to 30s.
+  4. Wrapped synchronous GenAI SDK calls in `main.py` (`get_today_executive_briefing`, `assistant_chat`) with `asyncio.to_thread` to prevent blocking the Uvicorn event loop.
+- **Why**: Restores live AI executive briefing and conversational assistant capabilities while ensuring sub-50ms API responsiveness for concurrent store operations.
+- **Files**:
+  - `Backend/.env`
+  - `Backend/main.py`
+  - `Backend/services/llm_service.py`
+  - `APP/lib/services/api_service.dart`
+- **How to Test**:
+  Execute `scripts/verify_staging_e2e_journey.py` and inspect LLM logs.
+- **How to Revert**:
+  ```powershell
+  git checkout HEAD~1 -- Backend/main.py Backend/services/llm_service.py
+  ```
+
+---
+
+### 4. UI Alignment, Input Docking, and Mobile Polish
+- **What**:
+  1. In `APP/lib/screens/inventory_checkin_screen.dart`, enabled `isScrollable: true` with `TabAlignment.start` on the 3-tab `TabBar` to eliminate text clipping on compact viewports.
+  2. Set `floatingLabelBehavior: FloatingLabelBehavior.always` on `"Units Left at Close"` and `"Remaining"` inputs so labels permanently dock above fields without colliding with numbers.
+  3. Added `StringExtensions.toTitleCase()` in `APP/lib/utils/string_extensions.dart` and formatted item card names consistently.
+  4. Removed distracting debug "Server" switcher dialogue from `login_screen.dart`.
+  5. Guarded `"Reset Demo Alerts"` button in `waste_alerts_screen.dart` to render exclusively during the demo walkthrough.
+- **Why**: Fixes visual defects identified in physical phone screenshots for presentation-grade mobile UI.
+- **Files**:
+  - `APP/lib/screens/inventory_checkin_screen.dart`
+  - `APP/lib/screens/login_screen.dart`
+  - `APP/lib/screens/waste_alerts_screen.dart`
+  - `APP/lib/utils/string_extensions.dart`
+- **How to Test**:
+  Run `flutter analyze` (0 issues) and inspect check-in screen on physical device.
+- **How to Revert**:
+  ```powershell
+  git checkout HEAD~1 -- APP/lib/screens/inventory_checkin_screen.dart APP/lib/screens/login_screen.dart
+  ```
+
+---
+
+## Block 7: Production Deploy Runbook & Final Regression
+
+### 1. Production Deploy Runbook (`docs/DEPLOY_RUNBOOK.md`)
+- **What**: Authored comprehensive zero-downtime production deployment runbook covering:
+  - Branch merge gating (`git merge --no-ff fix/integrity-v1`).
+  - Production environment variable audit in `render.yaml`.
+  - Zero-tenant contamination demo seeding with `--reset` strictly scoped to `demo_manager@restockiq.com`.
+  - Keep-alive cron monitoring (`cron-job.org` job 8748949 at 14m intervals).
+  - Fast rollback procedures to pre-flight commit `74ccc0a`.
+- **Why**: Guarantees predictable, auditable deployment execution without risks to live production state.
+- **Files**:
+  - `docs/DEPLOY_RUNBOOK.md`
+  - `render.yaml`
+  - `scripts/seed_demo_store.py`
+- **How to Test**:
+  Review `docs/DEPLOY_RUNBOOK.md` and test `--reset` on staging database.
+
+---
+
+### 2. Unified Master Numbers & Defect Register
+- **What**: Consolidated complete system verification metrics across all harnesses:
+  - **Flutter Analysis**: 0 issues found.
+  - **Flutter Tests**: 43 / 43 PASSED.
+  - **Backend In-Memory Tests**: 13 / 13 PASSED (`test_p0_fixes.py`: 6, `test_backend_unit.py`: 7).
+  - **Staging Real-Database Steps**: 10 / 10 PASSED (`scripts/verify_staging_e2e_journey.py`).
+  - **OpenAPI Routes**: 33 routes (29 functional API endpoints + 4 documentation routes).
+  - **Mobile UI**: 12 screens, 3 state providers.
+  - **Defect Register**: Formally cataloged NEW-1 through NEW-8 extending DEF-001 through DEF-013.
+  - **Black Book Integration**: Chapter-by-chapter mapping for NMIMS MPSTME IT departmental capstone report.
+- **Why**: Establishes complete empirical proof of software quality and academic traceability.
+- **Files**:
+  - `docs/blackbook_evidence_map.md`
+  - `docs/FINAL_NUMBERS_AND_BLACKBOOK_MAPPING.md`
+
