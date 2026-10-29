@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/stock_check_provider.dart';
 import '../providers/waste_alerts_provider.dart';
 import '../repositories/app_repository.dart';
 import '../services/api_service.dart';
@@ -91,6 +92,8 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       Provider.of<InventoryProvider>(context, listen: false)
           .setRepository(LiveRepository());
       Provider.of<WasteAlertsProvider>(context, listen: false)
+          .setRepository(LiveRepository());
+      Provider.of<StockCheckProvider>(context, listen: false)
           .setRepository(LiveRepository());
 
       Navigator.pushReplacement(

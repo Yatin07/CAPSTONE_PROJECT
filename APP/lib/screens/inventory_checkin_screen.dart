@@ -346,7 +346,8 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                               decoration: InputDecoration(
                                 labelText: 'Units Left at Close',
                                 labelStyle: const TextStyle(fontSize: 12),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                floatingLabelBehavior: FloatingLabelBehavior.always,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                                 errorText: entry.validationError,
                               ),
@@ -466,7 +467,9 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Remaining',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            labelStyle: const TextStyle(fontSize: 11),
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                         ),

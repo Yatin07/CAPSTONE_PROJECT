@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/stock_check_provider.dart';
 import '../providers/waste_alerts_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -144,6 +145,8 @@ class _ItemSetupScreenState extends State<ItemSetupScreen> {
     Provider.of<InventoryProvider>(context, listen: false)
         .setRepository(LiveRepository());
     Provider.of<WasteAlertsProvider>(context, listen: false)
+        .setRepository(LiveRepository());
+    Provider.of<StockCheckProvider>(context, listen: false)
         .setRepository(LiveRepository());
 
     // Mark onboarding complete in MongoDB Atlas so tour is never forced on future logins
