@@ -57,7 +57,8 @@ async def main():
     # Now verify login failure against live Render URL
     render_url = "https://restockiq-backend.onrender.com/api/v1/auth/login"
     print(f"\n[2] Probing live Render endpoint: POST {render_url}")
-    payload = json.dumps({"email": "admin@test.com", "password": "123456"}).encode("utf-8")
+    probe_pw = os.getenv("DEMO_PROBE_PASSWORD", "audit-probe-pw-999")
+    payload = json.dumps({"email": "admin@test.com", "password": probe_pw}).encode("utf-8")
     req = urllib.request.Request(
         render_url,
         data=payload,

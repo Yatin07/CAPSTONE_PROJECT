@@ -181,6 +181,7 @@ async def rollup_daily_sales(target_date: str, owner_id: Optional[str] = None) -
             {"owner_id": doc_owner_id, "item_id": item_id, "date": target_date},
             {"$set": {
                 "units": units,
+                "sales": units,
                 "source": "rollup",
                 "updatedAt": now_iso,
             }},
@@ -273,6 +274,10 @@ async def startup_db():
         await db.forecasts.create_index("expiresAt", expireAfterSeconds=0)
         await db.waste_alerts.create_index("expiresAt", expireAfterSeconds=0)
     except Exception as e:
+        is_prod = bool(os.getenv("RENDER") or os.getenv("ENVIRONMENT") == "production")
+        if is_prod:
+            print(f"[DB] FATAL: Production environment cannot reach MongoDB Atlas: {e}")
+            raise RuntimeError(f"Database connection failed in production: {e}")
         print(f"[DB] WARNING: Could not reach Atlas on startup ({e}). "
               "Falling back to local mongomock_motor to preserve database operations.")
         try:
@@ -282,6 +287,7 @@ async def startup_db():
             print("[DB] Local in-memory mock client activated successfully.")
         except Exception as mock_err:
             print(f"[DB] Could not initialize local fallback: {mock_err}")
+            raise RuntimeError(f"Database connection and mock fallback failed: {mock_err}")
 
 @app.on_event("shutdown")
 async def shutdown_db():
@@ -528,13 +534,17 @@ async def login(req: LoginRequest):
     now_ts = time.time()
 
     lockout_record = ACCOUNT_LOCKOUTS.get(normalized_email)
-    if lockout_record and lockout_record.get("locked_until", 0) > now_ts:
+    user = await db.users.find_one({"email": normalized_email})
+
+    is_locked_in_memory = lockout_record and lockout_record.get("locked_until", 0) > now_ts
+    is_locked_in_db = user and user.get("locked_until") and float(user["locked_until"]) > now_ts
+
+    if is_locked_in_memory or is_locked_in_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password. Account is temporarily locked. Please try again later."
         )
 
-    user = await db.users.find_one({"email": normalized_email})
     is_valid = user and verify_password(req.password, user["password_hash"])
 
     if not is_valid:
@@ -543,7 +553,20 @@ async def login(req: LoginRequest):
             ACCOUNT_LOCKOUTS[normalized_email] = lockout_record
 
         lockout_record["failed_count"] += 1
-        if lockout_record["failed_count"] >= MAX_FAILED_LOGIN_ATTEMPTS:
+
+        db_failed_count = (user.get("failed_login_count", 0) + 1) if user else lockout_record["failed_count"]
+        if user and db is not None:
+            update_fields = {"failed_login_count": db_failed_count}
+            if db_failed_count >= MAX_FAILED_LOGIN_ATTEMPTS:
+                update_fields["locked_until"] = now_ts + LOCKOUT_DURATION_SECONDS
+            try:
+                res = db.users.update_one({"_id": user["_id"]}, {"$set": update_fields})
+                if hasattr(res, "__await__"):
+                    await res
+            except Exception:
+                pass
+
+        if lockout_record["failed_count"] >= MAX_FAILED_LOGIN_ATTEMPTS or db_failed_count >= MAX_FAILED_LOGIN_ATTEMPTS:
             lockout_record["locked_until"] = now_ts + LOCKOUT_DURATION_SECONDS
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -554,6 +577,13 @@ async def login(req: LoginRequest):
     # Clear lockout tracking upon valid credentials
     if normalized_email in ACCOUNT_LOCKOUTS:
         del ACCOUNT_LOCKOUTS[normalized_email]
+    if user and (user.get("failed_login_count", 0) > 0 or user.get("locked_until")) and db is not None:
+        try:
+            res = db.users.update_one({"_id": user["_id"]}, {"$set": {"failed_login_count": 0, "locked_until": None}})
+            if hasattr(res, "__await__"):
+                await res
+        except Exception:
+            pass
 
     token = create_access_token({"sub": user["_id"], "role": user.get("role", "owner")})
     return TokenResponse(
@@ -637,27 +667,47 @@ async def update_my_profile(req: UserProfileUpdateRequest, current_user=Depends(
 
 @app.get("/health")
 @app.get("/api/v1/health")
-async def health_check():
+async def health_check(request: Request):
     db_connected = False
-    counts = {"users": 0, "items": 0, "forecasts": 0, "daily_stock": 0}
-    last_forecast_time = None
-
     if db is not None:
         try:
             if client:
                 await client.admin.command("ping")
                 db_connected = True
-                counts["users"] = await db.users.count_documents({})
-                counts["items"] = await db.items.count_documents({})
-                counts["forecasts"] = await db.forecasts.count_documents({})
-                counts["daily_stock"] = await db.daily_stock.count_documents({})
-                latest_fc = await db.forecasts.find_one({}, sort=[("createdAt", -1)])
-                if latest_fc:
-                    last_forecast_time = latest_fc.get("createdAt") or latest_fc.get("forecast_date")
         except Exception:
             db_connected = False
 
     commit_sha = os.getenv("RENDER_GIT_COMMIT", os.getenv("GIT_COMMIT", "74ccc0a"))
+
+    # Operational tenant counts restricted to authorized operators
+    auth_header = request.headers.get("Authorization", "")
+    is_operator = False
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            if payload.get("role") in ["admin", "operator"]:
+                is_operator = True
+        except Exception:
+            pass
+    if request.headers.get("X-Job-Secret") == os.getenv("JOB_SECRET", "restockiq-job-secret-v1"):
+        is_operator = True
+
+    counts = None
+    last_forecast_time = None
+    if is_operator and db_connected:
+        try:
+            counts = {
+                "users": await db.users.count_documents({}),
+                "items": await db.items.count_documents({}),
+                "forecasts": await db.forecasts.count_documents({}),
+                "daily_stock": await db.daily_stock.count_documents({}),
+            }
+            latest_fc = await db.forecasts.find_one({}, sort=[("createdAt", -1)])
+            if latest_fc:
+                last_forecast_time = latest_fc.get("createdAt") or latest_fc.get("forecast_date")
+        except Exception:
+            pass
 
     return {
         "status": "ok" if db_connected else "degraded",
@@ -668,6 +718,7 @@ async def health_check():
         "store_timezone": os.getenv("STORE_TIMEZONE", DEFAULT_STORE_TIMEZONE),
         "llm_configured": get_llm_info()["configured"],
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "1.0.0",
     }
 
 
@@ -703,6 +754,8 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_workspace
     safety_stock = prior["safetyStock"]
     explanation = f"Cold-start initial forecast based on {matched_cat} category prior ({predicted_demand} units/day)."
 
+    shadow_expiry = current_user.get("expiresAt") if current_user.get("role") == "demo_shadow" else None
+
     item_doc = {
         "_id": item_id,
         "owner_id": current_user["_id"],
@@ -723,6 +776,8 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_workspace
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "updatedAt": datetime.now(timezone.utc).isoformat(),
     }
+    if shadow_expiry:
+        item_doc["expiresAt"] = shadow_expiry
     await db.items.insert_one(item_doc)
 
     today_str = get_store_local_now(current_user).strftime("%Y-%m-%d")
@@ -738,6 +793,8 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_workspace
         "riskLevel": "normal",
         "createdAt": datetime.now(timezone.utc).isoformat(),
     }
+    if shadow_expiry:
+        forecast_doc["expiresAt"] = shadow_expiry
     await db.forecasts.insert_one(forecast_doc)
 
     return {
@@ -1247,35 +1304,46 @@ async def record_closing_count(req: ClosingCountRequest, current_user=Depends(ge
         waste_units = entry.units_left if is_perish else 0
         sold_out = (entry.units_left == 0)
 
+        shadow_expiry = current_user.get("expiresAt") if current_user.get("role") == "demo_shadow" else None
+
+        stock_set = {
+            "openingStock": opening,
+            "producedOrRestocked": produced,
+            "closingCount": entry.units_left,
+            "soldUnits": sold_units,
+            "wasteUnits": waste_units,
+            "status": "closed",
+            "soldOut": sold_out,
+            "source": "closing_count",
+            "updatedAt": now_iso,
+        }
+        if shadow_expiry:
+            stock_set["expiresAt"] = shadow_expiry
+
         # Upsert daily_stock for target_date idempotently
         await db.daily_stock.update_one(
             {"owner_id": current_user["_id"], "item_id": entry.item_id, "date": target_date},
-            {"$set": {
-                "openingStock": opening,
-                "producedOrRestocked": produced,
-                "closingCount": entry.units_left,
-                "soldUnits": sold_units,
-                "wasteUnits": waste_units,
-                "status": "closed",
-                "soldOut": sold_out,
-                "source": "closing_count",
-                "updatedAt": now_iso,
-            },
+            {"$set": stock_set,
             "$setOnInsert": {
                 "createdAt": now_iso,
             }},
             upsert=True
         )
 
+        sales_set = {
+            "units": sold_units,
+            "sales": sold_units,
+            "source": "closing_count",
+            "status": "completed",
+            "updatedAt": now_iso,
+        }
+        if shadow_expiry:
+            sales_set["expiresAt"] = shadow_expiry
+
         # Upsert derived daily_sales record idempotently
         await db.daily_sales.update_one(
             {"owner_id": current_user["_id"], "item_id": entry.item_id, "date": target_date},
-            {"$set": {
-                "sales": sold_units,
-                "source": "closing_count",
-                "status": "completed",
-                "updatedAt": now_iso,
-            },
+            {"$set": sales_set,
             "$setOnInsert": {
                 "createdAt": now_iso,
             }},
@@ -1553,13 +1621,16 @@ async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(ge
     today_local = now_local.strftime("%Y-%m-%d")
 
     # Log individual sales event with store-local calendar date
-    await db.intraday_sales.insert_one({
+    intraday_record = {
         "item_id": req.item_id,
         "owner_id": current_user["_id"],
         "quantity": req.quantity,
         "timestamp": now_iso,
         "date": today_local,
-    })
+    }
+    if current_user.get("role") == "demo_shadow" and current_user.get("expiresAt"):
+        intraday_record["expiresAt"] = current_user["expiresAt"]
+    await db.intraday_sales.insert_one(intraday_record)
 
     # Update item state in Atlas with intradayDate
     await db.items.update_one(

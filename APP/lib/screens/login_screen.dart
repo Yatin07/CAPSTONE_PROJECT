@@ -112,15 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Client-only Demo Tour — zero network calls, zero token, using SampleRepository
-  void _handleExploreTour() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const TourScreen(isReplay: true),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -343,25 +334,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Client-only demo tour walkthrough (no network, no token)
-                      OutlinedButton.icon(
-                        onPressed: _handleExploreTour,
-                        icon: const Icon(
-                          Icons.explore_outlined,
-                          size: 18,
-                        ),
-                        label: const Text('Explore Demo Tour (Offline)'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: const BorderSide(
-                            color: AppColors.primary,
-                            width: 1.5,
-                          ),
-                          shape: const StadiumBorder(),
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
-                      ),
+
                     ],
                   ),
                 ),

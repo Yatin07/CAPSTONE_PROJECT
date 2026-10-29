@@ -163,6 +163,15 @@ class _TourScreenState extends State<TourScreen> {
     } catch (e) {
       _seedingError = e.toString();
       _useSampleFallback();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Demo server sandbox unavailable: $e. Operating in preview mode.'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -234,8 +243,16 @@ class _TourScreenState extends State<TourScreen> {
       if (ApiService.instance.isDemoWorkspace) {
         await ApiService.instance.exitDemo();
       }
-    } catch (_) {
-      ApiService.instance.setWorkspace(null);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete demo sandbox on server: $e. Please retry.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
 
     if (!mounted) return;

@@ -68,18 +68,19 @@ class LiveRepository implements AppRepository {
   @override
   Future<Map<String, dynamic>> fetchDashboard() async {
     final result = await api.fetchTodayDashboard();
-    return result ?? {
-      'summary': 'No inventory items found. Add items to enable AI forecasting.',
-      'total_items': 0,
-      'action_required_count': 0,
-      'items': <InventoryItem>[],
-    };
+    if (result == null) {
+      throw Exception('Failed to connect to backend server or fetch dashboard data.');
+    }
+    return result;
   }
 
   @override
   Future<List<InventoryItem>> fetchItems() async {
     final items = await api.fetchItems();
-    return items ?? <InventoryItem>[];
+    if (items == null) {
+      throw Exception('Failed to connect to backend server or fetch inventory items.');
+    }
+    return items;
   }
 
   @override
@@ -132,7 +133,10 @@ class LiveRepository implements AppRepository {
   @override
   Future<List<WasteAlert>> fetchWasteAlerts() async {
     final alerts = await api.fetchWasteAlerts();
-    return alerts ?? <WasteAlert>[];
+    if (alerts == null) {
+      throw Exception('Failed to connect to backend server or fetch waste alerts.');
+    }
+    return alerts;
   }
 
   @override
