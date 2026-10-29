@@ -49,16 +49,24 @@ class ApiService {
   String? _userId;
   String? _userName;
   String? _userRole;
+  String? _workspace;
 
   String? get token => _token;
   String? get userId => _userId;
   String? get userName => _userName;
   String? get userRole => _userRole;
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
+  String? get workspace => _workspace;
+  bool get isDemoWorkspace => _workspace == 'demo';
+
+  void setWorkspace(String? ws) {
+    _workspace = ws;
+  }
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
+        if (_workspace != null && _workspace!.isNotEmpty) 'X-Workspace': _workspace!,
       };
 
   /// Core HTTP execution with exponential backoff retry and cold-start wake detection
@@ -640,5 +648,68 @@ class ApiService {
 
     // No canned responses: return null so UI renders honest error / retry state
     return null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Demo Sandbox API
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>> startDemo() async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.post(
+        Uri.parse('$_baseUrl/demo/start'),
+        headers: _headers,
+      ).timeout(timeout),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      setWorkspace('demo');
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to start demo sandbox: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> resetDemo() async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.post(
+        Uri.parse('$_baseUrl/demo/reset'),
+        headers: _headers,
+      ).timeout(timeout),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to reset demo sandbox: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> exitDemo() async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.delete(
+        Uri.parse('$_baseUrl/demo'),
+        headers: _headers,
+      ).timeout(timeout),
+    );
+    setWorkspace(null);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to exit demo sandbox: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> setDemoClock(double hour) async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.post(
+        Uri.parse('$_baseUrl/demo/clock'),
+        headers: _headers,
+        body: jsonEncode({'hour': hour}),
+      ).timeout(timeout),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to set demo simulated clock: ${response.statusCode}');
+    }
   }
 }

@@ -6,6 +6,7 @@ import '../providers/waste_alerts_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/demo_banner.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/waste_alert_card.dart';
 import 'dashboard_screen.dart';
@@ -45,6 +46,7 @@ class WasteAlertsScreen extends StatelessWidget {
       body: DottedBackground(
         child: Column(
           children: [
+            const DemoBanner(),
             // Top Header Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

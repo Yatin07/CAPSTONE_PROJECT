@@ -7,6 +7,7 @@ import '../providers/inventory_provider.dart';
 import '../providers/stock_check_provider.dart';
 import '../theme/app_colors.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/demo_banner.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
 import 'dashboard_screen.dart';
@@ -74,6 +75,7 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
       body: DottedBackground(
         child: Column(
           children: [
+            const DemoBanner(),
             // Top Header Bar
             SafeArea(
               bottom: false,

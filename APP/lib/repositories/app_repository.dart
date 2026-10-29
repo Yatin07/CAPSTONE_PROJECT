@@ -60,10 +60,10 @@ class LiveRepository implements AppRepository {
   LiveRepository({ApiService? apiService}) : api = apiService ?? ApiService.instance;
 
   @override
-  bool get isDemoTour => false;
+  bool get isDemoTour => api.isDemoWorkspace;
 
   @override
-  String get modeLabel => 'LIVE';
+  String get modeLabel => api.isDemoWorkspace ? 'DEMO' : 'LIVE';
 
   @override
   Future<Map<String, dynamic>> fetchDashboard() async {
