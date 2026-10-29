@@ -69,6 +69,10 @@ def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: fl
                 return None
             except Exception as e:
                 err_str = str(e).lower()
+                is_daily_limit = any(k in err_str for k in ["per day limit", "quota exceeded", "limit exceeded on free tier"])
+                if is_daily_limit:
+                    logger.warning("Gemini API daily quota limit reached: %s. Falling back to deterministic engine.", e)
+                    return None
                 is_retryable = any(k in err_str for k in ["429", "rate", "exhausted", "500", "502", "503", "504", "server error", "timeout"])
                 logger.warning("Gemini API (model %s) attempt %d/%d failed: %s", active_model, attempt, max_retries, e)
                 if attempt < max_retries and is_retryable:
@@ -84,8 +88,8 @@ def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict
     logger.info("Activating deterministic rule-based fallback for daily briefing.")
     restock_needed = [
         it for it in items
-        if it.get("currentStock", 0) <= it.get("safetyStock", 0)
-        or it.get("currentStock", 0) < it.get("predictedDemand", 0)
+        if (it.get("currentStock") or 0) <= (it.get("safetyStock") or 0)
+        or (it.get("currentStock") or 0) < (it.get("predictedDemand") or 0)
     ]
     urgent_alerts = [
         a for a in alerts

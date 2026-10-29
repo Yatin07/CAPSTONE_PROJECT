@@ -479,3 +479,66 @@ Every entry documents:
 
 
 
+
+---
+
+## Block 5: Verification (P0)
+
+### 1. End-to-End Staging User Journey Verification (`scripts/verify_staging_e2e_journey.py`)
+- **What**: Built and verified a full 10-step automated user lifecycle against `restockiq_staging` on MongoDB Atlas:
+  1. User Registration (`201 Created`, role `owner`, zero client ID generation).
+  2. First login state check (`onboarding_completed: False`, routing to `TourScreen`).
+  3. Demo Tour completion (`SampleRepository` walked through without network calls, `onboarding_completed: True` persisted server-side).
+  4. Store operating profile setup (`Artisan Harvest Bakery`, validated IANA timezone `Asia/Kolkata`, operating hours 06:00 to 20:00 local, INR).
+  5. Initial inventory item creation (3 items created with server-assigned `owner_id`).
+  6. 3 simulated operational days of closing counts with missed day detection (`status="missing"`, `label="no data"`, `soldUnits=None`, never zero), morning backfill, and idempotency verification.
+  7. Yesterday Review verification with authoritative sell-through derived from closing counts.
+  8. Mid-day pace calculation based on elapsed business hours fraction and dynamic waste alerts with commercial mitigations (10% discount for low pace, 20% combo bundle pairing for critical pace, donation removed).
+  9. Executive Daily Briefing synthesis strictly grounded in store metrics with zero math hallucinations.
+  10. On-duty AI Assistant chat dialogue verified against live store inventory state with honest fallback on high load.
+- **Why**: Proves that every endpoint, index, business rule, and mitigation strategy works end-to-end on the cloud database without manual intervention.
+- **Files**:
+  - `scripts/verify_staging_e2e_journey.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe scripts/verify_staging_e2e_journey.py
+  ```
+- **How to Revert**:
+  ```powershell
+  git rm scripts/verify_staging_e2e_journey.py
+  ```
+
+---
+
+### 2. Deterministic LLM Fallback Hardening & Fail-Fast Quota Circuit Breaker
+- **What**: Added an immediate fail-fast circuit breaker for daily quota exhaustion (`per day limit`, `quota exceeded`) in `Backend/services/llm_service.py` to immediately activate the deterministic rule-based engine instead of waiting on exponential backoff retries. Hardened `_build_deterministic_fallback` to safely handle nullable `safetyStock` and `predictedDemand` values on freshly created items. Updated `Backend/verify_llm.py` to audit and assert fallback contract resilience when live quotas are exhausted.
+- **Why**: Guarantees zero latency spikes or hanging requests during live presentations if external Google Gemini free-tier quotas are depleted.
+- **Files**:
+  - `Backend/services/llm_service.py`
+  - `Backend/verify_llm.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_backend_unit.py -v
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout HEAD~1 -- Backend/services/llm_service.py Backend/verify_llm.py
+  ```
+
+---
+
+### 3. Production Deployment Checklist & Demo Day Operational Guards
+- **What**: Overhauled `docs/DEPLOY_CHECKLIST.md` with:
+  1. Strict non-fast-forward merge protocol: `git checkout main; git merge --no-ff fix/integrity-v1`.
+  2. Complete Render environment variable reference (`MONGO_URI`, `MONGODB_DB`, `ENVIRONMENT`, `JWT_SECRET`, `STORE_TIMEZONE`, `STORE_OPEN_HOUR`, `STORE_CLOSE_HOUR`, `ENGINE`, `COGS_RATIO`, `DEMO_PASSWORD`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `RENDER_GIT_COMMIT`).
+  3. Mandatory Demo Day operational guard: Turn Render **Auto-Deploy OFF** on demo day.
+  4. Verified rollback procedure to pre-flight commit `74ccc0a` and backup APK restoration.
+- **Why**: Prevents accidental redeployments, configuration drift, or cold-start downtime during live project demonstrations.
+- **Files**:
+  - `docs/DEPLOY_CHECKLIST.md`
+- **How to Test**:
+  Inspect `docs/DEPLOY_CHECKLIST.md`.
+- **How to Revert**:
+  ```powershell
+  git checkout HEAD~1 -- docs/DEPLOY_CHECKLIST.md
+  ```
