@@ -15,7 +15,19 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-3-flash-preview
+        value: gemini-3.5-flash
+      - key: STORE_TIMEZONE
+        value: Asia/Kolkata
+      - key: STORE_OPEN_HOUR
+        value: "8.0"
+      - key: STORE_CLOSE_HOUR
+        value: "20.0"
+      - key: COGS_RATIO
+        value: "0.4"
+      - key: ENGINE
+        value: legacy
+      - key: MONGODB_DB
+        value: restockiq
       - key: ALLOWED_ORIGINS
         value: "https://restockiq.com,https://app.restockiq.com,http://localhost:3000,http://127.0.0.1:3000"
       - key: ALLOW_DEMO_SEED

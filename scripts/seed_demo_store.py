@@ -302,6 +302,7 @@ def seed_demo_store(mongo_uri: str = None, db_name: str = "restockiq_staging", d
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Seed RestockIQ Demo Store")
     parser.add_argument("--db", type=str, default="restockiq_staging", help="Target database name (default: restockiq_staging)")
+    parser.add_argument("--reset", action="store_true", help="Purge and re-seed demo store (strictly scoped to demo_manager@restockiq.com)")
     args = parser.parse_args()
 
-    seed_demo_store(db_name=args.db)
+    seed_demo_store(db_name=args.db, reset=args.reset)
