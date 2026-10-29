@@ -1,4 +1,5 @@
 import os
+import asyncio
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -1780,7 +1781,7 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
     alerts_resp = await get_waste_alerts(current_user=current_user)
     alerts = alerts_resp.get("alerts", [])
 
-    briefing = generate_daily_briefing(items, alerts)
+    briefing = await asyncio.to_thread(generate_daily_briefing, items, alerts)
     BRIEFING_CACHE[cache_key] = {
         "briefing": briefing,
         "cached_at": now_ts,
@@ -1804,7 +1805,7 @@ async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_cur
     alerts_resp = await get_waste_alerts(current_user=current_user)
     alerts = alerts_resp.get("alerts", [])
 
-    result = answer_assistant_chat(req.query, items, alerts)
+    result = await asyncio.to_thread(answer_assistant_chat, req.query, items, alerts)
     return {
         "status": "success",
         "reply": result["reply"],
