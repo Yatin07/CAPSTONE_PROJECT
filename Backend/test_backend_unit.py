@@ -91,23 +91,23 @@ class TestBackendOfflineSuite(unittest.TestCase):
             is_perishable=True, is_dismissed=False, curr_stock=15, actual_sold=7.0, expected_by_now=10.0
         ))
 
-        # R6: Boundary Pace = 0.69 (Boundary below 0.70) -> Low Pace alert
+        # R6: Boundary Pace = 0.69 (Boundary below 0.70) -> Low Pace alert (10% discount)
         res_069 = evaluate_waste_alert_tier(
             is_perishable=True, is_dismissed=False, curr_stock=15, actual_sold=6.9, expected_by_now=10.0
         )
         self.assertIsNotNone(res_069)
         self.assertEqual(res_069["severityLabel"], "Low Pace")
-        self.assertEqual(res_069["discount_pct"], 20)
+        self.assertEqual(res_069["discount_pct"], 10)
         self.assertEqual(res_069["primaryActionText"], "Apply Discount")
 
-        # R7: Mid Low Pace (Pace = 0.50) -> Low Pace alert (20% discount suggested)
+        # R7: Mid Low Pace (Pace = 0.50) -> Low Pace alert (10% discount suggested)
         res_050 = evaluate_waste_alert_tier(
             is_perishable=True, is_dismissed=False, curr_stock=8, actual_sold=5.0, expected_by_now=10.0
         )
         self.assertIsNotNone(res_050)
         self.assertEqual(res_050["severityLabel"], "Low Pace")
-        self.assertEqual(res_050["discount_pct"], 20)
-        self.assertEqual(res_050["recommendedActionText"], "Suggest 20% Discount")
+        self.assertEqual(res_050["discount_pct"], 10)
+        self.assertEqual(res_050["recommendedActionText"], "Suggest 10% Discount")
 
         # R8: Boundary Pace = 0.35 (Lower bound of Low Pace, < 0.35 required for Critical) -> Low Pace alert
         res_035 = evaluate_waste_alert_tier(
@@ -115,17 +115,17 @@ class TestBackendOfflineSuite(unittest.TestCase):
         )
         self.assertIsNotNone(res_035)
         self.assertEqual(res_035["severityLabel"], "Low Pace")
-        self.assertEqual(res_035["discount_pct"], 20)
+        self.assertEqual(res_035["discount_pct"], 10)
 
-        # R9: Boundary Pace = 0.34 (Boundary into Critical) -> Critical alert (30% discount / Flag for Donation)
+        # R9: Boundary Pace = 0.34 (Boundary into Critical) -> Critical alert (20% discount + bundle combo)
         res_034 = evaluate_waste_alert_tier(
             is_perishable=True, is_dismissed=False, curr_stock=4, actual_sold=3.4, expected_by_now=10.0
         )
         self.assertIsNotNone(res_034)
         self.assertEqual(res_034["severityLabel"], "Critical")
-        self.assertEqual(res_034["discount_pct"], 30)
-        self.assertEqual(res_034["primaryActionText"], "Flag Item")
-        self.assertEqual(res_034["recommendedActionText"], "Flag for Donation")
+        self.assertEqual(res_034["discount_pct"], 20)
+        self.assertEqual(res_034["primaryActionText"], "Apply Bundle")
+        self.assertEqual(res_034["recommendedActionText"], "Apply 20% Bundle")
 
         # R10: Severe Critical (Pace = 0.10) -> Critical alert
         res_010 = evaluate_waste_alert_tier(
@@ -133,7 +133,7 @@ class TestBackendOfflineSuite(unittest.TestCase):
         )
         self.assertIsNotNone(res_010)
         self.assertEqual(res_010["severityLabel"], "Critical")
-        self.assertEqual(res_010["discount_pct"], 30)
+        self.assertEqual(res_010["discount_pct"], 20)
 
         print("[OK] Decision Table: 10/10 operational rules validated against code thresholds.")
 
@@ -148,13 +148,13 @@ class TestBackendOfflineSuite(unittest.TestCase):
           S1: Active_LowPace
           S2: Active_Critical
           S3: Discount_Applied
-          S4: Donation_Flagged
+          S4: Bundle_Applied
           S5: Dismissed
         Transitions:
-          T1: S0 -> S1 (Pace drops to 0.50 -> Active_LowPace)
+          T1: S0 -> S1 (Pace drops to 0.45 -> Active_LowPace)
           T2: S0 -> S2 (Pace drops to 0.20 -> Active_Critical)
-          T3: S1 -> S3 (Apply Discount action executed -> price * 0.80)
-          T4: S2 -> S4 (Flag Donation action executed -> flaggedForDonation = True)
+          T3: S1 -> S3 (Apply Discount action executed -> price * 0.90)
+          T4: S2 -> S4 (Apply Bundle action executed -> bundleApplied = True)
           T5: S1 -> S5 (Dismiss action executed -> isDismissed = True)
           T6: S2 -> S5 (Dismiss action executed -> isDismissed = True)
           T7: S5 -> Ignored (Subsequent polling suppresses alert)
@@ -170,7 +170,7 @@ class TestBackendOfflineSuite(unittest.TestCase):
             "isPrimaryActionDone": False,
             "isRecommendedActionDone": False,
             "discountApplied": False,
-            "flaggedForDonation": False,
+            "bundleApplied": False,
         }
 
         # T0: Initial State S0 (Unfired: pace = 0.80)
@@ -194,12 +194,12 @@ class TestBackendOfflineSuite(unittest.TestCase):
         self.assertIsNotNone(alert_s1)
         self.assertEqual(alert_s1["severityLabel"], "Low Pace", "T1: Transitioned into S1 (Active_LowPace)")
 
-        # T3: S1 -> S3 (Apply Discount executed: 20% markdown)
+        # T3: S1 -> S3 (Apply Discount executed: 10% markdown)
         item["originalPrice"] = item["price"]
-        item["price"] = round(item["price"] * 0.80, 2)
+        item["price"] = round(item["price"] * 0.90, 2)
         item["discountApplied"] = True
         item["isPrimaryActionDone"] = True
-        self.assertEqual(item["price"], 2.24)
+        self.assertEqual(item["price"], 2.52)
         self.assertTrue(item["isPrimaryActionDone"])
 
         # T5: S3 -> S5 (Dismiss executed)
@@ -215,7 +215,7 @@ class TestBackendOfflineSuite(unittest.TestCase):
         )
         self.assertIsNone(alert_s5, "T7: Dismissed items must be completely suppressed")
 
-        # Test Alternative Branch T2 -> T4: Critical -> Donation
+        # Test Alternative Branch T2 -> T4: Critical -> Bundle
         item_milk = {
             "_id": "item_milk_102",
             "name": "Whole Milk",
@@ -234,10 +234,10 @@ class TestBackendOfflineSuite(unittest.TestCase):
         self.assertIsNotNone(alert_s2)
         self.assertEqual(alert_s2["severityLabel"], "Critical", "T2: Transitioned into S2 (Active_Critical)")
 
-        # T4: S2 -> S4 (Flag Donation executed)
-        item_milk["flaggedForDonation"] = True
+        # T4: S2 -> S4 (Apply Bundle executed)
+        item_milk["bundleApplied"] = True
         item_milk["isRecommendedActionDone"] = True
-        self.assertTrue(item_milk["flaggedForDonation"])
+        self.assertTrue(item_milk["bundleApplied"])
 
         print("[OK] State Transitions: All 7 transitions (S0..S5) verified.")
 

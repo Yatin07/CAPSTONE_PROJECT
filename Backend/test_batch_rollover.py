@@ -19,7 +19,7 @@ class TestBatchRolloverLogic(unittest.TestCase):
             "isPrimaryActionDone": True,
             "isRecommendedActionDone": True,
             "discountApplied": True,
-            "flaggedForDonation": False,
+            "bundleApplied": False,
         }
 
         # Simulate batch rollover transformation
@@ -44,7 +44,7 @@ class TestBatchRolloverLogic(unittest.TestCase):
             "isPrimaryActionDone": False,
             "isRecommendedActionDone": False,
             "discountApplied": False,
-            "flaggedForDonation": False,
+            "bundleApplied": False,
             "updatedAt": datetime.now(timezone.utc).isoformat(),
         }
         if base_price is not None:

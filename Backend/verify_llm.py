@@ -96,7 +96,7 @@ def test_llm_integration():
             "riskLevel": "critical",
             "sales_pace_ratio": 0.28,
             "currentStock": 4,
-            "recommendedAction": "Flag for Donation",
+            "recommendedAction": "Apply 20% Bundle",
         },
     ]
 

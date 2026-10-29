@@ -284,5 +284,55 @@ Every entry documents:
   git checkout ec2009d7 -- ML/batch_forecast.py
   ```
 
+---
+
+## Block 2: Daily Operations, Data Capture, Waste Mitigations, and Backend Hardening
+
+### 1. User Profile, Auth Hardening, and Category Constraints
+- **What**: Added `GET /api/v1/me` and `PATCH /api/v1/me` (and `/api/v1/users/me`) with IANA timezone validation (`zoneinfo.ZoneInfo`). Hardened `POST /api/v1/auth/register` with rate limiting (5 req/min/IP), minimum password length (8 characters), normalized email, and strict server assignment of `role = "owner"`. Restricted item categories to `ALLOWED_CATEGORIES = ["Bakery", "Beverage", "Food", "Dessert", "Snack", "Other"]` and enforced uniqueness of `(owner_id, name_lower)` with HTTP 409 Conflict.
+- **Why**: Eliminates client privilege escalation, prevents duplicate SKU registration, and ensures timezones are valid IANA identifiers before computing daily operating hours.
+- **Files**:
+  - `Backend/main.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_block2_backend.py -v
+  ```
+
+---
+
+### 2. Daily Stock Schema, Closing Count, Midday Count & Yesterday Review
+- **What**: 
+  - Added `daily_stock` collection with unique index `(owner_id, item_id, date)`.
+  - Created `POST /api/v1/closing-count` (and `/api/v1/daily-stock/closing-count`): validates `units_left <= openingStock + producedOrRestocked`; computes `soldUnits = available - units_left`; if perishable, sets `wasteUnits = units_left` and initializes next day opening stock to 0; if non-perishable, sets `wasteUnits = 0` and carries over `units_left` to next day opening stock; derives and upserts `daily_sales` idempotently.
+  - Created `POST /api/v1/midday-count` (and `/api/v1/daily-stock/midday-count`): calculates same-day pace `sold_so_far / (forecast * elapsed_fraction)` where `elapsed_fraction = (local_hour - open) / (close - open)`.
+  - Created `GET /api/v1/review/yesterday` (and `/api/v1/daily-stock/review/yesterday`): calculates sell-through `sold / available` with High (>90%), Normal (70-90%), Low (<70%), and Critical (<35%) thresholds. Unsubmitted days are labeled `"no data"`, status `"missing"`, with `soldUnits = null` (NEVER zero, excluded from training).
+  - Added `daysOfData`, `maturity` (`Learning`, `Improving`, `Mature`), and `maturityLabel` to `/api/v1/forecasts/today`.
+- **Why**: Implements the daily learning loop and store review routine per frozen product spec while preventing missing days from being distorted as zero-sale days.
+- **Files**:
+  - `Backend/main.py`
+  - `Backend/test_block2_backend.py`
+
+---
+
+### 3. Waste Mitigation Overhaul: Combo Bundle Pairing & Elimination of Donation
+- **What**: Completely removed the donation endpoint (`flag-donation`) and references across backend endpoints, LLM service, tests, and verification scripts. Added `POST /api/v1/waste-alerts/{id}/apply-bundle` with 20% combo discount pairing against high-velocity partner items (preferring complementary categories: Bakery<->Beverage, Food<->Beverage, etc.). Updated Low Pace alerts to suggest 10% promotional markdowns. Updated Gemini briefing and assistant prompts to explicitly specify bundle/discount actions and restock quantities.
+- **Why**: Replaces unrealistic charity donation flows with actionable commercial combo bundling to recover revenue on slow-selling stock.
+- **Files**:
+  - `Backend/main.py`
+  - `Backend/services/llm_service.py`
+  - `Backend/test_backend_unit.py`
+  - `Backend/test_tenant_isolation.py`
+  - `Backend/verify_llm.py`
+  - `Backend/verify_step5.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest discover -s Backend -p "test_*.py" -v
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout cef3d658 -- Backend/
+  ```
+
+
 
 

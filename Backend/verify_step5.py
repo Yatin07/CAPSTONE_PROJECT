@@ -75,11 +75,11 @@ assert status == 200, f"Failed to apply discount: {discount_res}"
 print(f"\n[OK] 5. Mitigation Action: Applied discount successfully:")
 print(f"     - Old Price: ${discount_res['oldPrice']} -> New Discounted Price: ${discount_res['newPrice']}")
 
-# 6. Test Action: Flag for Donation
-status, donate_res = req(f"/waste-alerts/{test_item_id}/flag-donation", method="POST", token=token)
-assert status == 200, f"Failed to flag for donation: {donate_res}"
-print(f"\n[OK] 6. Mitigation Action: Flag for donation successfully:")
-print(f"     - Message: {donate_res['message']}")
+# 6. Test Action: Apply Bundle
+status, bundle_res = req(f"/waste-alerts/{test_item_id}/apply-bundle", method="POST", token=token)
+assert status == 200, f"Failed to apply bundle: {bundle_res}"
+print(f"\n[OK] 6. Mitigation Action: Apply combo bundle successfully:")
+print(f"     - Message: {bundle_res['message']}")
 
 # 7. Test Action: Dismiss Alert
 status, dismiss_res = req(f"/waste-alerts/{test_item_id}/dismiss", method="POST", token=token)

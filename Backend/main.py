@@ -112,7 +112,7 @@ async def rollover_if_new_day(item: dict, user: Optional[dict] = None) -> dict:
         "isPrimaryActionDone": False,
         "isRecommendedActionDone": False,
         "discountApplied": False,
-        "flaggedForDonation": False,
+        "bundleApplied": False,
         "updatedAt": datetime.now(timezone.utc).isoformat(),
     }
     if base_price is not None and item.get("discountApplied"):
@@ -215,6 +215,7 @@ class InMemoryRateLimiter:
         self.requests[client_ip].append(now)
 
 login_limiter = InMemoryRateLimiter(max_requests=10, window_seconds=60, action_name="authentication")
+register_limiter = InMemoryRateLimiter(max_requests=5, window_seconds=60, action_name="registration")
 chat_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60, action_name="assistant chat")
 
 # ---------------------------------------------------------------------------- #
@@ -240,6 +241,8 @@ async def startup_db():
         print("[DB] Connected to MongoDB Atlas successfully.")
         await db.users.create_index("email", unique=True)
         await db.daily_sales.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
+        await db.daily_stock.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
+        await db.items.create_index([("owner_id", 1), ("name_lower", 1)], unique=True)
         
         # Guarded demo user seeding
         if ALLOW_DEMO_SEED:
@@ -306,10 +309,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
 # ---------------------------------------------------------------------------- #
 
 class RegisterRequest(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1)
     email: EmailStr
-    password: str
-    role: str = "owner"  # "owner" | "manager"
+    password: str = Field(..., min_length=8)
+    role: Optional[str] = None  # Ignored; server sets role to 'owner' strictly
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -322,13 +325,36 @@ class TokenResponse(BaseModel):
     name: str
     role: str
 
-class ItemCreateRequest(BaseModel):
+class UserProfileResponse(BaseModel):
+    id: str
     name: str
+    email: str
+    role: str
+    store_name: str
+    timezone: str
+    opening_hour: float
+    closing_hour: float
+    currency: str
+    onboarding_completed: bool
+    created_at: str
+
+class UserProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    store_name: Optional[str] = None
+    timezone: Optional[str] = None
+    opening_hour: Optional[float] = None
+    closing_hour: Optional[float] = None
+    currency: Optional[str] = None
+    onboarding_completed: Optional[bool] = None
+
+class ItemCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1)
     category: str
-    unit: str
-    currentStock: int
-    isPerishable: bool
-    price: Optional[float] = None
+    unit: str = "Units"
+    currentStock: int = Field(0, ge=0)
+    isPerishable: bool = False
+    price: Optional[float] = Field(None, ge=0)
+    shelfLifeDays: Optional[int] = Field(None, ge=1)
 
 class ItemResponse(BaseModel):
     id: str
@@ -354,6 +380,7 @@ class ItemUpdateRequest(BaseModel):
     predictedDemand: Optional[int] = None
     safetyStock: Optional[int] = None
     riskLevel: Optional[str] = None
+    shelfLifeDays: Optional[int] = None
 
 class RestockRequest(BaseModel):
     quantity: Optional[int] = None
@@ -362,83 +389,194 @@ class IntradaySaleRequest(BaseModel):
     item_id: str
     quantity: int
 
+class ClosingCountItem(BaseModel):
+    item_id: str
+    units_left: int = Field(..., ge=0)
 
+class ClosingCountRequest(BaseModel):
+    date: Optional[str] = None  # YYYY-MM-DD
+    counts: List[ClosingCountItem]
+
+class MiddayCountItem(BaseModel):
+    item_id: str
+    remaining: int = Field(..., ge=0)
+
+class MiddayCountRequest(BaseModel):
+    counts: List[MiddayCountItem]
+
+class ApplyBundleRequest(BaseModel):
+    partner_item_id: Optional[str] = None
+    bundle_discount_pct: float = 20.0
 
 # ---------------------------------------------------------------------------- #
-# Auth Routes
+# Auth & User Profile Routes
 # ---------------------------------------------------------------------------- #
 
-@app.post("/api/v1/auth/register", response_model=TokenResponse, status_code=201)
+@app.post("/api/v1/auth/register", response_model=TokenResponse, status_code=201, dependencies=[Depends(register_limiter)])
 async def register(req: RegisterRequest):
-    if req.email.lower() == "admin@test.com" and not ALLOW_DEMO_SEED:
+    normalized_email = req.email.strip().lower()
+
+    if normalized_email == "admin@test.com" and not ALLOW_DEMO_SEED:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Creation of default demo accounts is restricted in production environments."
         )
 
-    existing = await db.users.find_one({"email": req.email})
+    existing = await db.users.find_one({"email": normalized_email})
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
 
     from bson import ObjectId
     user_id = str(ObjectId())
 
+    # Role strictly assigned by server to prevent client privilege escalation
+    server_assigned_role = "owner"
+
     user_doc = {
         "_id": user_id,
-        "name": req.name,
-        "email": req.email,
+        "name": req.name.strip(),
+        "email": normalized_email,
         "password_hash": hash_password(req.password),
-        "role": req.role,
+        "role": server_assigned_role,
+        "store_name": f"{req.name.strip()}'s Store",
+        "timezone": os.getenv("STORE_TIMEZONE", DEFAULT_STORE_TIMEZONE),
+        "opening_hour": STORE_OPEN_HOUR,
+        "closing_hour": STORE_CLOSE_HOUR,
+        "currency": "₹",
+        "onboarding_completed": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.insert_one(user_doc)
 
-    token = create_access_token({"sub": user_id, "role": req.role})
-    return TokenResponse(access_token=token, user_id=user_id, name=req.name, role=req.role)
+    token = create_access_token({"sub": user_id, "role": server_assigned_role})
+    return TokenResponse(
+        access_token=token,
+        user_id=user_id,
+        name=req.name.strip(),
+        role=server_assigned_role,
+    )
 
 
 @app.post("/api/v1/auth/login", response_model=TokenResponse, dependencies=[Depends(login_limiter)])
 async def login(req: LoginRequest):
-    user = await db.users.find_one({"email": req.email})
+    normalized_email = req.email.strip().lower()
+    user = await db.users.find_one({"email": normalized_email})
     if not user or not verify_password(req.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = create_access_token({"sub": user["_id"], "role": user["role"]})
+    token = create_access_token({"sub": user["_id"], "role": user.get("role", "owner")})
     return TokenResponse(
         access_token=token,
         user_id=user["_id"],
         name=user["name"],
-        role=user["role"],
+        role=user.get("role", "owner"),
+    )
+
+
+@app.get("/api/v1/users/me", response_model=UserProfileResponse)
+@app.get("/api/v1/me", response_model=UserProfileResponse)
+async def get_my_profile(current_user=Depends(get_current_user)):
+    return UserProfileResponse(
+        id=current_user["_id"],
+        name=current_user.get("name", ""),
+        email=current_user.get("email", ""),
+        role=current_user.get("role", "owner"),
+        store_name=current_user.get("store_name", "My Store"),
+        timezone=current_user.get("timezone", os.getenv("STORE_TIMEZONE", DEFAULT_STORE_TIMEZONE)),
+        opening_hour=float(current_user.get("opening_hour", STORE_OPEN_HOUR)),
+        closing_hour=float(current_user.get("closing_hour", STORE_CLOSE_HOUR)),
+        currency=current_user.get("currency", "₹"),
+        onboarding_completed=bool(current_user.get("onboarding_completed", False)),
+        created_at=current_user.get("created_at", ""),
+    )
+
+
+@app.patch("/api/v1/users/me", response_model=UserProfileResponse)
+@app.patch("/api/v1/me", response_model=UserProfileResponse)
+async def update_my_profile(req: UserProfileUpdateRequest, current_user=Depends(get_current_user)):
+    update_data = {}
+    if req.name is not None:
+        update_data["name"] = req.name.strip()
+    if req.store_name is not None:
+        update_data["store_name"] = req.store_name.strip()
+    if req.currency is not None:
+        update_data["currency"] = req.currency.strip()
+    if req.onboarding_completed is not None:
+        update_data["onboarding_completed"] = req.onboarding_completed
+
+    if req.timezone is not None:
+        try:
+            from zoneinfo import ZoneInfo
+            ZoneInfo(req.timezone.strip())
+            update_data["timezone"] = req.timezone.strip()
+        except Exception:
+            raise HTTPException(status_code=400, detail=f"Invalid IANA timezone: '{req.timezone}'")
+
+    op_h = req.opening_hour if req.opening_hour is not None else current_user.get("opening_hour", STORE_OPEN_HOUR)
+    cl_h = req.closing_hour if req.closing_hour is not None else current_user.get("closing_hour", STORE_CLOSE_HOUR)
+    if op_h >= cl_h:
+        raise HTTPException(status_code=400, detail="opening_hour must be strictly less than closing_hour")
+    if req.opening_hour is not None:
+        update_data["opening_hour"] = req.opening_hour
+    if req.closing_hour is not None:
+        update_data["closing_hour"] = req.closing_hour
+
+    if update_data:
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.users.update_one({"_id": current_user["_id"]}, {"$set": update_data})
+
+    fresh_user = await db.users.find_one({"_id": current_user["_id"]})
+    return UserProfileResponse(
+        id=fresh_user["_id"],
+        name=fresh_user.get("name", ""),
+        email=fresh_user.get("email", ""),
+        role=fresh_user.get("role", "owner"),
+        store_name=fresh_user.get("store_name", "My Store"),
+        timezone=fresh_user.get("timezone", os.getenv("STORE_TIMEZONE", DEFAULT_STORE_TIMEZONE)),
+        opening_hour=float(fresh_user.get("opening_hour", STORE_OPEN_HOUR)),
+        closing_hour=float(fresh_user.get("closing_hour", STORE_CLOSE_HOUR)),
+        currency=fresh_user.get("currency", "₹"),
+        onboarding_completed=bool(fresh_user.get("onboarding_completed", False)),
+        created_at=fresh_user.get("created_at", ""),
     )
 
 
 # ---------------------------------------------------------------------------- #
-# Health / System Status (Non-leaking DB & LLM check)
+# Health & Diagnostics
 # ---------------------------------------------------------------------------- #
 
 @app.get("/health")
 @app.get("/api/v1/health")
 async def health_check():
-    db_status = "disconnected"
-    try:
-        if client:
-            await client.admin.command("ping")
-            db_status = "connected"
-    except Exception:
-        db_status = "unreachable"
+    db_connected = False
+    counts = {"users": 0, "items": 0, "forecasts": 0, "daily_stock": 0}
+    last_forecast_time = None
 
-    llm_info = get_llm_info()
-    overall_status = "ok" if db_status == "connected" else "degraded"
+    if db is not None:
+        try:
+            if client:
+                await client.admin.command("ping")
+                db_connected = True
+                counts["users"] = await db.users.count_documents({})
+                counts["items"] = await db.items.count_documents({})
+                counts["forecasts"] = await db.forecasts.count_documents({})
+                counts["daily_stock"] = await db.daily_stock.count_documents({})
+                latest_fc = await db.forecasts.find_one({}, sort=[("createdAt", -1)])
+                if latest_fc:
+                    last_forecast_time = latest_fc.get("createdAt") or latest_fc.get("forecast_date")
+        except Exception:
+            db_connected = False
+
+    commit_sha = os.getenv("RENDER_GIT_COMMIT", os.getenv("GIT_COMMIT", "74ccc0a"))
 
     return {
-        "status": overall_status,
-        "database": {
-            "status": db_status,
-        },
-        "llm": {
-            "status": "configured" if llm_info.get("configured") else "unconfigured",
-            "model": llm_info.get("model"),
-        },
+        "status": "ok" if db_connected else "degraded",
+        "database": "connected" if db_connected else "disconnected",
+        "last_forecast_time": last_forecast_time,
+        "counts": counts,
+        "RENDER_GIT_COMMIT": commit_sha,
+        "store_timezone": os.getenv("STORE_TIMEZONE", DEFAULT_STORE_TIMEZONE),
+        "llm_configured": get_llm_info()["configured"],
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -447,20 +585,38 @@ async def health_check():
 # Items Routes (JWT Protected)
 # ---------------------------------------------------------------------------- #
 
+ALLOWED_CATEGORIES = ["Bakery", "Beverage", "Food", "Dessert", "Snack", "Other"]
+
 @app.post("/api/v1/items", status_code=201)
 async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_user)):
+    name_stripped = req.name.strip()
+    name_lower = name_stripped.lower()
+
+    # Enforce unique (owner_id, name_lower)
+    existing = await db.items.find_one({"owner_id": current_user["_id"], "name_lower": name_lower})
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"An item named '{name_stripped}' already exists in your store catalog."
+        )
+
+    clean_cat = req.category.strip().title()
+    matched_cat = next((c for c in ALLOWED_CATEGORIES if c.lower() == clean_cat.lower()), "Other")
+
     from bson import ObjectId
     item_id = str(ObjectId())
 
     item_doc = {
         "_id": item_id,
         "owner_id": current_user["_id"],
-        "name": req.name,
-        "category": req.category,
-        "unit": req.unit,
+        "name": name_stripped,
+        "name_lower": name_lower,
+        "category": matched_cat,
+        "unit": req.unit.strip(),
         "currentStock": req.currentStock,
         "isPerishable": req.isPerishable,
         "price": req.price,
+        "shelfLifeDays": req.shelfLifeDays,
         # ML fields - populated by nightly batch job later
         "predictedDemand": None,
         "safetyStock": None,
@@ -471,7 +627,20 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_u
         "updatedAt": datetime.now(timezone.utc).isoformat(),
     }
     await db.items.insert_one(item_doc)
-    return {"status": "created", "item_id": item_id, "message": f"'{req.name}' added. Routed to cold-start ML engine."}
+    return {
+        "status": "created",
+        "item_id": item_id,
+        "message": f"'{name_stripped}' added. Routed to cold-start ML engine.",
+        "item": {
+            "id": item_id,
+            "name": name_stripped,
+            "category": matched_cat,
+            "unit": req.unit.strip(),
+            "currentStock": req.currentStock,
+            "isPerishable": req.isPerishable,
+            "price": req.price,
+        }
+    }
 
 
 @app.get("/api/v1/items")
@@ -488,6 +657,7 @@ async def get_items(current_user=Depends(get_current_user)):
             "currentStock": doc["currentStock"],
             "isPerishable": doc["isPerishable"],
             "price": doc.get("price"),
+            "shelfLifeDays": doc.get("shelfLifeDays"),
             "predictedDemand": doc.get("predictedDemand"),
             "safetyStock": doc.get("safetyStock"),
             "description": doc.get("description", "LLM analysis pending"),
@@ -504,6 +674,28 @@ async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends
         raise HTTPException(status_code=404, detail="Item not found")
 
     update_data = {k: v for k, v in req.model_dump().items() if v is not None}
+
+    if req.name is not None:
+        name_stripped = req.name.strip()
+        name_lower = name_stripped.lower()
+        existing = await db.items.find_one({
+            "owner_id": current_user["_id"],
+            "name_lower": name_lower,
+            "_id": {"$ne": item_id}
+        })
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"An item named '{name_stripped}' already exists in your store catalog."
+            )
+        update_data["name"] = name_stripped
+        update_data["name_lower"] = name_lower
+
+    if req.category is not None:
+        clean_cat = req.category.strip().title()
+        matched_cat = next((c for c in ALLOWED_CATEGORIES if c.lower() == clean_cat.lower()), "Other")
+        update_data["category"] = matched_cat
+
     update_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
 
     await db.items.update_one({"_id": item_id, "owner_id": current_user["_id"]}, {"$set": update_data})
@@ -516,6 +708,7 @@ async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends
         "currentStock": updated["currentStock"],
         "isPerishable": updated["isPerishable"],
         "price": updated.get("price"),
+        "shelfLifeDays": updated.get("shelfLifeDays"),
         "predictedDemand": updated.get("predictedDemand"),
         "safetyStock": updated.get("safetyStock"),
         "riskLevel": updated.get("riskLevel", "normal"),
@@ -554,6 +747,27 @@ async def restock_item(item_id: str, req: RestockRequest, current_user=Depends(g
         {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {"currentStock": new_stock, "updatedAt": now_iso}}
     )
+
+    # Track produced/restocked quantity in daily_stock for store-local today
+    now_local = get_store_local_now(current_user, item)
+    today_local = now_local.strftime("%Y-%m-%d")
+    await db.daily_stock.update_one(
+        {"owner_id": current_user["_id"], "item_id": item_id, "date": today_local},
+        {
+            "$inc": {"producedOrRestocked": qty_to_add},
+            "$setOnInsert": {
+                "openingStock": item["currentStock"],
+                "status": "open",
+                "soldOut": False,
+                "createdAt": now_iso,
+            },
+            "$set": {
+                "updatedAt": now_iso,
+            }
+        },
+        upsert=True
+    )
+
     return {
         "status": "success",
         "message": f"Restocked {qty_to_add} {item['unit']} of {item['name']}.",
@@ -602,6 +816,21 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
         if restock_qty > 0:
             action_required_count += 1
 
+        days_of_data = await db.daily_sales.count_documents({
+            "owner_id": current_user["_id"],
+            "item_id": doc["_id"],
+            "status": "completed",
+        })
+        if days_of_data < 7:
+            maturity = "Learning"
+            maturity_label = f"Learning ({days_of_data}/7 days)"
+        elif days_of_data < 28:
+            maturity = "Improving"
+            maturity_label = f"Improving ({days_of_data}/28 days)"
+        else:
+            maturity = "Mature"
+            maturity_label = f"Mature ({days_of_data} days)"
+
         items.append({
             "id": doc["_id"],
             "name": doc["name"],
@@ -614,6 +843,9 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
             "safetyStock": safety_stock,
             "restockQuantity": restock_qty,
             "stockProgress": stock_progress,
+            "daysOfData": days_of_data,
+            "maturity": maturity,
+            "maturityLabel": maturity_label,
             "description": description,
             "confidence_interval": None,  # Locked architectural constraint (point estimates)
             "riskLevel": risk_level,
@@ -674,6 +906,21 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
             for i in range(7)
         ]
 
+    days_of_data = await db.daily_sales.count_documents({
+        "owner_id": current_user["_id"],
+        "item_id": item_id,
+        "status": "completed",
+    })
+    if days_of_data < 7:
+        maturity = "Learning"
+        maturity_label = f"Learning ({days_of_data}/7 days)"
+    elif days_of_data < 28:
+        maturity = "Improving"
+        maturity_label = f"Improving ({days_of_data}/28 days)"
+    else:
+        maturity = "Mature"
+        maturity_label = f"Mature ({days_of_data} days)"
+
     return {
         "id": item["_id"],
         "name": item["name"],
@@ -686,12 +933,374 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
         "safetyStock": safety_stock,
         "restockQuantity": restock_qty,
         "stockProgress": stock_progress,
+        "daysOfData": days_of_data,
+        "maturity": maturity,
+        "maturityLabel": maturity_label,
         "confidence_interval": None,  # Point-estimate constraint
         "description": (forecast.get("explanation") if forecast else item.get("description")) or "Demand steady — standard restocking pattern",
         "riskLevel": (forecast.get("riskLevel") if forecast else item.get("riskLevel")) or "normal",
         "historical_chart": historical_chart,
         "forecast_chart": forecast_chart,
-        "updatedAt": item.get("updatedAt", now_iso if 'now_iso' in locals() else datetime.now(timezone.utc).isoformat()),
+        "updatedAt": item.get("updatedAt", datetime.now(timezone.utc).isoformat()),
+    }
+
+
+# ---------------------------------------------------------------------------- #
+# Daily Operations & Stock Routine (Closing Count, Midday Count, Review)
+# ---------------------------------------------------------------------------- #
+
+@app.post("/api/v1/closing-count")
+@app.post("/api/v1/daily-stock/closing-count")
+async def record_closing_count(req: ClosingCountRequest, current_user=Depends(get_current_user)):
+    now_local = get_store_local_now(current_user)
+    today_str = now_local.strftime("%Y-%m-%d")
+    yesterday_str = (now_local.date() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    target_date = req.date.strip() if req.date else today_str
+    if target_date not in [today_str, yesterday_str]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Closing count can only be recorded for today ({today_str}) or yesterday ({yesterday_str}) in store timezone."
+        )
+
+    from datetime import date as dt_date
+    target_dt = dt_date.fromisoformat(target_date)
+    next_date_str = (target_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+    prev_date_str = (target_dt - timedelta(days=1)).strftime("%Y-%m-%d")
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    processed_items = []
+
+    for entry in req.counts:
+        item = await db.items.find_one({"_id": entry.item_id, "owner_id": current_user["_id"]})
+        if not item:
+            raise HTTPException(status_code=404, detail=f"Item '{entry.item_id}' not found.")
+
+        # Find existing daily_stock for target_date
+        stock_doc = await db.daily_stock.find_one({
+            "owner_id": current_user["_id"],
+            "item_id": entry.item_id,
+            "date": target_date
+        })
+
+        if stock_doc and "openingStock" in stock_doc and stock_doc["openingStock"] is not None:
+            opening = stock_doc["openingStock"]
+            produced = stock_doc.get("producedOrRestocked", 0)
+        else:
+            # Check previous day's closing count
+            prev_stock = await db.daily_stock.find_one({
+                "owner_id": current_user["_id"],
+                "item_id": entry.item_id,
+                "date": prev_date_str
+            })
+            if prev_stock and prev_stock.get("status") == "closed":
+                if item.get("isPerishable", True):
+                    opening = 0
+                else:
+                    opening = prev_stock.get("closingCount", item.get("currentStock", 0))
+            else:
+                opening = item.get("currentStock", 0) + item.get("intradaySales", 0)
+            produced = stock_doc.get("producedOrRestocked", 0) if stock_doc else 0
+
+        available = opening + produced
+        if entry.units_left > available:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Item '{item['name']}': units_left ({entry.units_left}) cannot exceed available stock ({available} = opening {opening} + produced {produced})."
+            )
+
+        sold_units = available - entry.units_left
+        is_perish = item.get("isPerishable", True)
+        waste_units = entry.units_left if is_perish else 0
+        sold_out = (entry.units_left == 0)
+
+        # Upsert daily_stock for target_date idempotently
+        await db.daily_stock.update_one(
+            {"owner_id": current_user["_id"], "item_id": entry.item_id, "date": target_date},
+            {"$set": {
+                "openingStock": opening,
+                "producedOrRestocked": produced,
+                "closingCount": entry.units_left,
+                "soldUnits": sold_units,
+                "wasteUnits": waste_units,
+                "status": "closed",
+                "soldOut": sold_out,
+                "source": "closing_count",
+                "updatedAt": now_iso,
+            },
+            "$setOnInsert": {
+                "createdAt": now_iso,
+            }},
+            upsert=True
+        )
+
+        # Upsert derived daily_sales record idempotently
+        await db.daily_sales.update_one(
+            {"owner_id": current_user["_id"], "item_id": entry.item_id, "date": target_date},
+            {"$set": {
+                "sales": sold_units,
+                "source": "closing_count",
+                "status": "completed",
+                "updatedAt": now_iso,
+            },
+            "$setOnInsert": {
+                "createdAt": now_iso,
+            }},
+            upsert=True
+        )
+
+        # Initialize/update next day's opening stock in daily_stock
+        next_opening = 0 if is_perish else entry.units_left
+        await db.daily_stock.update_one(
+            {"owner_id": current_user["_id"], "item_id": entry.item_id, "date": next_date_str},
+            {"$set": {
+                "openingStock": next_opening,
+                "updatedAt": now_iso,
+            },
+            "$setOnInsert": {
+                "producedOrRestocked": 0,
+                "status": "open",
+                "soldOut": False,
+                "source": "rollover",
+                "createdAt": now_iso,
+            }},
+            upsert=True
+        )
+
+        # Update item's currentStock in items collection:
+        # Perishable leftovers are recorded as waste and next opening stock = 0; non-perishable carries over
+        new_curr_stock = 0 if is_perish else entry.units_left
+        await db.items.update_one(
+            {"_id": entry.item_id, "owner_id": current_user["_id"]},
+            {"$set": {
+                "currentStock": new_curr_stock,
+                "intradaySales": 0,
+                "intradayDate": next_date_str if target_date == today_str else item.get("intradayDate", today_str),
+                "isDismissed": False,
+                "isPrimaryActionDone": False,
+                "isRecommendedActionDone": False,
+                "discountApplied": False,
+                "bundleApplied": False,
+                "updatedAt": now_iso,
+            }}
+        )
+
+        processed_items.append({
+            "item_id": entry.item_id,
+            "name": item["name"],
+            "openingStock": opening,
+            "producedOrRestocked": produced,
+            "availableStock": available,
+            "closingCount": entry.units_left,
+            "soldUnits": sold_units,
+            "wasteUnits": waste_units,
+            "isPerishable": is_perish,
+            "nextOpeningStock": next_opening,
+        })
+
+    return {
+        "status": "success",
+        "date": target_date,
+        "processed_count": len(processed_items),
+        "items": processed_items,
+    }
+
+
+@app.post("/api/v1/midday-count")
+@app.post("/api/v1/daily-stock/midday-count")
+async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_current_user)):
+    now_local = get_store_local_now(current_user)
+    today_str = now_local.strftime("%Y-%m-%d")
+    current_hour = now_local.hour + (now_local.minute / 60.0)
+    open_h = float(current_user.get("opening_hour", STORE_OPEN_HOUR))
+    close_h = float(current_user.get("closing_hour", STORE_CLOSE_HOUR))
+    total_hours = max(1.0, close_h - open_h)
+
+    if current_hour <= open_h:
+        elapsed_fraction = 0.05
+    elif current_hour >= close_h:
+        elapsed_fraction = 1.0
+    else:
+        elapsed_fraction = (current_hour - open_h) / total_hours
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    processed = []
+
+    for entry in req.counts:
+        item = await db.items.find_one({"_id": entry.item_id, "owner_id": current_user["_id"]})
+        if not item:
+            raise HTTPException(status_code=404, detail=f"Item '{entry.item_id}' not found.")
+
+        item = await rollover_if_new_day(item, current_user)
+
+        stock_doc = await db.daily_stock.find_one({
+            "owner_id": current_user["_id"],
+            "item_id": entry.item_id,
+            "date": today_str
+        })
+        if stock_doc and "openingStock" in stock_doc and stock_doc["openingStock"] is not None:
+            opening = stock_doc["openingStock"]
+            produced = stock_doc.get("producedOrRestocked", 0)
+        else:
+            opening = item.get("currentStock", 0) + item.get("intradaySales", 0)
+            produced = 0
+
+        available = opening + produced
+        if entry.remaining > available:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Item '{item['name']}': remaining ({entry.remaining}) cannot exceed available stock ({available})."
+            )
+
+        sold_so_far = available - entry.remaining
+
+        # Forecast pace calculation
+        fc = await db.forecasts.find_one({"item_id": entry.item_id, "owner_id": current_user["_id"]}, sort=[("forecast_date", -1)])
+        dem = (fc.get("predictedDemand") if fc else item.get("predictedDemand")) or DEFAULT_FALLBACK_DEMAND
+        expected_by_now = max(1.0, dem * elapsed_fraction)
+        pace = round(sold_so_far / expected_by_now, 2)
+
+        mid_day_entry = {
+            "remaining": entry.remaining,
+            "sold_so_far": sold_so_far,
+            "pace": pace,
+            "elapsed_fraction": round(elapsed_fraction, 4),
+            "timestamp": now_iso,
+        }
+
+        await db.daily_stock.update_one(
+            {"owner_id": current_user["_id"], "item_id": entry.item_id, "date": today_str},
+            {"$set": {
+                "midDayCount": mid_day_entry,
+                "source": "midday_count",
+                "updatedAt": now_iso,
+            },
+            "$setOnInsert": {
+                "openingStock": opening,
+                "producedOrRestocked": produced,
+                "status": "open",
+                "soldOut": False,
+                "createdAt": now_iso,
+            }},
+            upsert=True
+        )
+
+        # Update item's currentStock and intradaySales
+        await db.items.update_one(
+            {"_id": entry.item_id, "owner_id": current_user["_id"]},
+            {"$set": {
+                "currentStock": entry.remaining,
+                "intradaySales": sold_so_far,
+                "intradayDate": today_str,
+                "updatedAt": now_iso,
+            }}
+        )
+
+        processed.append({
+            "item_id": entry.item_id,
+            "name": item["name"],
+            "remaining": entry.remaining,
+            "sold_so_far": sold_so_far,
+            "expected_by_now": round(expected_by_now, 1),
+            "same_day_pace": pace,
+        })
+
+    return {
+        "status": "success",
+        "date": today_str,
+        "elapsed_fraction": round(elapsed_fraction, 4),
+        "items": processed,
+    }
+
+
+@app.get("/api/v1/review/yesterday")
+@app.get("/api/v1/daily-stock/review/yesterday")
+async def get_yesterday_review(current_user=Depends(get_current_user)):
+    now_local = get_store_local_now(current_user)
+    yesterday_str = (now_local.date() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    cursor = db.items.find({"owner_id": current_user["_id"]})
+    reviews = []
+    completed_count = 0
+    missing_count = 0
+
+    async for item in cursor:
+        stock_doc = await db.daily_stock.find_one({
+            "owner_id": current_user["_id"],
+            "item_id": item["_id"],
+            "date": yesterday_str,
+        })
+
+        if stock_doc and stock_doc.get("status") == "closed" and stock_doc.get("soldUnits") is not None:
+            opening = stock_doc.get("openingStock", 0)
+            produced = stock_doc.get("producedOrRestocked", 0)
+            available = opening + produced
+            sold = stock_doc.get("soldUnits", 0)
+            waste = stock_doc.get("wasteUnits", 0)
+            closing = stock_doc.get("closingCount", 0)
+
+            sell_through = round(sold / available, 2) if available > 0 else 0.0
+            if sell_through >= 0.90:
+                label = "High"
+                color = "#10B981"
+            elif sell_through >= 0.70:
+                label = "Normal"
+                color = "#3B82F6"
+            elif sell_through >= 0.35:
+                label = "Low"
+                color = "#F59E0B"
+            else:
+                label = "Critical"
+                color = "#EF4444"
+
+            completed_count += 1
+            reviews.append({
+                "itemId": item["_id"],
+                "itemName": item["name"],
+                "category": item.get("category", "Other"),
+                "status": "completed",
+                "sellThrough": sell_through,
+                "sellThroughPct": int(round(sell_through * 100)),
+                "label": label,
+                "color": color,
+                "openingStock": opening,
+                "producedOrRestocked": produced,
+                "availableStock": available,
+                "soldUnits": sold,
+                "wasteUnits": waste,
+                "closingCount": closing,
+                "date": yesterday_str,
+            })
+        else:
+            missing_count += 1
+            # Missing day = status 'missing', NEVER zero, excluded from training
+            reviews.append({
+                "itemId": item["_id"],
+                "itemName": item["name"],
+                "category": item.get("category", "Other"),
+                "status": "missing",
+                "sellThrough": None,
+                "sellThroughPct": None,
+                "label": "no data",
+                "color": "#9CA3AF",
+                "openingStock": None,
+                "producedOrRestocked": None,
+                "availableStock": None,
+                "soldUnits": None,  # NEVER ZERO!
+                "wasteUnits": None,
+                "closingCount": None,
+                "date": yesterday_str,
+            })
+
+    return {
+        "status": "success",
+        "date": yesterday_str,
+        "summary": {
+            "total_items": len(reviews),
+            "completed_count": completed_count,
+            "missing_count": missing_count,
+        },
+        "items": reviews,
     }
 
 
@@ -750,8 +1359,8 @@ def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stoc
       3. curr_stock > 0 (out of stock items produce no waste alert)
       4. sales_pace_ratio = round(actual_sold / expected_by_now, 2)
          - pace >= 0.70: Normal pace (No Alert)
-         - 0.35 <= pace < 0.70: Low Pace (20% discount suggested)
-         - pace < 0.35: Critical (Flag for donation / 30% discount in code)
+         - 0.35 <= pace < 0.70: Low Pace (10% discount suggested)
+         - pace < 0.35: Critical (20% discount + partner combo bundle suggested)
     """
     if not is_perishable or is_dismissed:
         return None
@@ -768,12 +1377,12 @@ def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stoc
         return {
             "severityLabel": "Critical",
             "severityColor": "#D97706",
-            "discount_pct": 30,
-            "recommendedActionText": "Flag for Donation",
+            "discount_pct": 20,
+            "recommendedActionText": "Apply 20% Bundle",
             "recommendedActionColor": "#FFB702",
-            "recommendedDoneText": "Flagged for Donation",
-            "primaryActionText": "Flag Item",
-            "primaryDoneText": "Item Flagged",
+            "recommendedDoneText": "Bundle Applied",
+            "primaryActionText": "Apply Bundle",
+            "primaryDoneText": "Bundle Active",
             "layoutStyle": "sideBySide",
             "salesPaceRatio": sales_pace_ratio,
         }
@@ -781,8 +1390,8 @@ def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stoc
         return {
             "severityLabel": "Low Pace",
             "severityColor": "#B91C1C",
-            "discount_pct": 20,
-            "recommendedActionText": "Suggest 20% Discount",
+            "discount_pct": 10,
+            "recommendedActionText": "Suggest 10% Discount",
             "recommendedActionColor": "#8B1E22",
             "recommendedDoneText": "Discount Suggested",
             "primaryActionText": "Apply Discount",
@@ -797,8 +1406,8 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
     now_local = get_store_local_now(current_user)
     current_hour = now_local.hour + (now_local.minute / 60.0)
     
-    open_hour = STORE_OPEN_HOUR
-    close_hour = STORE_CLOSE_HOUR
+    open_hour = float(current_user.get("opening_hour", STORE_OPEN_HOUR))
+    close_hour = float(current_user.get("closing_hour", STORE_CLOSE_HOUR))
     
     # Store operating hours check: closed outside open-close hours
     if current_hour < open_hour or current_hour >= close_hour:
@@ -810,7 +1419,8 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
             "local_time": now_local.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-    elapsed_fraction = (current_hour - open_hour) / (close_hour - open_hour)
+    total_hours = max(1.0, close_hour - open_hour)
+    elapsed_fraction = (current_hour - open_hour) / total_hours
     
     cursor = db.items.find({"owner_id": current_user["_id"], "isPerishable": True})
     alerts = []
@@ -856,6 +1466,48 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
             pct_int = int(round(sales_pace_ratio * 100))
             sales_text = f"{pct_int}% of expected sales so far\ntoday"
 
+            partner_item = None
+            if tier["severityLabel"] == "Critical":
+                # Select partner item from same store:
+                # best sell-through/pace >= 1.0, preferring complementary category, else top seller
+                comp_map = {
+                    "bakery": ["beverage", "dessert", "food"],
+                    "beverage": ["bakery", "food", "dessert"],
+                    "food": ["beverage", "bakery"],
+                    "dessert": ["beverage", "bakery"],
+                    "snack": ["beverage"],
+                }
+                my_cat = item.get("category", "").lower()
+                pref_cats = comp_map.get(my_cat, ["beverage", "bakery"])
+
+                candidates_cursor = db.items.find({
+                    "owner_id": current_user["_id"],
+                    "_id": {"$ne": item_id}
+                })
+                candidates = await candidates_cursor.to_list(length=50)
+
+                def partner_score(c):
+                    c_cat = c.get("category", "").lower()
+                    is_comp = 1 if c_cat in pref_cats else 0
+                    sold = c.get("intradaySales", 0)
+                    return (is_comp, sold)
+
+                if candidates:
+                    candidates.sort(key=partner_score, reverse=True)
+                    top_candidate = candidates[0]
+                    p_price = top_candidate.get("price") or 5.0
+                    my_price = item.get("price") or 5.0
+                    bundle_price = round((my_price + p_price) * 0.80, 2)
+                    partner_item = {
+                        "id": top_candidate["_id"],
+                        "name": top_candidate["name"],
+                        "category": top_candidate.get("category", "Other"),
+                        "price": p_price,
+                        "comboOriginalPrice": round(my_price + p_price, 2),
+                        "bundlePrice": bundle_price,
+                        "discountPct": 20,
+                    }
+
             alerts.append({
                 "id": item_id,
                 "itemName": item["name"],
@@ -875,6 +1527,9 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
                 "primaryActionText": tier["primaryActionText"],
                 "primaryDoneText": tier["primaryDoneText"],
                 "isPrimaryActionDone": item.get("isPrimaryActionDone", False),
+                "partnerItem": partner_item,
+                "bundleDiscountPct": 20 if tier["severityLabel"] == "Critical" else None,
+                "isBundleApplied": item.get("bundleApplied", False),
                 "isDismissed": False,
                 "layoutStyle": tier["layoutStyle"],
                 "foodType": food_type,
@@ -883,23 +1538,29 @@ async def get_waste_alerts(current_user=Depends(get_current_user)):
     return {"alerts": alerts, "total_alerts": len(alerts), "store_status": "open"}
 
 
+class ApplyDiscountRequest(BaseModel):
+    discount_pct: Optional[float] = None
+
+
 @app.post("/api/v1/waste-alerts/{item_id}/apply-discount")
-async def apply_discount_action(item_id: str, current_user=Depends(get_current_user)):
+async def apply_discount_action(item_id: str, req: Optional[ApplyDiscountRequest] = None, current_user=Depends(get_current_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     item = await rollover_if_new_day(item, current_user)
 
-    # Static 20% discount mapping
+    discount_pct = req.discount_pct if (req and req.discount_pct is not None) else 10.0
     current_price = item.get("price") or 5.0
-    discounted_price = round(current_price * 0.80, 2)
+    discount_multiplier = max(0.0, 1.0 - (discount_pct / 100.0))
+    discounted_price = round(current_price * discount_multiplier, 2)
     now_iso = datetime.now(timezone.utc).isoformat()
 
     await db.items.update_one(
         {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {
             "price": discounted_price,
-            "originalPrice": current_price,
+            "originalPrice": item.get("originalPrice", current_price),
+            "discountPct": discount_pct,
             "isPrimaryActionDone": True,
             "discountApplied": True,
             "updatedAt": now_iso,
@@ -907,31 +1568,40 @@ async def apply_discount_action(item_id: str, current_user=Depends(get_current_u
     )
     return {
         "status": "success",
-        "message": f"Applied 20% discount to {item['name']}. New price: ${discounted_price}",
+        "message": f"Applied {discount_pct:.0f}% discount to {item['name']}. New price: ${discounted_price}",
         "oldPrice": current_price,
         "newPrice": discounted_price,
+        "discountPct": discount_pct,
     }
 
 
-@app.post("/api/v1/waste-alerts/{item_id}/flag-donation")
-async def flag_donation_action(item_id: str, current_user=Depends(get_current_user)):
+@app.post("/api/v1/waste-alerts/{item_id}/apply-bundle")
+async def apply_bundle_action(item_id: str, req: Optional[ApplyBundleRequest] = None, current_user=Depends(get_current_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     item = await rollover_if_new_day(item, current_user)
 
+    bundle_pct = req.bundle_discount_pct if req else 20.0
+    partner_id = req.partner_item_id if req else None
+
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.items.update_one(
         {"_id": item_id, "owner_id": current_user["_id"]},
         {"$set": {
-            "flaggedForDonation": True,
+            "bundleApplied": True,
+            "bundlePartnerId": partner_id,
+            "bundleDiscountPct": bundle_pct,
             "isRecommendedActionDone": True,
+            "isPrimaryActionDone": True,
             "updatedAt": now_iso,
         }}
     )
     return {
         "status": "success",
-        "message": f"Item '{item['name']}' has been marked for community donation pickup.",
+        "message": f"Applied {bundle_pct}% combo bundle for '{item['name']}'.",
+        "bundleDiscountPct": bundle_pct,
+        "partnerItemId": partner_id,
     }
 
 

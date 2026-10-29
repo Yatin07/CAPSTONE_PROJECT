@@ -154,6 +154,7 @@ def test_tenant_isolation():
         return res
 
     mock_db.forecasts.delete_many = AsyncMock(side_effect=mock_delete_many_forecasts)
+    mock_db.daily_sales.count_documents = AsyncMock(return_value=0)
 
     # Patch main.db
     original_db = main.db
@@ -200,8 +201,8 @@ def test_tenant_isolation():
         r8 = client.post("/api/v1/waste-alerts/item_b_100/apply-discount", headers=headers_a)
         results.append(("POST /api/v1/waste-alerts/{id}/apply-discount", "Enforces owner_id", "404 Not Found", r8.status_code, r8.status_code == 404))
 
-        r9 = client.post("/api/v1/waste-alerts/item_b_100/flag-donation", headers=headers_a)
-        results.append(("POST /api/v1/waste-alerts/{id}/flag-donation", "Enforces owner_id", "404 Not Found", r9.status_code, r9.status_code == 404))
+        r9 = client.post("/api/v1/waste-alerts/item_b_100/apply-bundle", headers=headers_a)
+        results.append(("POST /api/v1/waste-alerts/{id}/apply-bundle", "Enforces owner_id", "404 Not Found", r9.status_code, r9.status_code == 404))
 
         r10 = client.post("/api/v1/waste-alerts/item_b_100/dismiss", headers=headers_a)
         results.append(("POST /api/v1/waste-alerts/{id}/dismiss", "Enforces owner_id", "404 Not Found", r10.status_code, r10.status_code == 404))

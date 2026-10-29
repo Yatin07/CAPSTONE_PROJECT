@@ -104,7 +104,7 @@ def _build_deterministic_fallback(items: List[Dict[str, Any]], alerts: List[Dict
         actions.append(f"Restock priority items: {names}.")
     if urgent_alerts:
         alert_names = ", ".join([a.get("itemName") or a.get("name", "Item") for a in urgent_alerts[:2]])
-        actions.append(f"Review waste alerts for {alert_names} to apply scheduled discount or donation.")
+        actions.append(f"Review waste alerts for {alert_names} to apply scheduled discount or combo bundle.")
     else:
         actions.append("Inventory levels stable with standard turnover pace.")
 
@@ -143,12 +143,15 @@ def build_briefing_prompt(items: List[Dict[str, Any]], alerts: List[Dict[str, An
     alerts_summary = []
     for a in alerts[:10]:
         pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
+        partner_info = a.get("partnerItem")
+        partner_desc = f"{partner_info['name']} (-{a.get('bundleDiscountPct', 20)}% combo)" if partner_info else None
         alerts_summary.append({
             "name": a.get("itemName") or a.get("name"),
             "tier": a.get("tier") or a.get("severityLabel") or a.get("riskLevel"),
             "sales_pace_ratio": pace,
             "current_stock": a.get("currentStock"),
             "recommended_action": a.get("recommended_action") or a.get("recommendedActionText") or a.get("recommendedAction"),
+            "partner_combo": partner_desc,
         })
 
     return f"""
@@ -158,9 +161,10 @@ Analyze this morning's store operational data and write a concise, professional 
 STRICT INSTRUCTIONS:
 1. ZERO-MATH: Do NOT invent, recalculate, or guess any numbers, prices, or confidence intervals. Use ONLY the figures provided below.
 2. Structure your response into two distinct parts:
-   - Part 1: "Executive Summary" (2-3 concise sentences on shift priorities and operational health).
-   - Part 2: "Action Checklist" (exactly 3 high-priority bullet points specifying item names and recommended actions).
-3. Tone: Direct, operational, professional, and clear.
+   - Part 1: "Executive Summary" (2-3 concise sentences on shift priorities, restock quantities, and operational health).
+   - Part 2: "Action Checklist" (exactly 3 high-priority bullet points specifying item names, exact restock quantities, and recommended discount or combo bundle actions).
+3. Waste Mitigation Actions: Recommended actions are promotional markdowns (10% discount) and combo bundle pairings (20% combo discount). Never suggest donations.
+4. Tone: Direct, operational, professional, and clear.
 
 CURRENT INVENTORY STATE:
 {json.dumps(inventory_summary, indent=2)}
@@ -194,7 +198,8 @@ def build_assistant_prompt(
         a_tier = a.get("tier") or a.get("severityLabel") or a.get("riskLevel")
         a_action = a.get("recommended_action") or a.get("recommendedActionText") or a.get("recommendedAction")
         a_pace = a.get("salesPaceRatio") if a.get("salesPaceRatio") is not None else a.get("sales_pace_ratio")
-        alerts_context.append(f"- Alert on {a_name}: Tier={a_tier}, Action={a_action}, Pace={a_pace}")
+        partner_desc = f", Partner={a['partnerItem']['name']}" if a.get("partnerItem") else ""
+        alerts_context.append(f"- Alert on {a_name}: Tier={a_tier}, Action={a_action}, Pace={a_pace}{partner_desc}")
 
     return f"""
 You are the RestockIQ On-Duty Store Assistant.
@@ -203,6 +208,7 @@ Answer the store manager's question using the store's verified inventory data be
 RULES:
 - Answer directly in 2 to 4 sentences.
 - Use only facts from the store data. Never hallucinate items or metrics not listed.
+- Waste mitigation actions are discounts and combo bundles (never donations).
 - If the item or information is not present, clearly state that it is not in today's active catalog.
 
 STORE INVENTORY:
@@ -254,7 +260,7 @@ def generate_daily_briefing(items: List[Dict[str, Any]], alerts: List[Dict[str, 
     if not action_lines:
         action_lines = [
             "Review items below safety stock threshold.",
-            "Inspect high-risk waste alerts for intraday markdown.",
+            "Inspect high-risk waste alerts for intraday markdown or combo bundle.",
             "Confirm morning delivery arrivals."
         ]
 
