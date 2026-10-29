@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, ValueNotifier;
 import 'package:http/http.dart' as http;
 import '../models/inventory_item.dart';
 import '../models/waste_alert.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   http.Client client;
@@ -39,10 +40,13 @@ class ApiService {
   }
 
   String _baseUrl = defaultBaseUrl;
-  // ignore: unnecessary_getters_setters
   String get baseUrl => _baseUrl;
-  // ignore: unnecessary_getters_setters
-  set baseUrl(String url) => _baseUrl = url;
+  set baseUrl(String url) {
+    _baseUrl = url.trim();
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('custom_base_url', _baseUrl);
+    }).catchError((_) {});
+  }
 
 
   String? _token;
@@ -166,6 +170,7 @@ class ApiService {
         _userName = data['name'];
         _userRole = data['role'] ?? 'owner';
         _lastAuthError = null;
+        _persistAuth();
         if (kDebugMode) print('[API] Logged in successfully as $_userName');
         return true;
       } else if (response.statusCode == 401) {
@@ -217,6 +222,7 @@ class ApiService {
         _userName = data['name'];
         _userRole = data['role'] ?? role;
         _lastAuthError = null;
+        _persistAuth();
         return true;
       } else if (response.statusCode == 409) {
         _lastAuthError = 'Email is already registered. Please login instead.';
@@ -237,6 +243,51 @@ class ApiService {
     _userId = null;
     _userName = null;
     _userRole = null;
+    _workspace = null;
+    _clearPersistedAuth();
+  }
+
+  Future<void> _persistAuth() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_token != null && _token!.isNotEmpty) {
+        await prefs.setString('auth_token', _token!);
+        await prefs.setString('auth_user_id', _userId ?? '');
+        await prefs.setString('auth_user_name', _userName ?? '');
+        await prefs.setString('auth_user_role', _userRole ?? 'owner');
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _clearPersistedAuth() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('auth_user_id');
+      await prefs.remove('auth_user_name');
+      await prefs.remove('auth_user_role');
+    } catch (_) {}
+  }
+
+  Future<bool> tryAutoLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUrl = prefs.getString('custom_base_url');
+      if (savedUrl != null && savedUrl.isNotEmpty) {
+        _baseUrl = savedUrl;
+      }
+      final savedToken = prefs.getString('auth_token');
+      if (savedToken != null && savedToken.isNotEmpty) {
+        _token = savedToken;
+        _userId = prefs.getString('auth_user_id');
+        _userName = prefs.getString('auth_user_name');
+        _userRole = prefs.getString('auth_user_role') ?? 'owner';
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) print('[API] tryAutoLogin error: $e');
+    }
+    return false;
   }
 
   // --------------------------------------------------------------------------
@@ -631,6 +682,14 @@ class ApiService {
             )
             .timeout(timeout),
       );
+      if (response.statusCode != 200) {
+        try {
+          final data = jsonDecode(response.body);
+          _lastAuthError = data['detail']?.toString() ?? 'Error (${response.statusCode})';
+        } catch (_) {
+          _lastAuthError = 'Server error (${response.statusCode})';
+        }
+      }
       return response.statusCode == 200;
     } catch (e) {
       if (kDebugMode) print('[API] updateUserProfile error: $e');

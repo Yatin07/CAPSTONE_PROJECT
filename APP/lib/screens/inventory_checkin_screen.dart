@@ -339,35 +339,86 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                       const SizedBox(height: 10),
 
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             flex: 5,
-                            child: TextField(
-                              controller: ctrl,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'Units Left at Close',
-                                labelStyle: const TextStyle(fontSize: 12),
-                                floatingLabelBehavior: FloatingLabelBehavior.always,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                errorText: entry.validationError,
-                              ),
-                              onChanged: (val) {
-                                final parsed = int.tryParse(val.trim()) ?? 0;
-                                provider.updateClosingUnitsLeft(entry.id, parsed);
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            flex: 4,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Sold: ${entry.soldUnits ?? 0}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-                                Text('Waste: ${entry.wasteUnits ?? 0}', style: GoogleFonts.inter(fontSize: 12, color: entry.wasteUnits != null && entry.wasteUnits! > 0 ? Colors.red.shade700 : AppColors.onSurfaceVariant)),
+                                Text(
+                                  'Units Left at Close',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextField(
+                                  controller: ctrl,
+                                  keyboardType: TextInputType.number,
+                                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(color: AppColors.outlineVariant),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                                    ),
+                                    errorText: entry.validationError,
+                                  ),
+                                  onChanged: (val) {
+                                    final parsed = int.tryParse(val.trim()) ?? 0;
+                                    provider.updateClosingUnitsLeft(entry.id, parsed);
+                                  },
+                                ),
                               ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            flex: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Sold: ${entry.soldUnits ?? 0}',
+                                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Waste: ${entry.wasteUnits ?? 0}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: entry.wasteUnits != null && entry.wasteUnits! > 0
+                                            ? Colors.red.shade700
+                                            : AppColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],

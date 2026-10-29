@@ -1947,9 +1947,14 @@ async def start_demo_sandbox(real_user=Depends(get_current_user)):
     # 3. Clean up any partial shadow state before seeding
     await purge_shadow_tenant(shadow_id)
 
-    # 4. Load precomputed fixture
-    fixture_path = Path(__file__).resolve().parent.parent / "ML" / "data" / "demo_fixture.json"
-    if not fixture_path.exists():
+    # 4. Load precomputed fixture (searches local container app dir and ML fallback)
+    fixture_candidates = [
+        Path(__file__).resolve().parent / "demo_fixture.json",
+        Path(__file__).resolve().parent / "data" / "demo_fixture.json",
+        Path(__file__).resolve().parent.parent / "ML" / "data" / "demo_fixture.json",
+    ]
+    fixture_path = next((p for p in fixture_candidates if p.exists()), None)
+    if not fixture_path:
         raise HTTPException(status_code=500, detail="Demo fixture file not found on server.")
 
     with open(fixture_path, "r", encoding="utf-8") as f:
