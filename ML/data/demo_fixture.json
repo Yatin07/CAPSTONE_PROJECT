@@ -1,0 +1,3620 @@
+{
+  "store_profile": {
+    "store_name": "Sample Artisan Bakery",
+    "timezone": "Asia/Kolkata",
+    "opening_hour": 8.0,
+    "closing_hour": 20.0,
+    "currency": "\u20b9",
+    "replayed_dataset": true
+  },
+  "mature_items": [
+    {
+      "fixture_id": "item_baguette",
+      "name": "Traditional Baguette",
+      "article": "BAGUETTE",
+      "category": "Bakery",
+      "unit": "loaf",
+      "price": 45.0,
+      "isPerishable": true,
+      "shelfLifeDays": 1,
+      "currentStock": 8,
+      "sales_history_60": [
+        70,
+        48,
+        49,
+        57,
+        40,
+        70,
+        55,
+        67,
+        61,
+        52,
+        57,
+        51,
+        54,
+        54,
+        81,
+        60,
+        35,
+        41,
+        71,
+        53,
+        61,
+        73,
+        50,
+        42,
+        47,
+        35,
+        37,
+        43,
+        46,
+        39,
+        35,
+        16,
+        34,
+        38,
+        43,
+        21,
+        19,
+        18,
+        20,
+        25,
+        31,
+        41,
+        26,
+        27,
+        22,
+        26,
+        25,
+        34,
+        47,
+        20,
+        11,
+        34,
+        12,
+        28,
+        36,
+        18,
+        34,
+        23,
+        30,
+        35
+      ],
+      "daily_stock_60": [
+        {
+          "day_offset": 59,
+          "openingStock": 0,
+          "producedOrRestocked": 77,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 70
+        },
+        {
+          "day_offset": 58,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 48
+        },
+        {
+          "day_offset": 57,
+          "openingStock": 0,
+          "producedOrRestocked": 53,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 49
+        },
+        {
+          "day_offset": 56,
+          "openingStock": 0,
+          "producedOrRestocked": 63,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 57
+        },
+        {
+          "day_offset": 55,
+          "openingStock": 0,
+          "producedOrRestocked": 43,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 40
+        },
+        {
+          "day_offset": 54,
+          "openingStock": 0,
+          "producedOrRestocked": 76,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 70
+        },
+        {
+          "day_offset": 53,
+          "openingStock": 0,
+          "producedOrRestocked": 60,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 55
+        },
+        {
+          "day_offset": 52,
+          "openingStock": 0,
+          "producedOrRestocked": 72,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 67
+        },
+        {
+          "day_offset": 51,
+          "openingStock": 0,
+          "producedOrRestocked": 66,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 61
+        },
+        {
+          "day_offset": 50,
+          "openingStock": 0,
+          "producedOrRestocked": 57,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 52
+        },
+        {
+          "day_offset": 49,
+          "openingStock": 0,
+          "producedOrRestocked": 62,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 57
+        },
+        {
+          "day_offset": 48,
+          "openingStock": 0,
+          "producedOrRestocked": 55,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 51
+        },
+        {
+          "day_offset": 47,
+          "openingStock": 0,
+          "producedOrRestocked": 59,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 54
+        },
+        {
+          "day_offset": 46,
+          "openingStock": 0,
+          "producedOrRestocked": 58,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 54
+        },
+        {
+          "day_offset": 45,
+          "openingStock": 0,
+          "producedOrRestocked": 87,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 81
+        },
+        {
+          "day_offset": 44,
+          "openingStock": 0,
+          "producedOrRestocked": 66,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 60
+        },
+        {
+          "day_offset": 43,
+          "openingStock": 0,
+          "producedOrRestocked": 38,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 35
+        },
+        {
+          "day_offset": 42,
+          "openingStock": 0,
+          "producedOrRestocked": 44,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 41
+        },
+        {
+          "day_offset": 41,
+          "openingStock": 0,
+          "producedOrRestocked": 78,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 71
+        },
+        {
+          "day_offset": 40,
+          "openingStock": 0,
+          "producedOrRestocked": 57,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 53
+        },
+        {
+          "day_offset": 39,
+          "openingStock": 0,
+          "producedOrRestocked": 66,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 61
+        },
+        {
+          "day_offset": 38,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 73
+        },
+        {
+          "day_offset": 37,
+          "openingStock": 0,
+          "producedOrRestocked": 54,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 50
+        },
+        {
+          "day_offset": 36,
+          "openingStock": 0,
+          "producedOrRestocked": 45,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 42
+        },
+        {
+          "day_offset": 35,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 34,
+          "openingStock": 0,
+          "producedOrRestocked": 38,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 35
+        },
+        {
+          "day_offset": 33,
+          "openingStock": 0,
+          "producedOrRestocked": 40,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 37
+        },
+        {
+          "day_offset": 32,
+          "openingStock": 0,
+          "producedOrRestocked": 47,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 43
+        },
+        {
+          "day_offset": 31,
+          "openingStock": 0,
+          "producedOrRestocked": 50,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 46
+        },
+        {
+          "day_offset": 30,
+          "openingStock": 0,
+          "producedOrRestocked": 42,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 39
+        },
+        {
+          "day_offset": 29,
+          "openingStock": 0,
+          "producedOrRestocked": 39,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 35
+        },
+        {
+          "day_offset": 28,
+          "openingStock": 0,
+          "producedOrRestocked": 17,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 16
+        },
+        {
+          "day_offset": 27,
+          "openingStock": 0,
+          "producedOrRestocked": 37,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 26,
+          "openingStock": 0,
+          "producedOrRestocked": 42,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 25,
+          "openingStock": 0,
+          "producedOrRestocked": 46,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 43
+        },
+        {
+          "day_offset": 24,
+          "openingStock": 0,
+          "producedOrRestocked": 23,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 21
+        },
+        {
+          "day_offset": 23,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 19
+        },
+        {
+          "day_offset": 22,
+          "openingStock": 0,
+          "producedOrRestocked": 19,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 18
+        },
+        {
+          "day_offset": 21,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 20,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 19,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 31
+        },
+        {
+          "day_offset": 18,
+          "openingStock": 0,
+          "producedOrRestocked": 44,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 41
+        },
+        {
+          "day_offset": 17,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 26
+        },
+        {
+          "day_offset": 16,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 15,
+          "openingStock": 0,
+          "producedOrRestocked": 24,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 22
+        },
+        {
+          "day_offset": 14,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 26
+        },
+        {
+          "day_offset": 13,
+          "openingStock": 0,
+          "producedOrRestocked": 27,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 12,
+          "openingStock": 0,
+          "producedOrRestocked": 37,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 11,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 10,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 9,
+          "openingStock": 0,
+          "producedOrRestocked": 12,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 11
+        },
+        {
+          "day_offset": 8,
+          "openingStock": 0,
+          "producedOrRestocked": 38,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 7,
+          "openingStock": 0,
+          "producedOrRestocked": 13,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 12
+        },
+        {
+          "day_offset": 6,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 5,
+          "openingStock": 0,
+          "producedOrRestocked": 40,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 36
+        },
+        {
+          "day_offset": 4,
+          "openingStock": 0,
+          "producedOrRestocked": 19,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 18
+        },
+        {
+          "day_offset": 3,
+          "openingStock": 0,
+          "producedOrRestocked": 37,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 2,
+          "openingStock": 0,
+          "producedOrRestocked": 26,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 23
+        },
+        {
+          "day_offset": 1,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 0,
+          "openingStock": 0,
+          "producedOrRestocked": 38,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 35
+        }
+      ],
+      "weekday_forecasts": {
+        "0": {
+          "predictedDemand": 26,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 26 units/day expectation (weekday baseline)."
+        },
+        "1": {
+          "predictedDemand": 23,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+        },
+        "2": {
+          "predictedDemand": 23,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+        },
+        "3": {
+          "predictedDemand": 23,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+        },
+        "4": {
+          "predictedDemand": 25,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 25 units/day expectation (weekend peak)."
+        },
+        "5": {
+          "predictedDemand": 31,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 31 units/day expectation (weekend peak)."
+        },
+        "6": {
+          "predictedDemand": 40,
+          "safetyStock": 15,
+          "tier": "Mature",
+          "explanation": "Historical 40 units/day expectation (weekend peak)."
+        }
+      }
+    },
+    {
+      "fixture_id": "item_croissant",
+      "name": "Croissant",
+      "article": "CROISSANT",
+      "category": "Bakery",
+      "unit": "piece",
+      "price": 65.0,
+      "isPerishable": true,
+      "shelfLifeDays": 1,
+      "currentStock": 12,
+      "sales_history_60": [
+        210,
+        90,
+        75,
+        36,
+        81,
+        89,
+        108,
+        216,
+        121,
+        83,
+        100,
+        147,
+        128,
+        173,
+        271,
+        156,
+        68,
+        67,
+        120,
+        84,
+        109,
+        179,
+        84,
+        49,
+        59,
+        51,
+        52,
+        49,
+        130,
+        47,
+        38,
+        34,
+        31,
+        48,
+        76,
+        48,
+        17,
+        19,
+        25,
+        37,
+        53,
+        113,
+        28,
+        18,
+        21,
+        21,
+        28,
+        57,
+        81,
+        13,
+        19,
+        29,
+        28,
+        43,
+        91,
+        26,
+        25,
+        20,
+        27,
+        38
+      ],
+      "daily_stock_60": [
+        {
+          "day_offset": 59,
+          "openingStock": 0,
+          "producedOrRestocked": 228,
+          "closingStock": 18,
+          "wasteUnits": 18,
+          "soldUnits": 210
+        },
+        {
+          "day_offset": 58,
+          "openingStock": 0,
+          "producedOrRestocked": 97,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 90
+        },
+        {
+          "day_offset": 57,
+          "openingStock": 0,
+          "producedOrRestocked": 81,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 75
+        },
+        {
+          "day_offset": 56,
+          "openingStock": 0,
+          "producedOrRestocked": 40,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 36
+        },
+        {
+          "day_offset": 55,
+          "openingStock": 0,
+          "producedOrRestocked": 87,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 81
+        },
+        {
+          "day_offset": 54,
+          "openingStock": 0,
+          "producedOrRestocked": 96,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 89
+        },
+        {
+          "day_offset": 53,
+          "openingStock": 0,
+          "producedOrRestocked": 118,
+          "closingStock": 10,
+          "wasteUnits": 10,
+          "soldUnits": 108
+        },
+        {
+          "day_offset": 52,
+          "openingStock": 0,
+          "producedOrRestocked": 233,
+          "closingStock": 17,
+          "wasteUnits": 17,
+          "soldUnits": 216
+        },
+        {
+          "day_offset": 51,
+          "openingStock": 0,
+          "producedOrRestocked": 131,
+          "closingStock": 10,
+          "wasteUnits": 10,
+          "soldUnits": 121
+        },
+        {
+          "day_offset": 50,
+          "openingStock": 0,
+          "producedOrRestocked": 91,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 83
+        },
+        {
+          "day_offset": 49,
+          "openingStock": 0,
+          "producedOrRestocked": 108,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 100
+        },
+        {
+          "day_offset": 48,
+          "openingStock": 0,
+          "producedOrRestocked": 159,
+          "closingStock": 12,
+          "wasteUnits": 12,
+          "soldUnits": 147
+        },
+        {
+          "day_offset": 47,
+          "openingStock": 0,
+          "producedOrRestocked": 139,
+          "closingStock": 11,
+          "wasteUnits": 11,
+          "soldUnits": 128
+        },
+        {
+          "day_offset": 46,
+          "openingStock": 0,
+          "producedOrRestocked": 187,
+          "closingStock": 14,
+          "wasteUnits": 14,
+          "soldUnits": 173
+        },
+        {
+          "day_offset": 45,
+          "openingStock": 0,
+          "producedOrRestocked": 293,
+          "closingStock": 22,
+          "wasteUnits": 22,
+          "soldUnits": 271
+        },
+        {
+          "day_offset": 44,
+          "openingStock": 0,
+          "producedOrRestocked": 169,
+          "closingStock": 13,
+          "wasteUnits": 13,
+          "soldUnits": 156
+        },
+        {
+          "day_offset": 43,
+          "openingStock": 0,
+          "producedOrRestocked": 73,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 68
+        },
+        {
+          "day_offset": 42,
+          "openingStock": 0,
+          "producedOrRestocked": 72,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 67
+        },
+        {
+          "day_offset": 41,
+          "openingStock": 0,
+          "producedOrRestocked": 131,
+          "closingStock": 11,
+          "wasteUnits": 11,
+          "soldUnits": 120
+        },
+        {
+          "day_offset": 40,
+          "openingStock": 0,
+          "producedOrRestocked": 91,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 84
+        },
+        {
+          "day_offset": 39,
+          "openingStock": 0,
+          "producedOrRestocked": 118,
+          "closingStock": 9,
+          "wasteUnits": 9,
+          "soldUnits": 109
+        },
+        {
+          "day_offset": 38,
+          "openingStock": 0,
+          "producedOrRestocked": 194,
+          "closingStock": 15,
+          "wasteUnits": 15,
+          "soldUnits": 179
+        },
+        {
+          "day_offset": 37,
+          "openingStock": 0,
+          "producedOrRestocked": 91,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 84
+        },
+        {
+          "day_offset": 36,
+          "openingStock": 0,
+          "producedOrRestocked": 53,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 49
+        },
+        {
+          "day_offset": 35,
+          "openingStock": 0,
+          "producedOrRestocked": 65,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 59
+        },
+        {
+          "day_offset": 34,
+          "openingStock": 0,
+          "producedOrRestocked": 55,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 51
+        },
+        {
+          "day_offset": 33,
+          "openingStock": 0,
+          "producedOrRestocked": 56,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 52
+        },
+        {
+          "day_offset": 32,
+          "openingStock": 0,
+          "producedOrRestocked": 54,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 49
+        },
+        {
+          "day_offset": 31,
+          "openingStock": 0,
+          "producedOrRestocked": 140,
+          "closingStock": 10,
+          "wasteUnits": 10,
+          "soldUnits": 130
+        },
+        {
+          "day_offset": 30,
+          "openingStock": 0,
+          "producedOrRestocked": 51,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 29,
+          "openingStock": 0,
+          "producedOrRestocked": 42,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 28,
+          "openingStock": 0,
+          "producedOrRestocked": 37,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 27,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 31
+        },
+        {
+          "day_offset": 26,
+          "openingStock": 0,
+          "producedOrRestocked": 53,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 48
+        },
+        {
+          "day_offset": 25,
+          "openingStock": 0,
+          "producedOrRestocked": 82,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 76
+        },
+        {
+          "day_offset": 24,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 48
+        },
+        {
+          "day_offset": 23,
+          "openingStock": 0,
+          "producedOrRestocked": 19,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 17
+        },
+        {
+          "day_offset": 22,
+          "openingStock": 0,
+          "producedOrRestocked": 21,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 19
+        },
+        {
+          "day_offset": 21,
+          "openingStock": 0,
+          "producedOrRestocked": 27,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 20,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 37
+        },
+        {
+          "day_offset": 19,
+          "openingStock": 0,
+          "producedOrRestocked": 57,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 53
+        },
+        {
+          "day_offset": 18,
+          "openingStock": 0,
+          "producedOrRestocked": 122,
+          "closingStock": 9,
+          "wasteUnits": 9,
+          "soldUnits": 113
+        },
+        {
+          "day_offset": 17,
+          "openingStock": 0,
+          "producedOrRestocked": 31,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 16,
+          "openingStock": 0,
+          "producedOrRestocked": 19,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 18
+        },
+        {
+          "day_offset": 15,
+          "openingStock": 0,
+          "producedOrRestocked": 23,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 21
+        },
+        {
+          "day_offset": 14,
+          "openingStock": 0,
+          "producedOrRestocked": 24,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 21
+        },
+        {
+          "day_offset": 13,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 12,
+          "openingStock": 0,
+          "producedOrRestocked": 62,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 57
+        },
+        {
+          "day_offset": 11,
+          "openingStock": 0,
+          "producedOrRestocked": 88,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 81
+        },
+        {
+          "day_offset": 10,
+          "openingStock": 0,
+          "producedOrRestocked": 14,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 13
+        },
+        {
+          "day_offset": 9,
+          "openingStock": 0,
+          "producedOrRestocked": 21,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 19
+        },
+        {
+          "day_offset": 8,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 29
+        },
+        {
+          "day_offset": 7,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 6,
+          "openingStock": 0,
+          "producedOrRestocked": 46,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 43
+        },
+        {
+          "day_offset": 5,
+          "openingStock": 0,
+          "producedOrRestocked": 99,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 91
+        },
+        {
+          "day_offset": 4,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 26
+        },
+        {
+          "day_offset": 3,
+          "openingStock": 0,
+          "producedOrRestocked": 27,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 2,
+          "openingStock": 0,
+          "producedOrRestocked": 23,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 1,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 0,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 38
+        }
+      ],
+      "weekday_forecasts": {
+        "0": {
+          "predictedDemand": 31,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 31 units/day expectation (weekday baseline)."
+        },
+        "1": {
+          "predictedDemand": 24,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 24 units/day expectation (weekday baseline)."
+        },
+        "2": {
+          "predictedDemand": 26,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 26 units/day expectation (weekday baseline)."
+        },
+        "3": {
+          "predictedDemand": 27,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 27 units/day expectation (weekday baseline)."
+        },
+        "4": {
+          "predictedDemand": 29,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 29 units/day expectation (weekend peak)."
+        },
+        "5": {
+          "predictedDemand": 46,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 46 units/day expectation (weekend peak)."
+        },
+        "6": {
+          "predictedDemand": 81,
+          "safetyStock": 40,
+          "tier": "Mature",
+          "explanation": "Historical 81 units/day expectation (weekend peak)."
+        }
+      }
+    },
+    {
+      "fixture_id": "item_pain_chocolat",
+      "name": "Pain au Chocolat",
+      "article": "PAIN AU CHOCOLAT",
+      "category": "Bakery",
+      "unit": "piece",
+      "price": 75.0,
+      "isPerishable": true,
+      "shelfLifeDays": 1,
+      "currentStock": 15,
+      "sales_history_60": [
+        163,
+        84,
+        79,
+        47,
+        63,
+        77,
+        83,
+        154,
+        116,
+        70,
+        68,
+        94,
+        103,
+        92,
+        232,
+        109,
+        62,
+        70,
+        106,
+        71,
+        83,
+        141,
+        72,
+        61,
+        60,
+        30,
+        57,
+        59,
+        76,
+        38,
+        37,
+        43,
+        26,
+        30,
+        39,
+        45,
+        16,
+        31,
+        27,
+        40,
+        40,
+        92,
+        18,
+        26,
+        20,
+        25,
+        27,
+        36,
+        63,
+        14,
+        23,
+        23,
+        38,
+        38,
+        62,
+        22,
+        22,
+        17,
+        36,
+        32
+      ],
+      "daily_stock_60": [
+        {
+          "day_offset": 59,
+          "openingStock": 0,
+          "producedOrRestocked": 177,
+          "closingStock": 14,
+          "wasteUnits": 14,
+          "soldUnits": 163
+        },
+        {
+          "day_offset": 58,
+          "openingStock": 0,
+          "producedOrRestocked": 91,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 84
+        },
+        {
+          "day_offset": 57,
+          "openingStock": 0,
+          "producedOrRestocked": 85,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 79
+        },
+        {
+          "day_offset": 56,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 55,
+          "openingStock": 0,
+          "producedOrRestocked": 68,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 63
+        },
+        {
+          "day_offset": 54,
+          "openingStock": 0,
+          "producedOrRestocked": 83,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 77
+        },
+        {
+          "day_offset": 53,
+          "openingStock": 0,
+          "producedOrRestocked": 91,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 83
+        },
+        {
+          "day_offset": 52,
+          "openingStock": 0,
+          "producedOrRestocked": 166,
+          "closingStock": 12,
+          "wasteUnits": 12,
+          "soldUnits": 154
+        },
+        {
+          "day_offset": 51,
+          "openingStock": 0,
+          "producedOrRestocked": 125,
+          "closingStock": 9,
+          "wasteUnits": 9,
+          "soldUnits": 116
+        },
+        {
+          "day_offset": 50,
+          "openingStock": 0,
+          "producedOrRestocked": 77,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 70
+        },
+        {
+          "day_offset": 49,
+          "openingStock": 0,
+          "producedOrRestocked": 73,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 68
+        },
+        {
+          "day_offset": 48,
+          "openingStock": 0,
+          "producedOrRestocked": 102,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 94
+        },
+        {
+          "day_offset": 47,
+          "openingStock": 0,
+          "producedOrRestocked": 112,
+          "closingStock": 9,
+          "wasteUnits": 9,
+          "soldUnits": 103
+        },
+        {
+          "day_offset": 46,
+          "openingStock": 0,
+          "producedOrRestocked": 99,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 92
+        },
+        {
+          "day_offset": 45,
+          "openingStock": 0,
+          "producedOrRestocked": 251,
+          "closingStock": 19,
+          "wasteUnits": 19,
+          "soldUnits": 232
+        },
+        {
+          "day_offset": 44,
+          "openingStock": 0,
+          "producedOrRestocked": 119,
+          "closingStock": 10,
+          "wasteUnits": 10,
+          "soldUnits": 109
+        },
+        {
+          "day_offset": 43,
+          "openingStock": 0,
+          "producedOrRestocked": 67,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 62
+        },
+        {
+          "day_offset": 42,
+          "openingStock": 0,
+          "producedOrRestocked": 76,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 70
+        },
+        {
+          "day_offset": 41,
+          "openingStock": 0,
+          "producedOrRestocked": 115,
+          "closingStock": 9,
+          "wasteUnits": 9,
+          "soldUnits": 106
+        },
+        {
+          "day_offset": 40,
+          "openingStock": 0,
+          "producedOrRestocked": 77,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 71
+        },
+        {
+          "day_offset": 39,
+          "openingStock": 0,
+          "producedOrRestocked": 90,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 83
+        },
+        {
+          "day_offset": 38,
+          "openingStock": 0,
+          "producedOrRestocked": 153,
+          "closingStock": 12,
+          "wasteUnits": 12,
+          "soldUnits": 141
+        },
+        {
+          "day_offset": 37,
+          "openingStock": 0,
+          "producedOrRestocked": 78,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 72
+        },
+        {
+          "day_offset": 36,
+          "openingStock": 0,
+          "producedOrRestocked": 66,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 61
+        },
+        {
+          "day_offset": 35,
+          "openingStock": 0,
+          "producedOrRestocked": 66,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 60
+        },
+        {
+          "day_offset": 34,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 33,
+          "openingStock": 0,
+          "producedOrRestocked": 62,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 57
+        },
+        {
+          "day_offset": 32,
+          "openingStock": 0,
+          "producedOrRestocked": 65,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 59
+        },
+        {
+          "day_offset": 31,
+          "openingStock": 0,
+          "producedOrRestocked": 82,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 76
+        },
+        {
+          "day_offset": 30,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 29,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 37
+        },
+        {
+          "day_offset": 28,
+          "openingStock": 0,
+          "producedOrRestocked": 46,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 43
+        },
+        {
+          "day_offset": 27,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 26
+        },
+        {
+          "day_offset": 26,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 25,
+          "openingStock": 0,
+          "producedOrRestocked": 42,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 39
+        },
+        {
+          "day_offset": 24,
+          "openingStock": 0,
+          "producedOrRestocked": 49,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 45
+        },
+        {
+          "day_offset": 23,
+          "openingStock": 0,
+          "producedOrRestocked": 18,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 16
+        },
+        {
+          "day_offset": 22,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 31
+        },
+        {
+          "day_offset": 21,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 20,
+          "openingStock": 0,
+          "producedOrRestocked": 44,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 40
+        },
+        {
+          "day_offset": 19,
+          "openingStock": 0,
+          "producedOrRestocked": 43,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 40
+        },
+        {
+          "day_offset": 18,
+          "openingStock": 0,
+          "producedOrRestocked": 99,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 92
+        },
+        {
+          "day_offset": 17,
+          "openingStock": 0,
+          "producedOrRestocked": 20,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 18
+        },
+        {
+          "day_offset": 16,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 26
+        },
+        {
+          "day_offset": 15,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 14,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 13,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 12,
+          "openingStock": 0,
+          "producedOrRestocked": 39,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 36
+        },
+        {
+          "day_offset": 11,
+          "openingStock": 0,
+          "producedOrRestocked": 69,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 63
+        },
+        {
+          "day_offset": 10,
+          "openingStock": 0,
+          "producedOrRestocked": 15,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 14
+        },
+        {
+          "day_offset": 9,
+          "openingStock": 0,
+          "producedOrRestocked": 25,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 23
+        },
+        {
+          "day_offset": 8,
+          "openingStock": 0,
+          "producedOrRestocked": 26,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 23
+        },
+        {
+          "day_offset": 7,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 6,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 5,
+          "openingStock": 0,
+          "producedOrRestocked": 68,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 62
+        },
+        {
+          "day_offset": 4,
+          "openingStock": 0,
+          "producedOrRestocked": 24,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 22
+        },
+        {
+          "day_offset": 3,
+          "openingStock": 0,
+          "producedOrRestocked": 24,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 22
+        },
+        {
+          "day_offset": 2,
+          "openingStock": 0,
+          "producedOrRestocked": 19,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 17
+        },
+        {
+          "day_offset": 1,
+          "openingStock": 0,
+          "producedOrRestocked": 39,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 36
+        },
+        {
+          "day_offset": 0,
+          "openingStock": 0,
+          "producedOrRestocked": 35,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 32
+        }
+      ],
+      "weekday_forecasts": {
+        "0": {
+          "predictedDemand": 27,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 27 units/day expectation (weekday baseline)."
+        },
+        "1": {
+          "predictedDemand": 23,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+        },
+        "2": {
+          "predictedDemand": 25,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+        },
+        "3": {
+          "predictedDemand": 25,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+        },
+        "4": {
+          "predictedDemand": 29,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 29 units/day expectation (weekend peak)."
+        },
+        "5": {
+          "predictedDemand": 39,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 39 units/day expectation (weekend peak)."
+        },
+        "6": {
+          "predictedDemand": 64,
+          "safetyStock": 27,
+          "tier": "Mature",
+          "explanation": "Historical 64 units/day expectation (weekend peak)."
+        }
+      }
+    },
+    {
+      "fixture_id": "item_brioche",
+      "name": "Brioche",
+      "article": "BRIOCHE",
+      "category": "Bakery",
+      "unit": "piece",
+      "price": 95.0,
+      "isPerishable": true,
+      "shelfLifeDays": 2,
+      "currentStock": 6,
+      "sales_history_60": [
+        2,
+        1,
+        1,
+        5,
+        6,
+        14,
+        9,
+        6,
+        10,
+        10,
+        6,
+        9,
+        10,
+        10,
+        6,
+        6,
+        5,
+        9,
+        5,
+        16,
+        8,
+        7,
+        5,
+        6,
+        5,
+        9,
+        11,
+        6,
+        1,
+        5,
+        4,
+        3,
+        4,
+        7,
+        1,
+        1,
+        1,
+        3,
+        3,
+        2,
+        1,
+        3,
+        3,
+        2,
+        5,
+        1,
+        1,
+        2,
+        4,
+        5,
+        1,
+        1,
+        2,
+        2,
+        4,
+        3,
+        2,
+        2,
+        2,
+        1
+      ],
+      "daily_stock_60": [
+        {
+          "day_offset": 59,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 58,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 57,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 56,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 55,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 54,
+          "openingStock": 0,
+          "producedOrRestocked": 15,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 14
+        },
+        {
+          "day_offset": 53,
+          "openingStock": 0,
+          "producedOrRestocked": 11,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 9
+        },
+        {
+          "day_offset": 52,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 51,
+          "openingStock": 0,
+          "producedOrRestocked": 11,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 10
+        },
+        {
+          "day_offset": 50,
+          "openingStock": 0,
+          "producedOrRestocked": 12,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 10
+        },
+        {
+          "day_offset": 49,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 48,
+          "openingStock": 0,
+          "producedOrRestocked": 10,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 9
+        },
+        {
+          "day_offset": 47,
+          "openingStock": 0,
+          "producedOrRestocked": 12,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 10
+        },
+        {
+          "day_offset": 46,
+          "openingStock": 0,
+          "producedOrRestocked": 11,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 10
+        },
+        {
+          "day_offset": 45,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 44,
+          "openingStock": 0,
+          "producedOrRestocked": 7,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 43,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 42,
+          "openingStock": 0,
+          "producedOrRestocked": 10,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 9
+        },
+        {
+          "day_offset": 41,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 40,
+          "openingStock": 0,
+          "producedOrRestocked": 17,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 16
+        },
+        {
+          "day_offset": 39,
+          "openingStock": 0,
+          "producedOrRestocked": 9,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 8
+        },
+        {
+          "day_offset": 38,
+          "openingStock": 0,
+          "producedOrRestocked": 9,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 7
+        },
+        {
+          "day_offset": 37,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 36,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 35,
+          "openingStock": 0,
+          "producedOrRestocked": 6,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 34,
+          "openingStock": 0,
+          "producedOrRestocked": 10,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 9
+        },
+        {
+          "day_offset": 33,
+          "openingStock": 0,
+          "producedOrRestocked": 12,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 11
+        },
+        {
+          "day_offset": 32,
+          "openingStock": 0,
+          "producedOrRestocked": 7,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 6
+        },
+        {
+          "day_offset": 31,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 30,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 29,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 4
+        },
+        {
+          "day_offset": 28,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 3
+        },
+        {
+          "day_offset": 27,
+          "openingStock": 0,
+          "producedOrRestocked": 4,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 4
+        },
+        {
+          "day_offset": 26,
+          "openingStock": 0,
+          "producedOrRestocked": 9,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 7
+        },
+        {
+          "day_offset": 25,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 24,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 23,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 22,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 3
+        },
+        {
+          "day_offset": 21,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 3
+        },
+        {
+          "day_offset": 20,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 19,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 18,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 3
+        },
+        {
+          "day_offset": 17,
+          "openingStock": 0,
+          "producedOrRestocked": 4,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 3
+        },
+        {
+          "day_offset": 16,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 15,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 14,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 13,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 12,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 11,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 4
+        },
+        {
+          "day_offset": 10,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 5
+        },
+        {
+          "day_offset": 9,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 8,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 1
+        },
+        {
+          "day_offset": 7,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 6,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 5,
+          "openingStock": 0,
+          "producedOrRestocked": 5,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 4
+        },
+        {
+          "day_offset": 4,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 3
+        },
+        {
+          "day_offset": 3,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 2,
+          "openingStock": 0,
+          "producedOrRestocked": 3,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 1,
+          "openingStock": 0,
+          "producedOrRestocked": 2,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 2
+        },
+        {
+          "day_offset": 0,
+          "openingStock": 0,
+          "producedOrRestocked": 1,
+          "closingStock": 0,
+          "wasteUnits": 0,
+          "soldUnits": 1
+        }
+      ],
+      "weekday_forecasts": {
+        "0": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+        },
+        "1": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+        },
+        "2": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+        },
+        "3": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+        },
+        "4": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekend peak)."
+        },
+        "5": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekend peak)."
+        },
+        "6": {
+          "predictedDemand": 5,
+          "safetyStock": 2,
+          "tier": "Mature",
+          "explanation": "Historical 5 units/day expectation (weekend peak)."
+        }
+      }
+    },
+    {
+      "fixture_id": "item_banette",
+      "name": "Banette",
+      "article": "BANETTE",
+      "category": "Bakery",
+      "unit": "loaf",
+      "price": 50.0,
+      "isPerishable": true,
+      "shelfLifeDays": 1,
+      "currentStock": 10,
+      "sales_history_60": [
+        84,
+        73,
+        64,
+        65,
+        67,
+        85,
+        73,
+        69,
+        89,
+        46,
+        74,
+        74,
+        67,
+        85,
+        96,
+        84,
+        71,
+        39,
+        70,
+        60,
+        74,
+        73,
+        49,
+        67,
+        42,
+        37,
+        43,
+        51,
+        48,
+        50,
+        39,
+        29,
+        28,
+        43,
+        45,
+        30,
+        30,
+        14,
+        28,
+        25,
+        40,
+        38,
+        30,
+        17,
+        20,
+        24,
+        22,
+        25,
+        38,
+        30,
+        17,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        22,
+        30,
+        30
+      ],
+      "daily_stock_60": [
+        {
+          "day_offset": 59,
+          "openingStock": 0,
+          "producedOrRestocked": 92,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 84
+        },
+        {
+          "day_offset": 58,
+          "openingStock": 0,
+          "producedOrRestocked": 79,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 73
+        },
+        {
+          "day_offset": 57,
+          "openingStock": 0,
+          "producedOrRestocked": 69,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 64
+        },
+        {
+          "day_offset": 56,
+          "openingStock": 0,
+          "producedOrRestocked": 71,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 65
+        },
+        {
+          "day_offset": 55,
+          "openingStock": 0,
+          "producedOrRestocked": 72,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 67
+        },
+        {
+          "day_offset": 54,
+          "openingStock": 0,
+          "producedOrRestocked": 92,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 85
+        },
+        {
+          "day_offset": 53,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 73
+        },
+        {
+          "day_offset": 52,
+          "openingStock": 0,
+          "producedOrRestocked": 75,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 69
+        },
+        {
+          "day_offset": 51,
+          "openingStock": 0,
+          "producedOrRestocked": 96,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 89
+        },
+        {
+          "day_offset": 50,
+          "openingStock": 0,
+          "producedOrRestocked": 51,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 46
+        },
+        {
+          "day_offset": 49,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 74
+        },
+        {
+          "day_offset": 48,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 74
+        },
+        {
+          "day_offset": 47,
+          "openingStock": 0,
+          "producedOrRestocked": 73,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 67
+        },
+        {
+          "day_offset": 46,
+          "openingStock": 0,
+          "producedOrRestocked": 92,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 85
+        },
+        {
+          "day_offset": 45,
+          "openingStock": 0,
+          "producedOrRestocked": 104,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 96
+        },
+        {
+          "day_offset": 44,
+          "openingStock": 0,
+          "producedOrRestocked": 92,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 84
+        },
+        {
+          "day_offset": 43,
+          "openingStock": 0,
+          "producedOrRestocked": 77,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 71
+        },
+        {
+          "day_offset": 42,
+          "openingStock": 0,
+          "producedOrRestocked": 42,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 39
+        },
+        {
+          "day_offset": 41,
+          "openingStock": 0,
+          "producedOrRestocked": 77,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 70
+        },
+        {
+          "day_offset": 40,
+          "openingStock": 0,
+          "producedOrRestocked": 65,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 60
+        },
+        {
+          "day_offset": 39,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 74
+        },
+        {
+          "day_offset": 38,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 73
+        },
+        {
+          "day_offset": 37,
+          "openingStock": 0,
+          "producedOrRestocked": 53,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 49
+        },
+        {
+          "day_offset": 36,
+          "openingStock": 0,
+          "producedOrRestocked": 72,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 67
+        },
+        {
+          "day_offset": 35,
+          "openingStock": 0,
+          "producedOrRestocked": 46,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 42
+        },
+        {
+          "day_offset": 34,
+          "openingStock": 0,
+          "producedOrRestocked": 40,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 37
+        },
+        {
+          "day_offset": 33,
+          "openingStock": 0,
+          "producedOrRestocked": 46,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 43
+        },
+        {
+          "day_offset": 32,
+          "openingStock": 0,
+          "producedOrRestocked": 56,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 51
+        },
+        {
+          "day_offset": 31,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 48
+        },
+        {
+          "day_offset": 30,
+          "openingStock": 0,
+          "producedOrRestocked": 54,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 50
+        },
+        {
+          "day_offset": 29,
+          "openingStock": 0,
+          "producedOrRestocked": 43,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 39
+        },
+        {
+          "day_offset": 28,
+          "openingStock": 0,
+          "producedOrRestocked": 31,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 29
+        },
+        {
+          "day_offset": 27,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 26,
+          "openingStock": 0,
+          "producedOrRestocked": 47,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 43
+        },
+        {
+          "day_offset": 25,
+          "openingStock": 0,
+          "producedOrRestocked": 49,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 45
+        },
+        {
+          "day_offset": 24,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 23,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 22,
+          "openingStock": 0,
+          "producedOrRestocked": 15,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 14
+        },
+        {
+          "day_offset": 21,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 20,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 19,
+          "openingStock": 0,
+          "producedOrRestocked": 43,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 40
+        },
+        {
+          "day_offset": 18,
+          "openingStock": 0,
+          "producedOrRestocked": 41,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 17,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 16,
+          "openingStock": 0,
+          "producedOrRestocked": 18,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 17
+        },
+        {
+          "day_offset": 15,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 14,
+          "openingStock": 0,
+          "producedOrRestocked": 27,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 24
+        },
+        {
+          "day_offset": 13,
+          "openingStock": 0,
+          "producedOrRestocked": 24,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 22
+        },
+        {
+          "day_offset": 12,
+          "openingStock": 0,
+          "producedOrRestocked": 27,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 25
+        },
+        {
+          "day_offset": 11,
+          "openingStock": 0,
+          "producedOrRestocked": 42,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 38
+        },
+        {
+          "day_offset": 10,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 9,
+          "openingStock": 0,
+          "producedOrRestocked": 18,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 17
+        },
+        {
+          "day_offset": 8,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 7,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 6,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 5,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 4,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 3,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 2,
+          "openingStock": 0,
+          "producedOrRestocked": 25,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 22
+        },
+        {
+          "day_offset": 1,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 0,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 30
+        }
+      ],
+      "weekday_forecasts": {
+        "0": {
+          "predictedDemand": 28,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 28 units/day expectation (weekday baseline)."
+        },
+        "1": {
+          "predictedDemand": 24,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 24 units/day expectation (weekday baseline)."
+        },
+        "2": {
+          "predictedDemand": 25,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+        },
+        "3": {
+          "predictedDemand": 27,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 27 units/day expectation (weekday baseline)."
+        },
+        "4": {
+          "predictedDemand": 26,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 26 units/day expectation (weekend peak)."
+        },
+        "5": {
+          "predictedDemand": 33,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 33 units/day expectation (weekend peak)."
+        },
+        "6": {
+          "predictedDemand": 40,
+          "safetyStock": 12,
+          "tier": "Mature",
+          "explanation": "Historical 40 units/day expectation (weekend peak)."
+        }
+      }
+    },
+    {
+      "fixture_id": "item_whole_milk",
+      "name": "Whole Milk",
+      "article": "COUPE",
+      "category": "Dairy",
+      "unit": "liter",
+      "price": 60.0,
+      "isPerishable": true,
+      "shelfLifeDays": 2,
+      "currentStock": 4,
+      "sales_history_60": [
+        78,
+        86,
+        66,
+        68,
+        51,
+        53,
+        82,
+        65,
+        102,
+        68,
+        77,
+        69,
+        81,
+        71,
+        86,
+        75,
+        67,
+        69,
+        64,
+        52,
+        73,
+        73,
+        59,
+        57,
+        54,
+        40,
+        34,
+        47,
+        55,
+        35,
+        30,
+        18,
+        26,
+        45,
+        45,
+        20,
+        30,
+        24,
+        20,
+        27,
+        47,
+        48,
+        27,
+        23,
+        27,
+        29,
+        28,
+        48,
+        47,
+        27,
+        15,
+        18,
+        34,
+        32,
+        47,
+        17,
+        29,
+        16,
+        27,
+        55
+      ],
+      "daily_stock_60": [
+        {
+          "day_offset": 59,
+          "openingStock": 0,
+          "producedOrRestocked": 85,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 78
+        },
+        {
+          "day_offset": 58,
+          "openingStock": 0,
+          "producedOrRestocked": 93,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 86
+        },
+        {
+          "day_offset": 57,
+          "openingStock": 0,
+          "producedOrRestocked": 71,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 66
+        },
+        {
+          "day_offset": 56,
+          "openingStock": 0,
+          "producedOrRestocked": 74,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 68
+        },
+        {
+          "day_offset": 55,
+          "openingStock": 0,
+          "producedOrRestocked": 55,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 51
+        },
+        {
+          "day_offset": 54,
+          "openingStock": 0,
+          "producedOrRestocked": 57,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 53
+        },
+        {
+          "day_offset": 53,
+          "openingStock": 0,
+          "producedOrRestocked": 90,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 82
+        },
+        {
+          "day_offset": 52,
+          "openingStock": 0,
+          "producedOrRestocked": 70,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 65
+        },
+        {
+          "day_offset": 51,
+          "openingStock": 0,
+          "producedOrRestocked": 110,
+          "closingStock": 8,
+          "wasteUnits": 8,
+          "soldUnits": 102
+        },
+        {
+          "day_offset": 50,
+          "openingStock": 0,
+          "producedOrRestocked": 74,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 68
+        },
+        {
+          "day_offset": 49,
+          "openingStock": 0,
+          "producedOrRestocked": 83,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 77
+        },
+        {
+          "day_offset": 48,
+          "openingStock": 0,
+          "producedOrRestocked": 75,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 69
+        },
+        {
+          "day_offset": 47,
+          "openingStock": 0,
+          "producedOrRestocked": 88,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 81
+        },
+        {
+          "day_offset": 46,
+          "openingStock": 0,
+          "producedOrRestocked": 77,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 71
+        },
+        {
+          "day_offset": 45,
+          "openingStock": 0,
+          "producedOrRestocked": 93,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 86
+        },
+        {
+          "day_offset": 44,
+          "openingStock": 0,
+          "producedOrRestocked": 82,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 75
+        },
+        {
+          "day_offset": 43,
+          "openingStock": 0,
+          "producedOrRestocked": 72,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 67
+        },
+        {
+          "day_offset": 42,
+          "openingStock": 0,
+          "producedOrRestocked": 75,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 69
+        },
+        {
+          "day_offset": 41,
+          "openingStock": 0,
+          "producedOrRestocked": 70,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 64
+        },
+        {
+          "day_offset": 40,
+          "openingStock": 0,
+          "producedOrRestocked": 56,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 52
+        },
+        {
+          "day_offset": 39,
+          "openingStock": 0,
+          "producedOrRestocked": 79,
+          "closingStock": 6,
+          "wasteUnits": 6,
+          "soldUnits": 73
+        },
+        {
+          "day_offset": 38,
+          "openingStock": 0,
+          "producedOrRestocked": 80,
+          "closingStock": 7,
+          "wasteUnits": 7,
+          "soldUnits": 73
+        },
+        {
+          "day_offset": 37,
+          "openingStock": 0,
+          "producedOrRestocked": 64,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 59
+        },
+        {
+          "day_offset": 36,
+          "openingStock": 0,
+          "producedOrRestocked": 62,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 57
+        },
+        {
+          "day_offset": 35,
+          "openingStock": 0,
+          "producedOrRestocked": 59,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 54
+        },
+        {
+          "day_offset": 34,
+          "openingStock": 0,
+          "producedOrRestocked": 43,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 40
+        },
+        {
+          "day_offset": 33,
+          "openingStock": 0,
+          "producedOrRestocked": 37,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 32,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 31,
+          "openingStock": 0,
+          "producedOrRestocked": 59,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 55
+        },
+        {
+          "day_offset": 30,
+          "openingStock": 0,
+          "producedOrRestocked": 38,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 35
+        },
+        {
+          "day_offset": 29,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 28,
+          "openingStock": 0,
+          "producedOrRestocked": 19,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 18
+        },
+        {
+          "day_offset": 27,
+          "openingStock": 0,
+          "producedOrRestocked": 28,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 26
+        },
+        {
+          "day_offset": 26,
+          "openingStock": 0,
+          "producedOrRestocked": 50,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 45
+        },
+        {
+          "day_offset": 25,
+          "openingStock": 0,
+          "producedOrRestocked": 49,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 45
+        },
+        {
+          "day_offset": 24,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 23,
+          "openingStock": 0,
+          "producedOrRestocked": 33,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 30
+        },
+        {
+          "day_offset": 22,
+          "openingStock": 0,
+          "producedOrRestocked": 26,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 24
+        },
+        {
+          "day_offset": 21,
+          "openingStock": 0,
+          "producedOrRestocked": 22,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 20
+        },
+        {
+          "day_offset": 20,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 19,
+          "openingStock": 0,
+          "producedOrRestocked": 51,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 18,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 48
+        },
+        {
+          "day_offset": 17,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 16,
+          "openingStock": 0,
+          "producedOrRestocked": 25,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 23
+        },
+        {
+          "day_offset": 15,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 14,
+          "openingStock": 0,
+          "producedOrRestocked": 32,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 29
+        },
+        {
+          "day_offset": 13,
+          "openingStock": 0,
+          "producedOrRestocked": 30,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 28
+        },
+        {
+          "day_offset": 12,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 48
+        },
+        {
+          "day_offset": 11,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 10,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 9,
+          "openingStock": 0,
+          "producedOrRestocked": 16,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 15
+        },
+        {
+          "day_offset": 8,
+          "openingStock": 0,
+          "producedOrRestocked": 20,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 18
+        },
+        {
+          "day_offset": 7,
+          "openingStock": 0,
+          "producedOrRestocked": 37,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 34
+        },
+        {
+          "day_offset": 6,
+          "openingStock": 0,
+          "producedOrRestocked": 35,
+          "closingStock": 3,
+          "wasteUnits": 3,
+          "soldUnits": 32
+        },
+        {
+          "day_offset": 5,
+          "openingStock": 0,
+          "producedOrRestocked": 52,
+          "closingStock": 5,
+          "wasteUnits": 5,
+          "soldUnits": 47
+        },
+        {
+          "day_offset": 4,
+          "openingStock": 0,
+          "producedOrRestocked": 18,
+          "closingStock": 1,
+          "wasteUnits": 1,
+          "soldUnits": 17
+        },
+        {
+          "day_offset": 3,
+          "openingStock": 0,
+          "producedOrRestocked": 31,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 29
+        },
+        {
+          "day_offset": 2,
+          "openingStock": 0,
+          "producedOrRestocked": 18,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 16
+        },
+        {
+          "day_offset": 1,
+          "openingStock": 0,
+          "producedOrRestocked": 29,
+          "closingStock": 2,
+          "wasteUnits": 2,
+          "soldUnits": 27
+        },
+        {
+          "day_offset": 0,
+          "openingStock": 0,
+          "producedOrRestocked": 59,
+          "closingStock": 4,
+          "wasteUnits": 4,
+          "soldUnits": 55
+        }
+      ],
+      "weekday_forecasts": {
+        "0": {
+          "predictedDemand": 28,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 28 units/day expectation (weekday baseline)."
+        },
+        "1": {
+          "predictedDemand": 25,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+        },
+        "2": {
+          "predictedDemand": 25,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+        },
+        "3": {
+          "predictedDemand": 26,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 26 units/day expectation (weekday baseline)."
+        },
+        "4": {
+          "predictedDemand": 31,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 31 units/day expectation (weekend peak)."
+        },
+        "5": {
+          "predictedDemand": 37,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 37 units/day expectation (weekend peak)."
+        },
+        "6": {
+          "predictedDemand": 43,
+          "safetyStock": 19,
+          "tier": "Mature",
+          "explanation": "Historical 43 units/day expectation (weekend peak)."
+        }
+      }
+    }
+  ],
+  "cold_start_item": {
+    "fixture_id": "item_sourdough",
+    "name": "Artisan Sourdough",
+    "category": "Bakery",
+    "unit": "loaf",
+    "price": 80.0,
+    "isPerishable": true,
+    "shelfLifeDays": 2,
+    "currentStock": 14,
+    "predictedDemand": 24,
+    "safetyStock": 7,
+    "tier": "Learning",
+    "description": "Cold-start initial forecast based on Bakery category prior (24 units/day)."
+  }
+}

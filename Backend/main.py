@@ -1,8 +1,11 @@
 import os
+import json
 import asyncio
 import time
+from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from typing import Optional, List, Dict, Any, Tuple
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request, Header
@@ -80,9 +83,22 @@ def get_store_timezone(user: Optional[Dict[str, Any]] = None, item: Optional[Dic
     except Exception:
         return timezone.utc
 
+# In-memory simulated clock hours for shadow tenant users: shadow_id -> float
+DEMO_SIMULATED_CLOCKS: Dict[str, float] = {}
+
 def get_store_local_now(user: Optional[Dict[str, Any]] = None, item: Optional[Dict[str, Any]] = None) -> datetime:
     tz = get_store_timezone(user, item)
-    return datetime.now(tz)
+    base_now = datetime.now(tz)
+    # Simulated clock hour is honored strictly and exclusively for shadow tenant users
+    if user and user.get("role") == "demo_shadow":
+        sim_h = user.get("simulated_clock_hour")
+        if sim_h is None and "_id" in user and user["_id"] in DEMO_SIMULATED_CLOCKS:
+            sim_h = DEMO_SIMULATED_CLOCKS[user["_id"]]
+        if sim_h is not None:
+            hours = int(sim_h)
+            minutes = int(round((float(sim_h) - hours) * 60))
+            return base_now.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+    return base_now
 
 async def rollover_if_new_day(item: dict, user: Optional[dict] = None) -> dict:
     """
@@ -248,6 +264,14 @@ async def startup_db():
         await db.daily_sales.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
         await db.daily_stock.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
         await db.items.create_index([("owner_id", 1), ("name_lower", 1)], unique=True)
+        # TTL indexes on expiresAt for shadow tenant auto-expiry
+        await db.users.create_index("expiresAt", expireAfterSeconds=0)
+        await db.items.create_index("expiresAt", expireAfterSeconds=0)
+        await db.daily_sales.create_index("expiresAt", expireAfterSeconds=0)
+        await db.daily_stock.create_index("expiresAt", expireAfterSeconds=0)
+        await db.intraday_sales.create_index("expiresAt", expireAfterSeconds=0)
+        await db.forecasts.create_index("expiresAt", expireAfterSeconds=0)
+        await db.waste_alerts.create_index("expiresAt", expireAfterSeconds=0)
     except Exception as e:
         print(f"[DB] WARNING: Could not reach Atlas on startup ({e}). "
               "Server will start anyway. Fix network/VPN to enable real DB operations.")
@@ -292,6 +316,48 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(b
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+# Rate limit tracker for demo sandbox starts: user_id -> list of timestamps (max 5/hour)
+DEMO_START_RATE_LIMITS: Dict[str, List[float]] = defaultdict(list)
+
+async def get_workspace_user(request: Request, current_user=Depends(get_current_user)) -> dict:
+    """
+    Workspace scoping dependency.
+    If the client passes X-Workspace: demo, returns the caller's shadow tenant user.
+    Otherwise, returns current_user unaltered.
+    Guarantees mathematically isolated multi-tenancy between sandbox and live operations.
+    """
+    workspace_header = request.headers.get("X-Workspace", "").strip().lower()
+    if workspace_header == "demo":
+        shadow_id = f"shadow_{current_user['_id']}"
+        shadow_user = await db.users.find_one({"_id": shadow_id, "role": "demo_shadow"})
+        if not shadow_user:
+            # Fallback in-memory representation if querying before demo/start seeded
+            shadow_user = {
+                "_id": shadow_id,
+                "name": f"Demo Store ({current_user.get('name', 'Owner')})",
+                "email": f"demo_{current_user.get('email', 'user')}",
+                "role": "demo_shadow",
+                "shadow_of": current_user["_id"],
+                "store_name": "Sample Artisan Bakery",
+                "timezone": "Asia/Kolkata",
+                "opening_hour": 8.0,
+                "closing_hour": 20.0,
+                "currency": "₹",
+                "onboarding_completed": True,
+                "replayed_dataset": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "expiresAt": datetime.now(timezone.utc) + timedelta(hours=2),
+            }
+        
+        # Attach in-memory simulated clock if set
+        if shadow_id in DEMO_SIMULATED_CLOCKS:
+            shadow_user["simulated_clock_hour"] = DEMO_SIMULATED_CLOCKS[shadow_id]
+        
+        return shadow_user
+
+    return current_user
 
 
 # ---------------------------------------------------------------------------- #
@@ -492,7 +558,7 @@ async def login(req: LoginRequest):
 
 
 @app.get("/api/v1/me", response_model=UserProfileResponse)
-async def get_my_profile(current_user=Depends(get_current_user)):
+async def get_my_profile(current_user=Depends(get_workspace_user)):
     return UserProfileResponse(
         id=current_user["_id"],
         name=current_user.get("name", ""),
@@ -510,7 +576,7 @@ async def get_my_profile(current_user=Depends(get_current_user)):
 
 
 @app.patch("/api/v1/me", response_model=UserProfileResponse)
-async def update_my_profile(req: UserProfileUpdateRequest, current_user=Depends(get_current_user)):
+async def update_my_profile(req: UserProfileUpdateRequest, current_user=Depends(get_workspace_user)):
     update_data = {}
     if req.name is not None:
         update_data["name"] = req.name.strip()
@@ -605,7 +671,7 @@ async def health_check():
 ALLOWED_CATEGORIES = ["Bakery", "Beverage", "Food", "Dessert", "Snack", "Other"]
 
 @app.post("/api/v1/items", status_code=201)
-async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_user)):
+async def create_item(req: ItemCreateRequest, current_user=Depends(get_workspace_user)):
     name_stripped = req.name.strip()
     name_lower = name_stripped.lower()
 
@@ -694,7 +760,7 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_u
 
 
 @app.get("/api/v1/items")
-async def get_items(current_user=Depends(get_current_user)):
+async def get_items(current_user=Depends(get_workspace_user)):
     cursor = db.items.find({"owner_id": current_user["_id"]})
     items = []
     async for doc in cursor:
@@ -719,7 +785,7 @@ async def get_items(current_user=Depends(get_current_user)):
 
 
 @app.put("/api/v1/items/{item_id}")
-async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends(get_current_user)):
+async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -768,7 +834,7 @@ async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends
 
 
 @app.delete("/api/v1/items/{item_id}")
-async def delete_item(item_id: str, current_user=Depends(get_current_user)):
+async def delete_item(item_id: str, current_user=Depends(get_workspace_user)):
     res = await db.items.delete_one({"_id": item_id, "owner_id": current_user["_id"]})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -777,7 +843,7 @@ async def delete_item(item_id: str, current_user=Depends(get_current_user)):
 
 
 @app.post("/api/v1/items/{item_id}/restock")
-async def restock_item(item_id: str, req: RestockRequest, current_user=Depends(get_current_user)):
+async def restock_item(item_id: str, req: RestockRequest, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -821,7 +887,7 @@ async def restock_item(item_id: str, req: RestockRequest, current_user=Depends(g
 
     return {
         "status": "success",
-        "message": f"Restocked {qty_to_add} {item['unit']} of {item['name']}.",
+        "message": f"Restocked {qty_to_add} {item.get('unit', 'units')} of {item.get('name', 'item')}.",
         "added": qty_to_add,
         "newStock": new_stock,
     }
@@ -924,7 +990,7 @@ def check_item_waste_alert_sync(doc: dict, current_user: dict, predicted_demand:
 # ---------------------------------------------------------------------------- #
 
 @app.get("/api/v1/forecasts/today")
-async def get_todays_forecasts(current_user=Depends(get_current_user)):
+async def get_todays_forecasts(current_user=Depends(get_workspace_user)):
     cursor = db.items.find({"owner_id": current_user["_id"]})
     items = []
     action_required_count = 0
@@ -1021,7 +1087,7 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
 
 
 @app.get("/api/v1/forecasts/{item_id}")
-async def get_item_forecast_detail(item_id: str, current_user=Depends(get_current_user)):
+async def get_item_forecast_detail(item_id: str, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -1111,7 +1177,7 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
 # ---------------------------------------------------------------------------- #
 
 @app.post("/api/v1/closing-count")
-async def record_closing_count(req: ClosingCountRequest, current_user=Depends(get_current_user)):
+async def record_closing_count(req: ClosingCountRequest, current_user=Depends(get_workspace_user)):
     now_local = get_store_local_now(current_user)
     today_str = now_local.strftime("%Y-%m-%d")
     yesterday_str = (now_local.date() - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -1267,7 +1333,7 @@ async def record_closing_count(req: ClosingCountRequest, current_user=Depends(ge
 
 
 @app.post("/api/v1/midday-count")
-async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_current_user)):
+async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_workspace_user)):
     now_local = get_store_local_now(current_user)
     today_str = now_local.strftime("%Y-%m-%d")
     current_hour = now_local.hour + (now_local.minute / 60.0)
@@ -1373,7 +1439,7 @@ async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_
 
 
 @app.get("/api/v1/review/yesterday")
-async def get_yesterday_review(current_user=Depends(get_current_user)):
+async def get_yesterday_review(current_user=Depends(get_workspace_user)):
     now_local = get_store_local_now(current_user)
     yesterday_str = (now_local.date() - timedelta(days=1)).strftime("%Y-%m-%d")
 
@@ -1467,7 +1533,7 @@ async def get_yesterday_review(current_user=Depends(get_current_user)):
 # ---------------------------------------------------------------------------- #
 
 @app.post("/api/v1/sales/intraday", status_code=201)
-async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(get_current_user)):
+async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": req.item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -1510,7 +1576,7 @@ async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(ge
 
 
 @app.get("/api/v1/waste-alerts")
-async def get_waste_alerts(current_user=Depends(get_current_user)):
+async def get_waste_alerts(current_user=Depends(get_workspace_user)):
     now_local = get_store_local_now(current_user)
     current_hour = now_local.hour + (now_local.minute / 60.0)
     
@@ -1651,7 +1717,7 @@ class ApplyDiscountRequest(BaseModel):
 
 
 @app.post("/api/v1/waste-alerts/{item_id}/apply-discount")
-async def apply_discount_action(item_id: str, req: Optional[ApplyDiscountRequest] = None, current_user=Depends(get_current_user)):
+async def apply_discount_action(item_id: str, req: Optional[ApplyDiscountRequest] = None, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -1684,7 +1750,7 @@ async def apply_discount_action(item_id: str, req: Optional[ApplyDiscountRequest
 
 
 @app.post("/api/v1/waste-alerts/{item_id}/apply-bundle")
-async def apply_bundle_action(item_id: str, req: Optional[ApplyBundleRequest] = None, current_user=Depends(get_current_user)):
+async def apply_bundle_action(item_id: str, req: Optional[ApplyBundleRequest] = None, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -1714,7 +1780,7 @@ async def apply_bundle_action(item_id: str, req: Optional[ApplyBundleRequest] = 
 
 
 @app.post("/api/v1/waste-alerts/{item_id}/dismiss")
-async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_user)):
+async def dismiss_alert_action(item_id: str, current_user=Depends(get_workspace_user)):
     item = await db.items.find_one({"_id": item_id, "owner_id": current_user["_id"]})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -1725,6 +1791,288 @@ async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_us
         {"$set": {"isDismissed": True}}
     )
     return {"status": "dismissed", "item_id": item_id}
+
+
+# ---------------------------------------------------------------------------- #
+# Demo Sandbox Workspace Engine (Shadow Tenant)
+# ---------------------------------------------------------------------------- #
+
+class DemoClockRequest(BaseModel):
+    hour: float = Field(..., ge=0.0, le=24.0, description="Simulated local hour (e.g. 14.5 for 14:30)")
+
+
+async def purge_shadow_tenant(shadow_id: str) -> dict:
+    """
+    Purges all documents belonging strictly and exclusively to the shadow tenant.
+    Never touches real owner accounts or live production data.
+    """
+    filter_dict = {"owner_id": shadow_id}
+    res_users = await db.users.delete_many({"_id": shadow_id})
+    res_items = await db.items.delete_many(filter_dict)
+    res_stock = await db.daily_stock.delete_many(filter_dict)
+    res_sales = await db.daily_sales.delete_many(filter_dict)
+    res_intraday = await db.intraday_sales.delete_many(filter_dict)
+    res_forecasts = await db.forecasts.delete_many(filter_dict)
+    res_alerts = await db.waste_alerts.delete_many(filter_dict)
+    DEMO_SIMULATED_CLOCKS.pop(shadow_id, None)
+
+    return {
+        "shadow_id": shadow_id,
+        "deleted_counts": {
+            "users": res_users.deleted_count,
+            "items": res_items.deleted_count,
+            "daily_stock": res_stock.deleted_count,
+            "daily_sales": res_sales.deleted_count,
+            "intraday_sales": res_intraday.deleted_count,
+            "forecasts": res_forecasts.deleted_count,
+            "waste_alerts": res_alerts.deleted_count,
+        },
+        "filters_applied": {
+            "users": {"_id": shadow_id},
+            "collections": {"owner_id": shadow_id},
+        }
+    }
+
+
+@app.post("/api/v1/demo/start")
+async def start_demo_sandbox(real_user=Depends(get_current_user)):
+    """
+    Idempotently seeds the isolated shadow tenant from ML/data/demo_fixture.json.
+    Rate limited to 5 starts/hour per user.
+    Uses precomputed fixture so zero pandas/scikit-learn imports occur.
+    """
+    user_id = real_user["_id"]
+    now_ts = time.time()
+
+    # 1. Rate limiter: 5 starts per hour
+    window_start = now_ts - 3600
+    DEMO_START_RATE_LIMITS[user_id] = [t for t in DEMO_START_RATE_LIMITS[user_id] if t > window_start]
+    if len(DEMO_START_RATE_LIMITS[user_id]) >= 5:
+        raise HTTPException(
+            status_code=429,
+            detail="Demo start rate limit exceeded (maximum 5 sandbox creations per hour). Please wait."
+        )
+    DEMO_START_RATE_LIMITS[user_id].append(now_ts)
+
+    shadow_id = f"shadow_{user_id}"
+
+    # 2. Check if already seeded (idempotency)
+    existing_items = await db.items.count_documents({"owner_id": shadow_id})
+    if existing_items >= 7:
+        return {
+            "status": "already_started",
+            "shadow_user_id": shadow_id,
+            "items_count": existing_items,
+            "message": "Demo sandbox is already active and seeded for this user.",
+        }
+
+    # 3. Clean up any partial shadow state before seeding
+    await purge_shadow_tenant(shadow_id)
+
+    # 4. Load precomputed fixture
+    fixture_path = Path(__file__).resolve().parent.parent / "ML" / "data" / "demo_fixture.json"
+    if not fixture_path.exists():
+        raise HTTPException(status_code=500, detail="Demo fixture file not found on server.")
+
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        fixture = json.load(f)
+
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # 5. Insert shadow user document
+    shadow_user_doc = {
+        "_id": shadow_id,
+        "name": f"Demo Store ({real_user.get('name', 'Owner')})",
+        "email": f"demo_{real_user.get('email', 'user')}",
+        "role": "demo_shadow",
+        "shadow_of": user_id,
+        "store_name": fixture["store_profile"]["store_name"],
+        "timezone": fixture["store_profile"]["timezone"],
+        "opening_hour": fixture["store_profile"]["opening_hour"],
+        "closing_hour": fixture["store_profile"]["closing_hour"],
+        "currency": fixture["store_profile"]["currency"],
+        "onboarding_completed": True,
+        "replayed_dataset": True,
+        "created_at": now_iso,
+        "expiresAt": expires_at,
+    }
+    await db.users.insert_one(shadow_user_doc)
+
+    # Calculate dates ending yesterday in Asia/Kolkata
+    store_tz = ZoneInfo(fixture["store_profile"]["timezone"])
+    local_now = datetime.now(store_tz)
+    local_today = local_now.date()
+    yesterday = local_today - timedelta(days=1)
+    date_strs = [(yesterday - timedelta(days=59 - i)).strftime("%Y-%m-%d") for i in range(60)]
+    today_str = local_today.strftime("%Y-%m-%d")
+    today_dow_str = str(local_now.weekday())
+
+    # 6. Seed mature items, historical stock/sales, and precomputed forecasts
+    items_to_insert = []
+    sales_to_insert = []
+    stock_to_insert = []
+    forecasts_to_insert = []
+
+    for mature in fixture["mature_items"]:
+        item_id = f"{shadow_id}_{mature['fixture_id']}"
+        items_to_insert.append({
+            "_id": item_id,
+            "owner_id": shadow_id,
+            "name": mature["name"],
+            "name_lower": mature["name"].strip().lower(),
+            "category": mature["category"],
+            "unit": mature["unit"],
+            "currentStock": mature["currentStock"],
+            "isPerishable": mature["isPerishable"],
+            "price": mature["price"],
+            "shelfLifeDays": mature.get("shelfLifeDays"),
+            "intradaySales": 0,
+            "intradayDate": today_str,
+            "replayed_dataset": True,
+            "source": "replayed_dataset",
+            "expiresAt": expires_at,
+            "createdAt": now_iso,
+            "updatedAt": now_iso,
+        })
+
+        for idx, d_str in enumerate(date_strs):
+            sold = mature["sales_history_60"][idx]
+            stock_info = mature["daily_stock_60"][idx]
+            sales_to_insert.append({
+                "owner_id": shadow_id,
+                "item_id": item_id,
+                "date": d_str,
+                "units": sold,
+                "source": "replayed_dataset",
+                "expiresAt": expires_at,
+                "createdAt": now_iso,
+            })
+            stock_to_insert.append({
+                "owner_id": shadow_id,
+                "item_id": item_id,
+                "date": d_str,
+                "openingStock": stock_info["openingStock"],
+                "producedOrRestocked": stock_info["producedOrRestocked"],
+                "closingStock": stock_info["closingStock"],
+                "wasteUnits": stock_info["wasteUnits"],
+                "soldUnits": stock_info["soldUnits"],
+                "status": "closed",
+                "source": "replayed_dataset",
+                "expiresAt": expires_at,
+                "createdAt": now_iso,
+            })
+
+        fc_spec = mature["weekday_forecasts"].get(today_dow_str, mature["weekday_forecasts"]["0"])
+        forecasts_to_insert.append({
+            "owner_id": shadow_id,
+            "item_id": item_id,
+            "name": mature["name"],
+            "category": mature["category"],
+            "unit": mature["unit"],
+            "price": mature["price"],
+            "currentStock": mature["currentStock"],
+            "predictedDemand": fc_spec["predictedDemand"],
+            "safetyStock": fc_spec["safetyStock"],
+            "tier": fc_spec["tier"],
+            "description": fc_spec["explanation"],
+            "forecast_date": today_str,
+            "confidence_interval": None,
+            "source": "replayed_dataset",
+            "expiresAt": expires_at,
+            "createdAt": now_iso,
+        })
+
+    # 7. Seed 1 cold-start item
+    cs = fixture["cold_start_item"]
+    cs_item_id = f"{shadow_id}_{cs['fixture_id']}"
+    items_to_insert.append({
+        "_id": cs_item_id,
+        "owner_id": shadow_id,
+        "name": cs["name"],
+        "name_lower": cs["name"].strip().lower(),
+        "category": cs["category"],
+        "unit": cs["unit"],
+        "currentStock": cs["currentStock"],
+        "isPerishable": cs["isPerishable"],
+        "price": cs["price"],
+        "shelfLifeDays": cs.get("shelfLifeDays"),
+        "intradaySales": 0,
+        "intradayDate": today_str,
+        "replayed_dataset": True,
+        "source": "replayed_dataset",
+        "expiresAt": expires_at,
+        "createdAt": now_iso,
+        "updatedAt": now_iso,
+    })
+    forecasts_to_insert.append({
+        "owner_id": shadow_id,
+        "item_id": cs_item_id,
+        "name": cs["name"],
+        "category": cs["category"],
+        "unit": cs["unit"],
+        "price": cs["price"],
+        "currentStock": cs["currentStock"],
+        "predictedDemand": cs["predictedDemand"],
+        "safetyStock": cs["safetyStock"],
+        "tier": cs["tier"],
+        "description": cs["description"],
+        "forecast_date": today_str,
+        "confidence_interval": None,
+        "source": "replayed_dataset",
+        "expiresAt": expires_at,
+        "createdAt": now_iso,
+    })
+
+    if items_to_insert:
+        await db.items.insert_many(items_to_insert)
+    if sales_to_insert:
+        await db.daily_sales.insert_many(sales_to_insert)
+    if stock_to_insert:
+        await db.daily_stock.insert_many(stock_to_insert)
+    if forecasts_to_insert:
+        await db.forecasts.insert_many(forecasts_to_insert)
+
+    return {
+        "status": "started",
+        "shadow_user_id": shadow_id,
+        "items_seeded": len(items_to_insert),
+        "expiresAt": expires_at.isoformat(),
+        "message": "Demo sandbox successfully seeded with replayed dataset.",
+    }
+
+
+@app.post("/api/v1/demo/reset")
+async def reset_demo_sandbox(real_user=Depends(get_current_user)):
+    shadow_id = f"shadow_{real_user['_id']}"
+    await purge_shadow_tenant(shadow_id)
+    return await start_demo_sandbox(real_user=real_user)
+
+
+@app.delete("/api/v1/demo")
+async def delete_demo_sandbox(real_user=Depends(get_current_user)):
+    shadow_id = f"shadow_{real_user['_id']}"
+    result = await purge_shadow_tenant(shadow_id)
+    return {
+        "status": "deleted",
+        "shadow_user_id": shadow_id,
+        "result": result,
+    }
+
+
+@app.post("/api/v1/demo/clock")
+async def set_demo_clock(req: DemoClockRequest, real_user=Depends(get_current_user)):
+    shadow_id = f"shadow_{real_user['_id']}"
+    DEMO_SIMULATED_CLOCKS[shadow_id] = float(req.hour)
+    await db.users.update_one(
+        {"_id": shadow_id},
+        {"$set": {"simulated_clock_hour": float(req.hour)}}
+    )
+    return {
+        "status": "clock_updated",
+        "shadow_user_id": shadow_id,
+        "simulated_clock_hour": float(req.hour),
+    }
 
 
 @app.post("/api/v1/jobs/rollup-daily-sales")
@@ -1785,7 +2133,7 @@ ASSISTANT_DAILY_QUERY_COUNTS: Dict[Tuple[str, str], int] = {}
 
 
 @app.get("/api/v1/briefing/today")
-async def get_today_executive_briefing(current_user=Depends(get_current_user)):
+async def get_today_executive_briefing(current_user=Depends(get_workspace_user)):
     """
     Synthesizes an executive daily operational briefing for the on-duty manager
     using Google Gemini. Strictly grounded in verified MongoDB Atlas metrics.
@@ -1841,7 +2189,7 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
 
 
 @app.post("/api/v1/assistant/chat", dependencies=[Depends(chat_limiter)])
-async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_current_user)):
+async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_workspace_user)):
     """
     Answers manager queries with RAG grounding from today's inventory state.
     Enforces per-user limit of 15 queries/day and returns zero-LLM empty state for 0 items.

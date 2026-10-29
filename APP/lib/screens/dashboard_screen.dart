@@ -8,6 +8,7 @@ import '../theme/app_typography.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/dashboard_forecast_card.dart';
 import '../widgets/ai_briefing_card.dart';
+import '../widgets/demo_banner.dart';
 import '../widgets/dotted_background.dart';
 import 'item_detail_forecast_screen.dart';
 import 'item_setup_screen.dart';
@@ -42,8 +43,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Top Header Bar
             SafeArea(
               bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const DemoBanner(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     IconButton(
@@ -117,6 +122,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
+              ),
+              ],
               ),
             ),
 
