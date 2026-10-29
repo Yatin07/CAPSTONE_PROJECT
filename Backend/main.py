@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any, Tuple
 
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
@@ -130,17 +130,22 @@ async def rollover_if_new_day(item: dict, user: Optional[dict] = None) -> dict:
     item.update(update_fields)
     return item
 
-async def rollup_daily_sales(target_date: str) -> dict:
+async def rollup_daily_sales(target_date: str, owner_id: Optional[str] = None) -> dict:
     """
     Aggregates db.intraday_sales by date for any past or target day.
     Upserts into db.daily_sales with compound unique index (owner_id, item_id, date).
+    Strictly scoped to owner_id when provided, or processes all owners for server jobs.
     100% idempotent and safe to run multiple times.
     """
     if db is None:
         return {"status": "skipped", "reason": "db is None"}
 
+    match_filter: Dict[str, Any] = {"date": target_date}
+    if owner_id:
+        match_filter["owner_id"] = owner_id
+
     pipeline = [
-        {"$match": {"date": target_date}},
+        {"$match": match_filter},
         {"$group": {
             "_id": {
                 "owner_id": "$owner_id",
@@ -153,11 +158,11 @@ async def rollup_daily_sales(target_date: str) -> dict:
     count = 0
     now_iso = datetime.now(timezone.utc).isoformat()
     async for doc in cursor:
-        owner_id = doc["_id"]["owner_id"]
+        doc_owner_id = doc["_id"]["owner_id"]
         item_id = doc["_id"]["item_id"]
         units = doc["total_units"]
         await db.daily_sales.update_one(
-            {"owner_id": owner_id, "item_id": item_id, "date": target_date},
+            {"owner_id": doc_owner_id, "item_id": item_id, "date": target_date},
             {"$set": {
                 "units": units,
                 "source": "rollup",
@@ -166,7 +171,7 @@ async def rollup_daily_sales(target_date: str) -> dict:
             upsert=True
         )
         count += 1
-    return {"status": "success", "date": target_date, "records_rolled_up": count}
+    return {"status": "success", "date": target_date, "records_rolled_up": count, "scoped_owner": owner_id or "all"}
 
 
 # ---------------------------------------------------------------------------- #
@@ -486,7 +491,6 @@ async def login(req: LoginRequest):
     )
 
 
-@app.get("/api/v1/users/me", response_model=UserProfileResponse)
 @app.get("/api/v1/me", response_model=UserProfileResponse)
 async def get_my_profile(current_user=Depends(get_current_user)):
     return UserProfileResponse(
@@ -505,7 +509,6 @@ async def get_my_profile(current_user=Depends(get_current_user)):
     )
 
 
-@app.patch("/api/v1/users/me", response_model=UserProfileResponse)
 @app.patch("/api/v1/me", response_model=UserProfileResponse)
 async def update_my_profile(req: UserProfileUpdateRequest, current_user=Depends(get_current_user)):
     update_data = {}
@@ -1108,7 +1111,6 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
 # ---------------------------------------------------------------------------- #
 
 @app.post("/api/v1/closing-count")
-@app.post("/api/v1/daily-stock/closing-count")
 async def record_closing_count(req: ClosingCountRequest, current_user=Depends(get_current_user)):
     now_local = get_store_local_now(current_user)
     today_str = now_local.strftime("%Y-%m-%d")
@@ -1265,7 +1267,6 @@ async def record_closing_count(req: ClosingCountRequest, current_user=Depends(ge
 
 
 @app.post("/api/v1/midday-count")
-@app.post("/api/v1/daily-stock/midday-count")
 async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_current_user)):
     now_local = get_store_local_now(current_user)
     today_str = now_local.strftime("%Y-%m-%d")
@@ -1372,7 +1373,6 @@ async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_
 
 
 @app.get("/api/v1/review/yesterday")
-@app.get("/api/v1/daily-stock/review/yesterday")
 async def get_yesterday_review(current_user=Depends(get_current_user)):
     now_local = get_store_local_now(current_user)
     yesterday_str = (now_local.date() - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -1728,14 +1728,43 @@ async def dismiss_alert_action(item_id: str, current_user=Depends(get_current_us
 
 
 @app.post("/api/v1/jobs/rollup-daily-sales")
-async def trigger_daily_sales_rollup(target_date: Optional[str] = None, current_user=Depends(get_current_user)):
+async def trigger_daily_sales_rollup(
+    request: Request,
+    target_date: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
     """
     Idempotent daily sales rollup job. Aggregates intraday_sales into daily_sales for target_date.
+    Authorization:
+    - If X-Job-Secret matches server JOB_SECRET, processes all owners.
+    - Otherwise, requires valid user Bearer JWT and restricts strictly to caller's own owner_id.
     """
+    job_secret = os.getenv("JOB_SECRET")
+    header_secret = request.headers.get("X-Job-Secret")
+    is_server_authorized = bool(job_secret and header_secret and header_secret == job_secret)
+
+    scoped_owner_id = None
+    if is_server_authorized:
+        scoped_owner_id = None
+    elif authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            scoped_owner_id = payload.get("sub")
+            if not scoped_owner_id:
+                raise HTTPException(status_code=401, detail="Invalid token payload.")
+        except Exception:
+            raise HTTPException(status_code=401, detail="Invalid or expired Bearer token.")
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Valid user JWT or X-Job-Secret header required."
+        )
+
     if not target_date:
-        now_local = get_store_local_now(current_user)
-        target_date = now_local.strftime("%Y-%m-%d")
-    result = await rollup_daily_sales(target_date)
+        target_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    result = await rollup_daily_sales(target_date, owner_id=scoped_owner_id)
     return result
 
 
@@ -1751,6 +1780,9 @@ class AssistantChatRequest(BaseModel):
 BRIEFING_CACHE: Dict[Tuple[str, str], Dict[str, Any]] = {}
 BRIEFING_COOLDOWN_SECONDS = 600  # 10 minutes
 
+# Per-user daily assistant query counter (15 queries/day limit)
+ASSISTANT_DAILY_QUERY_COUNTS: Dict[Tuple[str, str], int] = {}
+
 
 @app.get("/api/v1/briefing/today")
 async def get_today_executive_briefing(current_user=Depends(get_current_user)):
@@ -1758,9 +1790,27 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
     Synthesizes an executive daily operational briefing for the on-duty manager
     using Google Gemini. Strictly grounded in verified MongoDB Atlas metrics.
     Caches per (owner_id, store-local date) with a 10-minute refresh cooldown.
+    Returns immediately with empty state and zero LLM calls if store has 0 items.
     """
     user_id = current_user["_id"]
     local_date = get_store_local_now(current_user).strftime("%Y-%m-%d")
+
+    cursor = db.items.find({"owner_id": user_id})
+    items = await cursor.to_list(length=100)
+
+    # Empty store check: zero LLM calls if no items exist
+    if not items:
+        return {
+            "status": "success",
+            "briefing": {
+                "source": "empty",
+                "provider": "system",
+                "executive_summary": "Your store inventory is currently empty. Add items to enable automated demand forecasting, waste risk detection, and operational recommendations.",
+                "actions": [],
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+
     cache_key = (user_id, local_date)
     now_ts = time.time()
 
@@ -1773,9 +1823,6 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
             "status": "success",
             "briefing": cached_data,
         }
-
-    cursor = db.items.find({"owner_id": user_id})
-    items = await cursor.to_list(length=100)
 
     # Fetch alerts for this user
     alerts_resp = await get_waste_alerts(current_user=current_user)
@@ -1797,10 +1844,33 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
 async def assistant_chat(req: AssistantChatRequest, current_user=Depends(get_current_user)):
     """
     Answers manager queries with RAG grounding from today's inventory state.
+    Enforces per-user limit of 15 queries/day and returns zero-LLM empty state for 0 items.
     """
     user_id = current_user["_id"]
     cursor = db.items.find({"owner_id": user_id})
     items = await cursor.to_list(length=100)
+
+    # Empty store check: zero LLM calls
+    if not items:
+        return {
+            "status": "empty",
+            "reply": "Your store currently has no items in inventory. Add inventory items first to consult the AI assistant on demand trends and waste mitigation.",
+            "provider": "system",
+            "model": "empty-store",
+        }
+
+    # Daily per-user limit: 15 queries/day
+    local_date = get_store_local_now(current_user).strftime("%Y-%m-%d")
+    user_query_key = (user_id, local_date)
+    query_count = ASSISTANT_DAILY_QUERY_COUNTS.get(user_query_key, 0)
+    if query_count >= 15:
+        return {
+            "status": "rate_limited",
+            "reply": "Daily query limit reached (15/15 queries used today). Please try again tomorrow.",
+            "provider": "system",
+            "model": "rate-limit",
+        }
+    ASSISTANT_DAILY_QUERY_COUNTS[user_query_key] = query_count + 1
 
     alerts_resp = await get_waste_alerts(current_user=current_user)
     alerts = alerts_resp.get("alerts", [])

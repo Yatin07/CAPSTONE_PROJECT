@@ -62,39 +62,52 @@ class ForgotPasswordScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Self-service automated password reset is disabled for store operational security.\n\nTo reset your credentials or recover access, please contact your store administrator or email RestockIQ support:',
+                      'Password reset is not available in this version.',
                       style: AppTypography.bodyMd.copyWith(
                         color: AppColors.onSurfaceVariant,
                         height: 1.45,
+                        fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.inputFill,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please contact your store administrator to manage account credentials.',
+                      style: AppTypography.bodyMd.copyWith(
+                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (const String.fromEnvironment('SUPPORT_EMAIL', defaultValue: '').isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputFill,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.email_outlined, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              const String.fromEnvironment('SUPPORT_EMAIL'),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.email_outlined, size: 18, color: AppColors.primary),
-                          const SizedBox(width: 8),
-                          SelectableText(
-                            'support@restockiq.com',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryDark,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                     const SizedBox(height: 24),
                     PrimaryButton(
                       label: 'Back to Login',

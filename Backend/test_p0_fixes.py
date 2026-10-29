@@ -189,6 +189,92 @@ class TestP0Fixes(unittest.TestCase):
         self.assertTrue(fb["is_fallback"])
         self.assertIn("[Deterministic Fallback Mode]", fb["raw_text"])
 
+    def test_rollup_daily_sales_authorization_and_scoping(self):
+        """[MOCK-DB] Test that rollup-daily-sales restricts normal user to own owner_id and rejects unauthorized calls."""
+        from main import trigger_daily_sales_rollup, SECRET_KEY, ALGORITHM
+        from jose import jwt
+        from starlette.requests import Request
+
+        # 1. Reject without auth
+        req_unauth = Request(scope={"type": "http", "headers": []})
+        with self.assertRaises(HTTPException) as ctx:
+            asyncio.run(trigger_daily_sales_rollup(req_unauth, target_date="2026-10-29", authorization=None))
+        self.assertEqual(ctx.exception.status_code, 401)
+
+        # 2. Accept with valid user Bearer token and scope to that user
+        token_a = jwt.encode({"sub": "owner_alpha", "role": "owner"}, SECRET_KEY, algorithm=ALGORITHM)
+        req_user = Request(scope={"type": "http", "headers": [(b"authorization", f"Bearer {token_a}".encode())]})
+        
+        with patch("main.rollup_daily_sales", return_value={"status": "success", "scoped_owner": "owner_alpha"}) as mock_rollup:
+            res = asyncio.run(trigger_daily_sales_rollup(req_user, target_date="2026-10-29", authorization=f"Bearer {token_a}"))
+            mock_rollup.assert_called_once_with("2026-10-29", owner_id="owner_alpha")
+            self.assertEqual(res["scoped_owner"], "owner_alpha")
+
+        # 3. Server authorization via X-Job-Secret processes all owners (owner_id=None)
+        with patch.dict(os.environ, {"JOB_SECRET": "test_secret_1234"}):
+            req_server = Request(scope={"type": "http", "headers": [(b"x-job-secret", b"test_secret_1234")]})
+            with patch("main.rollup_daily_sales", return_value={"status": "success", "scoped_owner": "all"}) as mock_rollup_all:
+                res_server = asyncio.run(trigger_daily_sales_rollup(req_server, target_date="2026-10-29", authorization=None))
+                mock_rollup_all.assert_called_once_with("2026-10-29", owner_id=None)
+                self.assertEqual(res_server["scoped_owner"], "all")
+
+    def test_assistant_daily_query_limit_15(self):
+        """[MOCK-DB] Test that manager assistant query limit caps at 15 queries per user per day."""
+        from main import assistant_chat, AssistantChatRequest, ASSISTANT_DAILY_QUERY_COUNTS
+        from unittest.mock import AsyncMock
+
+        user = {"_id": "test_user_limit", "name": "Test Owner", "role": "owner"}
+        ASSISTANT_DAILY_QUERY_COUNTS.clear()
+
+        # Mock db.items to return 1 item so not empty
+        mock_items_cursor = MagicMock()
+        mock_items_cursor.to_list = AsyncMock(return_value=[{"_id": "it1", "name": "Baguette", "owner_id": "test_user_limit"}])
+
+        mock_db = MagicMock()
+        mock_db.items.find = MagicMock(return_value=mock_items_cursor)
+
+        with patch("main.db", mock_db):
+            with patch("main.get_waste_alerts", AsyncMock(return_value={"alerts": []})):
+                with patch("main.answer_assistant_chat", return_value={"reply": "Mock reply", "provider": "system", "model": "test"}):
+                    # Queries 1..15 must succeed
+                    for i in range(1, 16):
+                        res = asyncio.run(assistant_chat(AssistantChatRequest(query=f"Query {i}"), current_user=user))
+                        self.assertEqual(res["status"], "success")
+
+                    # Query 16 must hit rate_limited limit
+                    res_16 = asyncio.run(assistant_chat(AssistantChatRequest(query="Query 16"), current_user=user))
+                    self.assertEqual(res_16["status"], "rate_limited")
+                    self.assertIn("Daily query limit reached", res_16["reply"])
+
+    def test_empty_store_briefing_and_chat_zero_llm(self):
+        """[MOCK-DB] Test that store with 0 items returns immediate empty status with ZERO LLM calls."""
+        from main import get_today_executive_briefing, assistant_chat, AssistantChatRequest
+        from unittest.mock import AsyncMock
+
+        user = {"_id": "empty_user", "name": "Empty Owner", "role": "owner"}
+
+        mock_empty_cursor = MagicMock()
+        mock_empty_cursor.to_list = AsyncMock(return_value=[])
+
+        mock_db = MagicMock()
+        mock_db.items.find = MagicMock(return_value=mock_empty_cursor)
+
+        with patch("main.db", mock_db):
+            with patch("services.llm_service.generate_daily_briefing") as mock_gen_briefing:
+                with patch("services.llm_service.answer_assistant_chat") as mock_gen_chat:
+                    # 1. Briefing
+                    b_res = asyncio.run(get_today_executive_briefing(current_user=user))
+                    self.assertEqual(b_res["status"], "success")
+                    self.assertEqual(b_res["briefing"]["source"], "empty")
+                    self.assertIn("inventory is currently empty", b_res["briefing"]["executive_summary"])
+                    mock_gen_briefing.assert_not_called()
+
+                    # 2. Assistant Chat
+                    c_res = asyncio.run(assistant_chat(AssistantChatRequest(query="How are sales?"), current_user=user))
+                    self.assertEqual(c_res["status"], "empty")
+                    self.assertIn("no items in inventory", c_res["reply"])
+                    mock_gen_chat.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
