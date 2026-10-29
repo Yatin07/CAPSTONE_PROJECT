@@ -1,21 +1,55 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import '../models/inventory_item.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
 class SalesForecastChart extends StatelessWidget {
-  final List<double> actualSales;
-  final List<double> predictedSales;
+  final InventoryItem? item;
+  final List<double>? actualSales;
+  final List<double>? predictedSales;
   final List<String> days;
 
   const SalesForecastChart({
     super.key,
-    this.actualSales = const [35, 40, 32, 42, 48],
-    this.predictedSales = const [34, 38, 35, 41, 46, 55, 60],
+    this.item,
+    this.actualSales,
+    this.predictedSales,
     this.days = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
   });
 
+  List<double> get computedPredicted {
+    if (predictedSales != null) return predictedSales!;
+    if (item != null) {
+      final base = (item!.predictedDemand ?? 35).toDouble();
+      final multipliers = [0.90, 0.88, 0.92, 0.98, 1.15, 1.25, 1.10];
+      return multipliers.map((m) => (base * m).roundToDouble()).toList();
+    }
+    return const [34, 38, 35, 41, 46, 55, 60];
+  }
+
+  List<double> get computedActual {
+    if (actualSales != null) return actualSales!;
+    if (item != null) {
+      if (item!.daysOfData == 0) {
+        return [];
+      }
+      final base = (item!.predictedDemand ?? 35).toDouble();
+      final recordedDays = min(item!.daysOfData, 5);
+      final multipliers = [0.88, 0.94, 0.90, 1.02, 1.12];
+      return List.generate(
+        recordedDays,
+        (i) => (base * multipliers[i % multipliers.length]).roundToDouble(),
+      );
+    }
+    return const [35, 40, 32, 42, 48];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final actual = computedActual;
+    final predicted = computedPredicted;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -41,18 +75,30 @@ class SalesForecastChart extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             runSpacing: 8,
             children: [
-              Text(
-                'Sales vs Prediction',
-                style: AppTypography.labelBold.copyWith(
-                  fontSize: 16,
-                  color: AppColors.primaryDark,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sales vs Prediction',
+                    style: AppTypography.labelBold.copyWith(
+                      fontSize: 16,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
+                  if (item != null && item!.daysOfData == 0)
+                    Text(
+                      'Initial Category Prior Baseline (Learning)',
+                      style: TextStyle(fontSize: 11, color: AppColors.secondaryAmber, fontWeight: FontWeight.w600),
+                    ),
+                ],
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildLegendItem('Actual Sales', AppColors.primary),
-                  const SizedBox(width: 12),
+                  if (actual.isNotEmpty) ...[
+                    _buildLegendItem('Actual Sales', AppColors.primary),
+                    const SizedBox(width: 12),
+                  ],
                   _buildLegendItem('Predicted', AppColors.secondaryAmber),
                 ],
               ),
@@ -66,8 +112,8 @@ class SalesForecastChart extends StatelessWidget {
             width: double.infinity,
             child: CustomPaint(
               painter: _SalesChartPainter(
-                actualSales: actualSales,
-                predictedSales: predictedSales,
+                actualSales: actual,
+                predictedSales: predicted,
                 days: days,
               ),
             ),
@@ -123,7 +169,9 @@ class _SalesChartPainter extends CustomPainter {
     final double chartWidth = size.width - leftPadding - rightPadding;
     final double chartHeight = size.height - topPadding - bottomPadding;
 
-    const double maxY = 70.0;
+    final allVals = [...actualSales, ...predictedSales];
+    final double maxVal = allVals.isEmpty ? 50.0 : allVals.reduce(max);
+    final double maxY = max(10.0, (maxVal * 1.25).ceilToDouble());
     const double minY = 0.0;
 
     // Draw horizontal grid lines
@@ -242,6 +290,7 @@ class _SalesChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SalesChartPainter oldDelegate) {
     return oldDelegate.actualSales != actualSales ||
-        oldDelegate.predictedSales != predictedSales;
+        oldDelegate.predictedSales != predictedSales ||
+        oldDelegate.days != days;
   }
 }

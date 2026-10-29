@@ -119,61 +119,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
+        scrollable: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Backend Server Target'),
-        content: SingleChildScrollView(
+        title: const Row(
+          children: [
+            Icon(Icons.dns_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Text('Backend Server Target', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Select server target or enter custom API endpoint:',
-                style: TextStyle(fontSize: 13),
+                style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 12),
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.cloud_outlined, color: AppColors.primary),
-                title: const Text('Render Cloud Live'),
-                subtitle: const Text('https://restockiq-backend.onrender.com/api/v1', style: TextStyle(fontSize: 10)),
-                onTap: () {
-                  setState(() {
-                    ApiService.instance.baseUrl = 'https://restockiq-backend.onrender.com/api/v1';
-                  });
+              _buildServerOption(
+                icon: Icons.cloud_outlined,
+                iconColor: AppColors.primary,
+                title: 'Render Cloud Live',
+                url: 'https://restockiq-backend.onrender.com/api/v1',
+                onSelect: (url) {
+                  setState(() => ApiService.instance.baseUrl = url);
                   Navigator.pop(dialogCtx);
                 },
               ),
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.flash_on_rounded, color: Colors.green),
-                title: const Text('Local Emulator'),
-                subtitle: const Text('http://10.0.2.2:8000/api/v1', style: TextStyle(fontSize: 10)),
-                onTap: () {
-                  setState(() {
-                    ApiService.instance.baseUrl = 'http://10.0.2.2:8000/api/v1';
-                  });
+              const SizedBox(height: 8),
+              _buildServerOption(
+                icon: Icons.flash_on_rounded,
+                iconColor: Colors.green,
+                title: 'Local Emulator',
+                url: 'http://10.0.2.2:8000/api/v1',
+                onSelect: (url) {
+                  setState(() => ApiService.instance.baseUrl = url);
                   Navigator.pop(dialogCtx);
                 },
               ),
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.laptop_chromebook_rounded, color: Colors.blue),
-                title: const Text('Localhost (Web/Desktop)'),
-                subtitle: const Text('http://127.0.0.1:8000/api/v1', style: TextStyle(fontSize: 10)),
-                onTap: () {
-                  setState(() {
-                    ApiService.instance.baseUrl = 'http://127.0.0.1:8000/api/v1';
-                  });
+              const SizedBox(height: 8),
+              _buildServerOption(
+                icon: Icons.laptop_chromebook_rounded,
+                iconColor: Colors.blue,
+                title: 'Localhost (Web/Desktop)',
+                url: 'http://127.0.0.1:8000/api/v1',
+                onSelect: (url) {
+                  setState(() => ApiService.instance.baseUrl = url);
                   Navigator.pop(dialogCtx);
                 },
               ),
-              const Divider(height: 20),
+              const SizedBox(height: 14),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              const Text(
+                'Custom API Base URL',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.onSurface),
+              ),
+              const SizedBox(height: 6),
               TextField(
                 controller: customUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Custom API Base URL',
+                decoration: InputDecoration(
                   hintText: 'https://...',
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  filled: true,
+                  fillColor: AppColors.inputFill,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.outlineVariant),
+                  ),
                 ),
               ),
             ],
@@ -190,6 +206,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Reset Default'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () {
               final newUrl = customUrlController.text.trim();
               if (newUrl.isNotEmpty) {
@@ -202,6 +224,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Apply'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServerOption({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String url,
+    required void Function(String) onSelect,
+  }) {
+    final isSelected = ApiService.instance.baseUrl == url;
+    return InkWell(
+      onTap: () => onSelect(url),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.5),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? AppColors.primaryDark : AppColors.onSurface,
+                    ),
+                  ),
+                  Text(
+                    url,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18),
+          ],
+        ),
       ),
     );
   }

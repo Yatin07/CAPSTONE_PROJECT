@@ -17,7 +17,13 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
 
   void _openAssistantChatModal(BuildContext context) {
     final textController = TextEditingController();
-    String? currentAnswer;
+    final scrollController = ScrollController();
+    final List<Map<String, String>> messages = [
+      {
+        'role': 'assistant',
+        'content': 'Hello! I am your RestockIQ Store Assistant. Ask me anything about your inventory, sales pace, discounts, or waste mitigation.',
+      }
+    ];
     bool isQuerying = false;
 
     showModalBottomSheet(
@@ -28,12 +34,52 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+            final sheetHeight = MediaQuery.of(context).size.height * 0.72;
+
+            void scrollToBottom() {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (scrollController.hasClients) {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                  );
+                }
+              });
+            }
+
+            Future<void> submitMessage(String query) async {
+              final clean = query.trim();
+              if (clean.isEmpty || isQuerying) return;
+
+              textController.clear();
+              setModalState(() {
+                messages.add({'role': 'user', 'content': clean});
+                isQuerying = true;
+              });
+              scrollToBottom();
+
+              final reply = await ApiService.instance.askAssistant(clean);
+
+              if (context.mounted) {
+                setModalState(() {
+                  isQuerying = false;
+                  messages.add({
+                    'role': 'assistant',
+                    'content': reply ?? 'Could not reach assistant. Please try again.',
+                  });
+                });
+                scrollToBottom();
+              }
+            }
+
             return Container(
+              height: sheetHeight,
               padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: bottomInset + 20,
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: bottomInset + 16,
               ),
               decoration: const BoxDecoration(
                 color: Color(0xFFFFFDF8),
@@ -47,7 +93,6 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                 ],
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Modal drag handle
@@ -55,7 +100,7 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                     child: Container(
                       width: 40,
                       height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
+                      margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(2),
@@ -99,45 +144,88 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                           ],
                         ),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 20, color: Colors.grey),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const Divider(height: 20),
 
-                  // AI Answer Display Box
-                  if (currentAnswer != null)
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9F5EC),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE8DECF)),
-                      ),
-                      child: Text(
-                        currentAnswer!,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          height: 1.45,
-                          color: const Color(0xFF2E2316),
-                        ),
-                      ),
-                    ),
+                  // Chat Message Stream
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: messages.length + (isQuerying ? 1 : 0),
+                      itemBuilder: (context, idx) {
+                        if (idx == messages.length && isQuerying) {
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF9F5EC),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFE8DECF)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFF8A5A00),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Gemini is analyzing store data...',
+                                    style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
 
-                  if (isQuerying)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Color(0xFF8A5A00),
+                        final msg = messages[idx];
+                        final isUser = msg['role'] == 'user';
+
+                        return Align(
+                          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isUser ? AppColors.primary : const Color(0xFFF9F5EC),
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(16),
+                                topRight: const Radius.circular(16),
+                                bottomLeft: Radius.circular(isUser ? 16 : 4),
+                                bottomRight: Radius.circular(isUser ? 4 : 16),
+                              ),
+                              border: isUser ? null : Border.all(color: const Color(0xFFE8DECF)),
+                            ),
+                            child: Text(
+                              msg['content'] ?? '',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                height: 1.4,
+                                color: isUser ? Colors.white : const Color(0xFF2E2316),
+                                fontWeight: isUser ? FontWeight.w500 : FontWeight.normal,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
+                  ),
+
+                  const SizedBox(height: 10),
 
                   // Input row
                   Row(
@@ -160,18 +248,7 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                               borderSide: BorderSide(color: Colors.grey.shade300),
                             ),
                           ),
-                          onSubmitted: (val) async {
-                            if (val.trim().isEmpty) return;
-                            setModalState(() {
-                              isQuerying = true;
-                              currentAnswer = null;
-                            });
-                            final reply = await ApiService.instance.askAssistant(val.trim());
-                            setModalState(() {
-                              isQuerying = false;
-                              currentAnswer = reply ?? 'Could not reach assistant. Please try again.';
-                            });
-                          },
+                          onSubmitted: submitMessage,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -182,19 +259,7 @@ class _AiBriefingCardState extends State<AiBriefingCard> {
                           padding: const EdgeInsets.all(12),
                         ),
                         icon: const Icon(Icons.send_rounded, size: 18),
-                        onPressed: () async {
-                          final q = textController.text.trim();
-                          if (q.isEmpty) return;
-                          setModalState(() {
-                            isQuerying = true;
-                            currentAnswer = null;
-                          });
-                          final reply = await ApiService.instance.askAssistant(q);
-                          setModalState(() {
-                            isQuerying = false;
-                            currentAnswer = reply ?? 'Could not reach assistant. Please try again.';
-                          });
-                        },
+                        onPressed: () => submitMessage(textController.text),
                       ),
                     ],
                   ),

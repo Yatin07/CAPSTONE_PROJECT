@@ -104,7 +104,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = 'Failed to save store profile. Please check backend connection or server target in Settings.';
+        _errorMessage = ApiService.instance.lastAuthError ?? 'Failed to save store profile. Please check backend connection or server target in Settings.';
       });
     }
   }

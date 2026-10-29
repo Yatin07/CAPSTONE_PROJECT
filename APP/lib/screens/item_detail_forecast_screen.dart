@@ -131,7 +131,7 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
                         const SizedBox(height: 16),
 
                         // Sales vs Prediction Graph Card
-                        const SalesForecastChart(),
+                        SalesForecastChart(item: widget.item),
                         const SizedBox(height: 24),
                       ],
                     ),
