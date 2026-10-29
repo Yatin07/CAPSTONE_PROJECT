@@ -375,16 +375,20 @@ def run_batch_job(dry_run: bool = False, as_of: str = None):
     status_tag = "Completed dry-run simulation" if dry_run else "Completed batch forecasting"
     target_db_name = getattr(db, "name", "unknown")
     print(f"\n[SUCCESS] {status_tag} for {processed_count} items in MongoDB database ({target_db_name})!")
-    if client:
-        try:
-            client.close()
-        except Exception:
-            pass
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="RestockIQ ML Batch Forecast Engine")
     parser.add_argument("--dry-run", action="store_true", help="Simulate batch without mutating database")
+    parser.add_argument("--as-of", type=str, default=None, help="Forecast reference date (YYYY-MM-DD)")
+    cli_args = parser.parse_args()
+
+    run_batch_job(dry_run=cli_args.dry_run, as_of=cli_args.as_of)
+    if client:
+        try:
+            client.close()
+        except Exception:
+            pass
     parser.add_argument("--as-of", type=str, default=None, help="Forecast reference date (YYYY-MM-DD)")
     cli_args = parser.parse_args()
 

@@ -237,4 +237,52 @@ Every entry documents:
   Backend\venv\Scripts\python.exe -m unittest Backend/test_acceptance_lifecycle.py -v
   ```
 
+---
+
+## Block 1: Pre-flight Integrity & Test Isolation
+
+### 1. Flutter Test Network Isolation & Injectable ApiService
+- **What**: Made `ApiService` injectable via an `http.Client client` parameter and singleton injection method `ApiService.setMockClient()`. Replaced all 15 raw static `http.<method>` calls with `client.<method>`. Configured `APP/test/unit_test.dart` to use `MockClient` and added an explicit test asserting that any unmocked live network call fails immediately with a `StateError`.
+- **Why**: Proved that unit tests were making real live HTTP POST requests to `https://restockiq-backend.onrender.com/api/v1/auth/login`. Injecting a mock client eliminates network dependency, prevents test flakiness, protects production from test traffic, and reduces test suite execution time from 11s to 3s.
+- **Files**:
+  - `APP/lib/services/api_service.dart`
+  - `APP/test/unit_test.dart`
+- **How to Test**:
+  ```powershell
+  cd APP && flutter test
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout ec2009d7 -- APP/lib/services/api_service.dart APP/test/unit_test.dart
+  ```
+
+---
+
+### 2. Render Rollback Point & Debug APK Hash Backup
+- **What**: Recorded Render cloud deployment commit `74ccc0a` as the immutable rollback point. Backed up the current debug APK to `backups/RestockIQ-debug-backup.apk` with verified SHA-256 hash.
+- **Why**: Protects deployment rollback and provides a verified binary baseline before beginning Block 2/3 refactors.
+- **Files**:
+  - `backups/RestockIQ-debug-backup.apk` (SHA-256: `A4D0056E3271B275C4BF82AA54A8228AF7A31AC6197768514514A0E1EAED4424`)
+- **How to Test**:
+  ```powershell
+  Get-FileHash backups/RestockIQ-debug-backup.apk -Algorithm SHA256
+  ```
+
+---
+
+### 3. Real-Database Acceptance Difference & Fix
+- **What**: Executed the 5 acceptance lifecycle scenarios against MongoDB Atlas staging (`restockiq_staging`). Identified a real-vs-mock discrepancy: `batch_forecast.py` called `client.close()` inside `run_batch_job()`, which caused subsequent runs to fail on real connections with `Cannot use MongoClient after close` (which `mongomock` failed to catch). Moved `client.close()` to `if __name__ == "__main__":`.
+- **Why**: Real database connection pools must stay open when functions are called programmatically across repeated batch executions.
+- **Files**:
+  - `ML/batch_forecast.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe -m unittest Backend/test_acceptance_lifecycle.py -v
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout ec2009d7 -- ML/batch_forecast.py
+  ```
+
+
 

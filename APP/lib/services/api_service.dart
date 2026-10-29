@@ -6,8 +6,18 @@ import '../models/inventory_item.dart';
 import '../models/waste_alert.dart';
 
 class ApiService {
-  ApiService._internal();
-  static final ApiService instance = ApiService._internal();
+  http.Client client;
+
+  ApiService({http.Client? client}) : client = client ?? http.Client();
+  static final ApiService instance = ApiService();
+
+  static void setMockClient(http.Client mockClient) {
+    instance.client = mockClient;
+  }
+
+  static void resetClient() {
+    instance.client = http.Client();
+  }
 
   /// Reactive status for UI to display cold start wake-up progress
   static final ValueNotifier<bool> isWakingUpServer = ValueNotifier<bool>(false);
@@ -138,7 +148,7 @@ class ApiService {
 
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .post(
               Uri.parse('$_baseUrl/auth/login'),
               headers: {'Content-Type': 'application/json'},
@@ -182,7 +192,7 @@ class ApiService {
 
   Future<bool> register(String name, String email, String password, {String role = 'owner'}) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/auth/register'),
             headers: {'Content-Type': 'application/json'},
@@ -224,7 +234,7 @@ class ApiService {
   Future<Map<String, dynamic>?> fetchTodayDashboard() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/forecasts/today'),
               headers: _headers,
@@ -255,7 +265,7 @@ class ApiService {
   Future<List<InventoryItem>?> fetchItems() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/items'),
               headers: _headers,
@@ -285,7 +295,7 @@ class ApiService {
     double? price,
   }) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/items'),
             headers: _headers,
@@ -325,7 +335,7 @@ class ApiService {
 
   Future<bool> restockItem(String itemId, {int? quantity}) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/items/$itemId/restock'),
             headers: _headers,
@@ -359,7 +369,7 @@ class ApiService {
         if (price != null) 'price': price,
       };
 
-      final response = await http
+      final response = await client
           .put(
             Uri.parse('$_baseUrl/items/$itemId'),
             headers: _headers,
@@ -376,7 +386,7 @@ class ApiService {
 
   Future<bool> deleteItem(String itemId) async {
     try {
-      final response = await http
+      final response = await client
           .delete(
             Uri.parse('$_baseUrl/items/$itemId'),
             headers: _headers,
@@ -397,7 +407,7 @@ class ApiService {
   Future<List<WasteAlert>?> fetchWasteAlerts() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/waste-alerts'),
               headers: _headers,
@@ -420,7 +430,7 @@ class ApiService {
 
   Future<bool> recordIntradaySale(String itemId, int quantity) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/sales/intraday'),
             headers: _headers,
@@ -437,7 +447,7 @@ class ApiService {
 
   Future<bool> applyDiscount(String itemId) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/waste-alerts/$itemId/apply-discount'),
             headers: _headers,
@@ -453,7 +463,7 @@ class ApiService {
 
   Future<bool> flagDonation(String itemId) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/waste-alerts/$itemId/flag-donation'),
             headers: _headers,
@@ -469,7 +479,7 @@ class ApiService {
 
   Future<bool> dismissAlert(String itemId) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/waste-alerts/$itemId/dismiss'),
             headers: _headers,
@@ -490,7 +500,7 @@ class ApiService {
   Future<Map<String, dynamic>?> fetchTodayBriefing() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/briefing/today'),
               headers: _headers,
@@ -514,7 +524,7 @@ class ApiService {
     if (cleanQuery.isEmpty) return null;
 
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/assistant/chat'),
             headers: _headers,

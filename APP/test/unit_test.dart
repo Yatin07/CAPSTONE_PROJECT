@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:app/providers/inventory_provider.dart';
 import 'package:app/providers/stock_check_provider.dart';
 import 'package:app/providers/waste_alerts_provider.dart';
@@ -208,10 +211,52 @@ void main() {
       setUp(() {
         api = ApiService.instance;
         api.logout();
+        api.client = MockClient((request) async {
+          // Block any unmocked real network call
+          if (request.url.path.endsWith('/auth/login')) {
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            final email = body['email'] as String? ?? '';
+            return http.Response(
+              jsonEncode({
+                'access_token': 'fake_test_jwt_token',
+                'user_id': 'fake_user_id',
+                'name': email.contains('admin') ? 'Admin User' : 'Store Manager',
+                'role': 'owner',
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path.endsWith('/assistant/chat')) {
+            // Return 500 so askAssistant tests its deterministic fallback engine
+            return http.Response('{"detail": "offline"}', 500);
+          }
+          throw StateError('BLOCKED: Real network call attempted during automated test: ${request.url}');
+        });
+      });
+
+      tearDown(() {
+        ApiService.resetClient();
       });
 
       test('Default base URL targets production Render cloud backend', () {
         expect(ApiService.defaultBaseUrl, 'https://restockiq-backend.onrender.com/api/v1');
+      });
+
+      test('Fails on any real network call during test runs', () async {
+        final guardClient = MockClient((request) async {
+          throw StateError('BLOCKED: Real network call attempted during automated test: ${request.url}');
+        });
+        api.client = guardClient;
+
+        expect(
+          () => api.client.get(Uri.parse('https://restockiq-backend.onrender.com/api/v1/health')),
+          throwsA(isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('BLOCKED: Real network call attempted during automated test'),
+          )),
+        );
       });
 
       test('Walkthrough credentials authenticate quickly and establish valid session', () async {
