@@ -10,7 +10,7 @@ import unittest
 import time
 import os
 import asyncio
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 import sys
 import os
@@ -67,6 +67,7 @@ class TestP0Fixes(unittest.TestCase):
                 "role": "owner",
             }
         mock_db.users.find_one = fake_find_one
+        mock_db.users.update_one = AsyncMock()
 
         with patch.object(main, "db", mock_db):
             # Attempts 1 through 4: standard 401

@@ -304,7 +304,7 @@ def get_derived_sales_history(db_conn, owner_id: str, item_id: str, as_of_date: 
         cursor = db_conn.daily_sales.find(query).sort("date", 1)
         records = list(cursor)
         if records:
-            return [int(r.get("units", 0)) for r in records][-90:]
+            return [int(r.get("units", r.get("sales", 0))) for r in records][-90:]
     except Exception:
         pass
     return fallback_history[-90:] if fallback_history else []

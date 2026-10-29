@@ -333,9 +333,21 @@ class ApiService {
           currentStock: currentStock,
           isPerishable: isPerishable,
           price: price,
-          predictedDemand: currentStock + 15,
-          safetyStock: 5,
-          description: 'Cold-start analysis active — learning sales pace',
+          predictedDemand: (data is Map && data['forecast'] is Map)
+              ? ((data['forecast'] as Map)['predictedDemand'] as num?)?.toInt()
+              : (data is Map && data['item'] is Map)
+                  ? ((data['item'] as Map)['predictedDemand'] as num?)?.toInt()
+                  : null,
+          safetyStock: (data is Map && data['forecast'] is Map)
+              ? ((data['forecast'] as Map)['safetyStock'] as num?)?.toInt()
+              : (data is Map && data['item'] is Map)
+                  ? ((data['item'] as Map)['safetyStock'] as num?)?.toInt()
+                  : null,
+          description: (data is Map && data['forecast'] is Map && (data['forecast'] as Map)['explanation'] != null)
+              ? (data['forecast'] as Map)['explanation'].toString()
+              : (data is Map && data['item'] is Map && (data['item'] as Map)['description'] != null)
+                  ? (data['item'] as Map)['description'].toString()
+                  : 'Cold-start analysis active — learning sales pace',
           updatedAt: DateTime.now(),
         );
       }
@@ -613,7 +625,7 @@ class ApiService {
       final response = await _executeWithRetry(
         requestFn: (timeout) => client
             .patch(
-              Uri.parse('/me'),
+              Uri.parse('$_baseUrl/me'),
               headers: _headers,
               body: jsonEncode(payload),
             )

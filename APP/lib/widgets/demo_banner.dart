@@ -74,9 +74,16 @@ class DemoBanner extends StatelessWidget {
 
     try {
       await ApiService.instance.exitDemo();
-    } catch (_) {
-      // Fallback: clear local workspace even if server call fails
-      ApiService.instance.setWorkspace(null);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete demo sandbox on server: $e. Please retry.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
 
     if (!context.mounted) return;
