@@ -148,14 +148,96 @@ class TestTenantLifecycleMockDB(unittest.IsolatedAsyncioTestCase):
 class TestTenantRealDBStaging(unittest.TestCase):
     """
     [REAL-DB (restockiq_staging)] Suite.
-    Attempts real network connection to Atlas staging database.
-    If Atlas port 27017 is unreachable, marks test as explicitly NOT RUN.
+    Runs real database multi-tenant isolation against Atlas staging database.
     """
+    def setUp(self):
+        from dotenv import load_dotenv
+        from pathlib import Path
+        import pymongo
+        
+        env_path = Path(__file__).resolve().parent / ".env"
+        load_dotenv(dotenv_path=env_path)
+        uri = os.getenv("MONGO_URI")
+        if not uri:
+            self.skipTest("NOT RUN: MONGO_URI not found in .env")
+        
+        try:
+            self.client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=5000)
+            self.client.admin.command('ping')
+        except Exception as e:
+            self.skipTest(f"NOT RUN: Atlas port 27017 unreachable ({type(e).__name__})")
+        
+        # Strictly use staging database
+        self.db = self.client["restockiq_staging"]
+        self.owner_a = "staging_tenant_alpha"
+        self.owner_b = "staging_tenant_beta"
+        
+        # Clean staging test records before run
+        self.db.items.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+        self.db.forecasts.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+        self.db.intraday_sales.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+        self.db.daily_sales.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+
+    def tearDown(self):
+        if hasattr(self, "db") and self.db is not None:
+            self.db.items.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+            self.db.forecasts.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+            self.db.intraday_sales.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+            self.db.daily_sales.delete_many({"owner_id": {"$in": [self.owner_a, self.owner_b]}})
+            self.client.close()
+
     def test_real_database_tenant_isolation(self):
-        # Check connection status
-        can_connect = False  # Set from real probe
-        if not can_connect:
-            self.skipTest("NOT RUN: Atlas port 27017 unreachable from current network (IP not whitelisted).")
+        """[REAL-DB] Real Atlas multi-tenant isolation & delete cascade test against restockiq_staging."""
+        # 1. Items isolation
+        self.db.items.insert_many([
+            {"_id": "staging_item_a", "owner_id": self.owner_a, "name": "Staging Bread A", "currentStock": 20},
+            {"_id": "staging_item_b", "owner_id": self.owner_b, "name": "Staging Cake B", "currentStock": 15},
+        ])
+        
+        items_a = list(self.db.items.find({"owner_id": self.owner_a}))
+        self.assertEqual(len(items_a), 1)
+        self.assertEqual(items_a[0]["name"], "Staging Bread A")
+        
+        # Cross-tenant update blocked by query filter
+        res = self.db.items.update_one(
+            {"_id": "staging_item_b", "owner_id": self.owner_a},
+            {"$set": {"currentStock": 999}}
+        )
+        self.assertEqual(res.modified_count, 0)
+        verified_b = self.db.items.find_one({"_id": "staging_item_b"})
+        self.assertEqual(verified_b["currentStock"], 15)
+        
+        # 2. Forecasts isolation
+        self.db.forecasts.insert_many([
+            {"_id": "staging_fc_a", "item_id": "staging_item_a", "owner_id": self.owner_a, "predictedDemand": 25},
+            {"_id": "staging_fc_b", "item_id": "staging_item_b", "owner_id": self.owner_b, "predictedDemand": 40},
+        ])
+        fc_a = list(self.db.forecasts.find({"owner_id": self.owner_a}))
+        self.assertEqual(len(fc_a), 1)
+        self.assertEqual(fc_a[0]["item_id"], "staging_item_a")
+        self.assertIsNone(self.db.forecasts.find_one({"item_id": "staging_item_b", "owner_id": self.owner_a}))
+        
+        # 3. Daily & intraday sales isolation
+        self.db.intraday_sales.insert_many([
+            {"owner_id": self.owner_a, "item_id": "staging_item_a", "quantity": 3},
+            {"owner_id": self.owner_b, "item_id": "staging_item_b", "quantity": 7},
+        ])
+        sales_a = list(self.db.intraday_sales.find({"owner_id": self.owner_a}))
+        self.assertEqual(len(sales_a), 1)
+        self.assertEqual(sales_a[0]["quantity"], 3)
+        
+        # 4. Scoped delete cascade
+        del_item = self.db.items.delete_one({"_id": "staging_item_a", "owner_id": self.owner_a})
+        self.assertEqual(del_item.deleted_count, 1)
+        del_fc = self.db.forecasts.delete_many({"item_id": "staging_item_a", "owner_id": self.owner_a})
+        self.assertEqual(del_fc.deleted_count, 1)
+        
+        # Verify Owner A records deleted, Owner B records intact
+        self.assertIsNone(self.db.items.find_one({"_id": "staging_item_a"}))
+        self.assertIsNone(self.db.forecasts.find_one({"_id": "staging_fc_a"}))
+        self.assertIsNotNone(self.db.items.find_one({"_id": "staging_item_b"}))
+        self.assertIsNotNone(self.db.forecasts.find_one({"_id": "staging_fc_b"}))
+        print("\n[REAL-DB PASS] Real Atlas staging database (restockiq_staging) multi-tenant isolation & delete cascade verified!")
 
 if __name__ == "__main__":
     unittest.main()
