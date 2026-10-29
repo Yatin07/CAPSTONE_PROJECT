@@ -581,14 +581,15 @@ class ApiService {
         if (onboardingCompleted != null) 'onboarding_completed': onboardingCompleted,
       };
 
-      final response = await client
-          .patch(
-            Uri.parse('$_baseUrl/me'),
-            headers: _headers,
-            body: jsonEncode(payload),
-          )
-          .timeout(const Duration(seconds: 10));
-
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => client
+            .patch(
+              Uri.parse('/me'),
+              headers: _headers,
+              body: jsonEncode(payload),
+            )
+            .timeout(timeout),
+      );
       return response.statusCode == 200;
     } catch (e) {
       if (kDebugMode) print('[API] updateUserProfile error: $e');

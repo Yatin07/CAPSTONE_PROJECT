@@ -104,7 +104,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = 'Failed to save store profile. Please check your internet connection.';
+        _errorMessage = 'Failed to save store profile. Please check backend connection or server target in Settings.';
       });
     }
   }

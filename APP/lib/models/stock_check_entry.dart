@@ -33,6 +33,8 @@ class StockCheckEntry {
 
   int get availableStock => openingStock + producedOrRestocked;
 
+  static const Object _sentinel = Object();
+
   StockCheckEntry copyWith({
     String? id,
     String? name,
@@ -47,7 +49,7 @@ class StockCheckEntry {
     int? closingUnitsLeft,
     int? soldUnits,
     int? wasteUnits,
-    String? validationError,
+    Object? validationError = _sentinel,
   }) {
     return StockCheckEntry(
       id: id ?? this.id,
@@ -63,7 +65,9 @@ class StockCheckEntry {
       closingUnitsLeft: closingUnitsLeft ?? this.closingUnitsLeft,
       soldUnits: soldUnits ?? this.soldUnits,
       wasteUnits: wasteUnits ?? this.wasteUnits,
-      validationError: validationError ?? this.validationError,
+      validationError: identical(validationError, _sentinel)
+          ? this.validationError
+          : validationError as String?,
     );
   }
 }

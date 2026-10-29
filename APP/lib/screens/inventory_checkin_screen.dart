@@ -384,10 +384,27 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                 isLoading: provider.isSubmitting,
                 onPressed: provider.hasValidationErrors
                     ? null
-                    : () {
-                        provider.submitClosingRoutine(
+                    : () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final inv = Provider.of<InventoryProvider>(context, listen: false);
+                        final ok = await provider.submitClosingRoutine(
                           targetDate: _dateMode == 'yesterday' ? 'yesterday' : null,
                         );
+                        if (ok && mounted) {
+                          _controllers.clear();
+                          await inv.fetchDashboardItems();
+                          if (mounted) {
+                            provider.syncWithInventoryItems(inv.items);
+                            await provider.fetchYesterdayReviewRoutine();
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Closing routine saved! Stock & forecasts updated.'),
+                                backgroundColor: AppColors.primary,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        }
                       },
               ),
               const SizedBox(height: 24),
@@ -464,16 +481,21 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                       ),
                       SizedBox(
                         width: 100,
-                        child: TextField(
-                          controller: ctrl,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Remaining',
-                            labelStyle: const TextStyle(fontSize: 11),
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Remaining', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.onSurfaceVariant)),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: ctrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                hintText: '0',
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

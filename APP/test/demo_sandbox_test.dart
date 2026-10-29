@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/repositories/app_repository.dart';
-import 'package:app/models/inventory_item.dart';
 
 void main() {
   group('Phase 1 Demo Sandbox Flutter Contract Tests', () {
