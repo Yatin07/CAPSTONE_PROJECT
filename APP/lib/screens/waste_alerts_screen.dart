@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../providers/inventory_provider.dart';
 import '../providers/waste_alerts_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -154,20 +155,22 @@ class WasteAlertsScreen extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 20),
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    alertsProvider.resetAlerts();
-                                  },
-                                  icon: const Icon(Icons.refresh_rounded),
-                                  label: const Text('Reset Demo Alerts'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
-                                    side: const BorderSide(
-                                      color: AppColors.primary,
+                                // Only show Reset Demo Alerts during demo tour
+                                if (Provider.of<InventoryProvider>(context, listen: false).isDemoTour)
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      alertsProvider.resetAlerts();
+                                    },
+                                    icon: const Icon(Icons.refresh_rounded),
+                                    label: const Text('Reset Demo Alerts'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.primary,
+                                      side: const BorderSide(
+                                        color: AppColors.primary,
+                                      ),
+                                      shape: const StadiumBorder(),
                                     ),
-                                    shape: const StadiumBorder(),
                                   ),
-                                ),
                               ],
                             ),
                           )

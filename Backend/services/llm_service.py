@@ -15,7 +15,7 @@ if not logger.handlers:
     logger.setLevel(logging.INFO)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 
 # Initialize client safely if key exists
 _client = None
@@ -35,13 +35,15 @@ def is_llm_configured() -> bool:
 def should_call_live_gemini() -> bool:
     """
     Guards live Gemini calls.
-    In any automated test environment (unittest / pytest / TESTING=1),
+    In automated test runners (unittest / pytest detected in sys.modules),
     live calls are strictly prohibited unless RUN_LIVE_GEMINI=1.
+    NOTE: TESTING env var is intentionally NOT checked here — it must never
+    leak from a test session into the production uvicorn process.
     """
     if not is_llm_configured():
         return False
     import sys
-    is_test = "unittest" in sys.modules or "pytest" in sys.modules or os.getenv("TESTING") == "1"
+    is_test = "unittest" in sys.modules or "pytest" in sys.modules
     if is_test:
         return os.getenv("RUN_LIVE_GEMINI") == "1"
     return True
@@ -64,11 +66,17 @@ def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: fl
     if not _client or not should_call_live_gemini():
         return None
 
-    model_candidates = [GEMINI_MODEL, "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview"]
+    model_candidates = [
+        GEMINI_MODEL,
+        "gemini-3.5-flash",
+        "gemini-3.8-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-flash-latest"
+    ]
     # Deduplicate while preserving order
     models_to_try = []
     for m in model_candidates:
-        if m not in models_to_try:
+        if m and m not in models_to_try:
             models_to_try.append(m)
 
     for active_model in models_to_try:
@@ -81,13 +89,13 @@ def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: fl
                 )
                 if response and response.text:
                     return response.text.strip()
-                return None
+                break
             except Exception as e:
                 err_str = str(e).lower()
                 is_daily_limit = any(k in err_str for k in ["per day limit", "quota exceeded", "limit exceeded on free tier"])
                 if is_daily_limit:
-                    logger.warning("Gemini API daily quota limit reached: %s. Falling back to deterministic engine.", e)
-                    return None
+                    logger.warning("Gemini API model %s daily quota reached. Trying next model candidate.", active_model)
+                    break
                 is_retryable = any(k in err_str for k in ["429", "rate", "exhausted", "500", "502", "503", "504", "server error", "timeout"])
                 logger.warning("Gemini API (model %s) attempt %d/%d failed: %s", active_model, attempt, max_retries, e)
                 if attempt < max_retries and is_retryable:

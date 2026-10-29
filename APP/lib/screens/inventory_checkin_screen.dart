@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/string_extensions.dart';
 import 'package:provider/provider.dart';
 import '../models/stock_check_entry.dart';
 import '../providers/inventory_provider.dart';
@@ -123,6 +124,10 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
               ),
               child: TabBar(
                 controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+                indicatorSize: TabBarIndicatorSize.tab,
                 indicator: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
@@ -297,7 +302,7 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                         children: [
                           Expanded(
                             child: Text(
-                              entry.name,
+                              entry.name.toTitleCase(),
                               style: GoogleFonts.montserrat(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -450,7 +455,7 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                     children: [
                       Expanded(
                         child: Text(
-                          entry.name,
+                          entry.name.toTitleCase(),
                           style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w600),
                         ),
                       ),

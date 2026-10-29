@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/inventory_item.dart';
+import '../utils/string_extensions.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -118,7 +119,7 @@ class DashboardForecastCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.name,
+                            item.name.toTitleCase(),
                             style: GoogleFonts.montserrat(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,

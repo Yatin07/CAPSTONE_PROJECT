@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/inventory_provider.dart';
+import '../providers/waste_alerts_provider.dart';
+import '../repositories/app_repository.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -83,6 +87,11 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+
+      Provider.of<InventoryProvider>(context, listen: false)
+          .setRepository(LiveRepository());
+      Provider.of<WasteAlertsProvider>(context, listen: false)
+          .setRepository(LiveRepository());
 
       Navigator.pushReplacement(
         context,

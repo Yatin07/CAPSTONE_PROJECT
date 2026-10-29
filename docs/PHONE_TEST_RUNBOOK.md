@@ -125,3 +125,4 @@ Before considering Section 2 complete on hardware:
 - [ ] `adb reverse tcp:8000 tcp:8000` maintained stable connection throughout the test.
 - [ ] All 13 test steps executed on the physical smartphone.
 - [ ] Screenshot captured for each key view according to `docs/blackbook_assets/PHONE_SCREENSHOT_CHECKLIST.md`.
+

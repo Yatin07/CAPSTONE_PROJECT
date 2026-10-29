@@ -83,12 +83,13 @@ class _TourScreenState extends State<TourScreen> {
   }
 
   void _finishTour() {
+    // ALWAYS switch to LiveRepository when exiting tour, so real user data is used
+    Provider.of<InventoryProvider>(context, listen: false)
+        .setRepository(LiveRepository());
+    Provider.of<WasteAlertsProvider>(context, listen: false)
+        .setRepository(LiveRepository());
+
     if (widget.isReplay) {
-      // Revert back to live repository and pop
-      Provider.of<InventoryProvider>(context, listen: false)
-          .setRepository(LiveRepository());
-      Provider.of<WasteAlertsProvider>(context, listen: false)
-          .setRepository(LiveRepository());
       Navigator.pop(context);
     } else {
       // First-time onboarding: proceed to store setup
