@@ -17,6 +17,7 @@ class InventoryItem {
   final String maturity;
   final String maturityLabel;
   final int? shelfLifeDays;
+  final bool isReplayedDataset;
 
   const InventoryItem({
     required this.id,
@@ -35,6 +36,7 @@ class InventoryItem {
     this.maturity = 'Learning',
     this.maturityLabel = 'Learning (0/7 days)',
     this.shelfLifeDays,
+    this.isReplayedDataset = false,
   });
 
   int get restockQuantity {
@@ -66,6 +68,7 @@ class InventoryItem {
     String? maturity,
     String? maturityLabel,
     int? shelfLifeDays,
+    bool? isReplayedDataset,
   }) {
     return InventoryItem(
       id: id ?? this.id,
@@ -84,6 +87,7 @@ class InventoryItem {
       maturity: maturity ?? this.maturity,
       maturityLabel: maturityLabel ?? this.maturityLabel,
       shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
+      isReplayedDataset: isReplayedDataset ?? this.isReplayedDataset,
     );
   }
 
@@ -132,6 +136,7 @@ class InventoryItem {
       maturity: mat,
       maturityLabel: matLbl,
       shelfLifeDays: (json['shelfLifeDays'] as num?)?.toInt(),
+      isReplayedDataset: json['replayed_dataset'] == true || json['isReplayedDataset'] == true,
     );
   }
 
@@ -153,6 +158,7 @@ class InventoryItem {
       'maturity': maturity,
       'maturityLabel': maturityLabel,
       'shelfLifeDays': shelfLifeDays,
+      'replayed_dataset': isReplayedDataset,
     };
   }
 }

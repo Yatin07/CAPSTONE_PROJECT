@@ -336,6 +336,7 @@ class UserProfileResponse(BaseModel):
     closing_hour: float
     currency: str
     onboarding_completed: bool
+    replayed_dataset: Optional[bool] = False
     created_at: str
 
 class UserProfileUpdateRequest(BaseModel):
@@ -368,6 +369,7 @@ class ItemResponse(BaseModel):
     safetyStock: Optional[int]
     description: str
     riskLevel: str
+    replayed_dataset: Optional[bool] = False
     updatedAt: str
 
 class ItemUpdateRequest(BaseModel):
@@ -487,6 +489,7 @@ async def get_my_profile(current_user=Depends(get_current_user)):
         closing_hour=float(current_user.get("closing_hour", STORE_CLOSE_HOUR)),
         currency=current_user.get("currency", "₹"),
         onboarding_completed=bool(current_user.get("onboarding_completed", False)),
+        replayed_dataset=bool(current_user.get("replayed_dataset", False)),
         created_at=current_user.get("created_at", ""),
     )
 
@@ -662,6 +665,7 @@ async def get_items(current_user=Depends(get_current_user)):
             "safetyStock": doc.get("safetyStock"),
             "description": doc.get("description", "LLM analysis pending"),
             "riskLevel": doc.get("riskLevel", "normal"),
+            "replayed_dataset": bool(doc.get("replayed_dataset", False)),
             "updatedAt": doc.get("updatedAt", ""),
         })
     return {"items": items}

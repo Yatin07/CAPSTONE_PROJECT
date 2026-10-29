@@ -417,6 +417,64 @@ Every entry documents:
   git checkout 642741c2 -- APP/
   ```
 
+---
+
+## Block 4: Demo Store Seeding, Dual-Engine Forecasting, and Benchmark Verification
+
+### 1. scripts/seed_demo_store.py (Idempotent Demo Store Seeding)
+- **What**: Created `scripts/seed_demo_store.py` seeding demo owner `demo_manager@restockiq.com` (password from env var `DEMO_PASSWORD`, never logged or printed), with 7 bakery items mapped via `NAME_MAP` (`Traditional Baguette`, `Croissant`, `Pain au Chocolat`, `Brioche`, `Banette`, `Whole Milk`, `Espresso Beans`). Replayed 60 consecutive days of `daily_stock` and `daily_sales` ending yesterday in store timezone (`Asia/Kolkata`) from `ML/data/processed/primary_items.csv`. Flagged with `replayed_dataset: True` on user, store profile, and item documents, with `source: "replayed_dataset"` on stock and sales entries. Rendered a `"Replayed dataset"` footer badge in the app on `DashboardScreen`. Verified strictly idempotent on `restockiq_staging`.
+- **Why**: Allows reviewers, evaluators, and stakeholders to experience a fully initialized, mature store with realistic 60-day historical operational data and mature forecasting chips without manual check-ins.
+- **Files**:
+  - `scripts/seed_demo_store.py`
+  - `Backend/main.py`
+  - `APP/lib/models/inventory_item.dart`
+  - `APP/lib/screens/dashboard_screen.dart`
+  - `Backend/test_block4_ml_and_demo.py`
+- **How to Test**:
+  ```powershell
+  Backend\venv\Scripts\python.exe scripts/seed_demo_store.py --db restockiq_staging
+  Backend\venv\Scripts\python.exe -m unittest test_block4_ml_and_demo.py -v
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout 17939d51 -- scripts/seed_demo_store.py Backend/main.py APP/lib/models/inventory_item.dart APP/lib/screens/dashboard_screen.dart Backend/test_block4_ml_and_demo.py
+  ```
+
+---
+
+### 2. Dual-Engine Batch Forecasting (ENGINE=legacy|gbdt) & Model (iv)
+- **What**: Created `ML/engine.py` (shared ML engine module) and updated `ML/batch_forecast.py` to support `ENGINE=legacy|gbdt` (default: `legacy`). For items with >= 28 days of data and a mapped bakery SKU in GBDT mode, runs `HistGradientBoostingRegressor` with Model (iv) features (`article_cat`, `day_of_week`, `month`, `is_tourist_season`, `y_lag_1`, `y_roll_7`, `y_lag_7_cal`, `pred_weekday4w_cal`, statutory public holidays, holiday windows, bridge days, school holidays). Computes safety stock from Newsvendor critical ratio $z = \Phi^{-1}((P-C)/P)$ with `COGS_RATIO=0.40` default (assumption documented), and $\sigma = \text{per-item residual std over last 60 training days}$. Fallback to benchmark/blend path otherwise.
+- **Why**: Productionizes the research-backed Model (iv) gradient boosted tree architecture while preserving safe fallback for sparse/cold-start items and backward compatibility with the legacy benchmark.
+- **Files**:
+  - `ML/engine.py`
+  - `ML/batch_forecast.py`
+  - `ML/evaluate_production_harness.py`
+  - `Backend/test_block4_ml_and_demo.py`
+- **How to Test**:
+  ```powershell
+  ML\venv\Scripts\python.exe ML/evaluate_production_harness.py
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout 17939d51 -- ML/engine.py ML/batch_forecast.py ML/evaluate_production_harness.py
+  ```
+
+---
+
+### 3. Nightly Workflow Dispatch
+- **What**: Updated `.github/workflows/nightly-forecast.yml` to accept `workflow_dispatch` manual inputs: `dry_run` (boolean) and `engine` (`legacy` | `gbdt`).
+- **Files**:
+  - `.github/workflows/nightly-forecast.yml`
+- **How to Test**:
+  ```powershell
+  git diff .github/workflows/nightly-forecast.yml
+  ```
+- **How to Revert**:
+  ```powershell
+  git checkout 17939d51 -- .github/workflows/nightly-forecast.yml
+  ```
+
+
 
 
 
