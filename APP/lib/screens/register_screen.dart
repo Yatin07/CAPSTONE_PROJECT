@@ -91,14 +91,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
     } else {
+      final errorMsg = ApiService.instance.lastAuthError ?? 'Registration failed. Check details or backend.';
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Registration failed. Email may already be registered or rate limited (5/min).';
+        _errorMessage = errorMsg;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration failed. Check details or try again shortly.'),
+        SnackBar(
+          content: Text(errorMsg),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),

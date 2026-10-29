@@ -49,6 +49,9 @@ class ApiService {
   String? _userId;
   String? _userName;
   String? _userRole;
+  String? _lastAuthError;
+
+  String? get lastAuthError => _lastAuthError;
   String? _workspace;
 
   String? get token => _token;
@@ -137,6 +140,7 @@ class ApiService {
 
   Future<bool> login(String email, String password) async {
     final cleanEmail = email.trim().toLowerCase();
+    _lastAuthError = null;
 
     try {
       final response = await _executeWithRetry(
@@ -161,32 +165,50 @@ class ApiService {
         _userId = data['user_id'];
         _userName = data['name'];
         _userRole = data['role'] ?? 'owner';
+        _lastAuthError = null;
         if (kDebugMode) print('[API] Logged in successfully as $_userName');
         return true;
+      } else if (response.statusCode == 401) {
+        try {
+          final data = jsonDecode(response.body);
+          _lastAuthError = data['detail'] ?? 'Invalid email or password';
+        } catch (_) {
+          _lastAuthError = 'Invalid email or password';
+        }
+        if (kDebugMode) print('[API] Login failed 401: $_lastAuthError');
+        return false;
       } else {
+        _lastAuthError = 'Server error (${response.statusCode}). Please verify backend is running.';
         if (kDebugMode) print('[API] Login failed: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {
+      _lastAuthError = 'Connection failed: Cannot reach backend server. Check server target.';
       if (kDebugMode) print('[API] Login network error: $e');
       return false;
     }
   }
 
   Future<bool> register(String name, String email, String password, {String role = 'owner'}) async {
+    _lastAuthError = null;
     try {
-      final response = await client
-          .post(
-            Uri.parse('$_baseUrl/auth/register'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'name': name.trim(),
-              'email': email.trim().toLowerCase(),
-              'password': password,
-              'role': role,
-            }),
-          )
-          .timeout(const Duration(seconds: 6));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => client
+            .post(
+              Uri.parse('$_baseUrl/auth/register'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'name': name.trim(),
+                'email': email.trim().toLowerCase(),
+                'password': password,
+                'role': role,
+              }),
+            )
+            .timeout(timeout),
+        maxTries: 2,
+        firstRequestTimeout: const Duration(seconds: 15),
+        normalTimeout: const Duration(seconds: 10),
+      );
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -194,10 +216,17 @@ class ApiService {
         _userId = data['user_id'];
         _userName = data['name'];
         _userRole = data['role'] ?? role;
+        _lastAuthError = null;
         return true;
+      } else if (response.statusCode == 409) {
+        _lastAuthError = 'Email is already registered. Please login instead.';
+        return false;
+      } else {
+        _lastAuthError = 'Registration failed (${response.statusCode}). Check details or backend.';
+        return false;
       }
-      return false;
     } catch (e) {
+      _lastAuthError = 'Connection failed: Cannot reach backend server. Check connection.';
       if (kDebugMode) print('[API] Register error: $e');
       return false;
     }

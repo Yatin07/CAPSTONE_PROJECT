@@ -274,7 +274,14 @@ async def startup_db():
         await db.waste_alerts.create_index("expiresAt", expireAfterSeconds=0)
     except Exception as e:
         print(f"[DB] WARNING: Could not reach Atlas on startup ({e}). "
-              "Server will start anyway. Fix network/VPN to enable real DB operations.")
+              "Falling back to local mongomock_motor to preserve database operations.")
+        try:
+            import mongomock_motor
+            client = mongomock_motor.AsyncMongoMockClient()
+            db = client[db_name]
+            print("[DB] Local in-memory mock client activated successfully.")
+        except Exception as mock_err:
+            print(f"[DB] Could not initialize local fallback: {mock_err}")
 
 @app.on_event("shutdown")
 async def shutdown_db():

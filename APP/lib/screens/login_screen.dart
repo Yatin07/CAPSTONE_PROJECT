@@ -96,14 +96,15 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else {
+      final errorMsg = ApiService.instance.lastAuthError ?? 'Invalid email or password';
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Invalid email or password';
+        _errorMessage = errorMsg;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid email or password'),
+        SnackBar(
+          content: Text(errorMsg),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
