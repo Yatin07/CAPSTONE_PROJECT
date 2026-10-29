@@ -23,6 +23,9 @@ class WasteAlert {
   final bool isDismissed;
   final WasteAlertCardLayoutStyle layoutStyle;
   final String foodType;
+  final Map<String, dynamic>? partnerItem;
+  final double? bundleDiscountPct;
+  final double? salesPaceRatio;
 
   const WasteAlert({
     required this.id,
@@ -42,6 +45,9 @@ class WasteAlert {
     this.isDismissed = false,
     required this.layoutStyle,
     required this.foodType,
+    this.partnerItem,
+    this.bundleDiscountPct,
+    this.salesPaceRatio,
   });
 
   WasteAlert copyWith({
@@ -62,6 +68,9 @@ class WasteAlert {
     bool? isDismissed,
     WasteAlertCardLayoutStyle? layoutStyle,
     String? foodType,
+    Map<String, dynamic>? partnerItem,
+    double? bundleDiscountPct,
+    double? salesPaceRatio,
   }) {
     return WasteAlert(
       id: id ?? this.id,
@@ -81,6 +90,9 @@ class WasteAlert {
       isDismissed: isDismissed ?? this.isDismissed,
       layoutStyle: layoutStyle ?? this.layoutStyle,
       foodType: foodType ?? this.foodType,
+      partnerItem: partnerItem ?? this.partnerItem,
+      bundleDiscountPct: bundleDiscountPct ?? this.bundleDiscountPct,
+      salesPaceRatio: salesPaceRatio ?? this.salesPaceRatio,
     );
   }
 
@@ -103,10 +115,10 @@ class WasteAlert {
         ? WasteAlertCardLayoutStyle.sideBySide
         : WasteAlertCardLayoutStyle.stacked;
 
-    final hasDonation = (json['recommendedActionText'] ?? '')
+    final isBundle = (json['recommendedActionText'] ?? '')
         .toString()
         .toLowerCase()
-        .contains('donation');
+        .contains('bundle');
 
     return WasteAlert(
       id: json['id']?.toString() ?? '',
@@ -115,9 +127,9 @@ class WasteAlert {
       progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
       severityLabel: json['severityLabel']?.toString() ?? 'Low Pace',
       severityColor: parseColor(json['severityColor'], const Color(0xFFB91C1C)),
-      recommendedActionText: json['recommendedActionText']?.toString() ?? 'Suggest 20% Discount',
-      recommendedActionIcon: hasDonation
-          ? Icons.volunteer_activism_outlined
+      recommendedActionText: json['recommendedActionText']?.toString() ?? 'Suggest 10% Discount',
+      recommendedActionIcon: isBundle
+          ? Icons.layers_outlined
           : Icons.local_offer_outlined,
       recommendedActionColor: parseColor(json['recommendedActionColor'], const Color(0xFF8B1E22)),
       recommendedDoneText: json['recommendedDoneText']?.toString() ?? 'Action Taken',
@@ -128,7 +140,11 @@ class WasteAlert {
       isDismissed: json['isDismissed'] == true,
       layoutStyle: layout,
       foodType: json['foodType']?.toString() ?? 'croissant',
+      partnerItem: json['partnerItem'] is Map<String, dynamic>
+          ? json['partnerItem'] as Map<String, dynamic>
+          : (json['partnerItem'] is Map ? Map<String, dynamic>.from(json['partnerItem'] as Map) : null),
+      bundleDiscountPct: (json['bundleDiscountPct'] as num?)?.toDouble(),
+      salesPaceRatio: (json['salesPaceRatio'] as num?)?.toDouble(),
     );
   }
 }
-

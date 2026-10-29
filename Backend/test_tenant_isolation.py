@@ -122,8 +122,39 @@ def test_tenant_isolation():
         return res
 
     mock_db.items.delete_one = AsyncMock(side_effect=mock_delete_one_item)
-    mock_db.forecasts.find_one = AsyncMock(return_value=None)
-    mock_db.forecasts.delete_many = AsyncMock()
+
+    forecasts_store = {
+        "fc_b_100": {
+            "item_id": "item_b_100",
+            "owner_id": user_b["_id"],
+            "forecast_date": "2026-10-29",
+            "predictedDemand": 40,
+            "safetyStock": 10,
+        }
+    }
+
+    async def mock_find_one_forecast(query, *args, **kwargs):
+        item_id = query.get("item_id")
+        owner_id = query.get("owner_id")
+        for fc in forecasts_store.values():
+            if fc.get("item_id") == item_id and (owner_id is None or fc.get("owner_id") == owner_id):
+                return fc
+        return None
+
+    mock_db.forecasts.find_one = AsyncMock(side_effect=mock_find_one_forecast)
+
+    async def mock_delete_many_forecasts(query, *args, **kwargs):
+        item_id = query.get("item_id")
+        owner_id = query.get("owner_id")
+        to_del = [k for k, fc in forecasts_store.items() if fc.get("item_id") == item_id and (owner_id is None or fc.get("owner_id") == owner_id)]
+        for k in to_del:
+            del forecasts_store[k]
+        res = MagicMock()
+        res.deleted_count = len(to_del)
+        return res
+
+    mock_db.forecasts.delete_many = AsyncMock(side_effect=mock_delete_many_forecasts)
+    mock_db.daily_sales.count_documents = AsyncMock(return_value=0)
 
     # Patch main.db
     original_db = main.db
@@ -170,8 +201,8 @@ def test_tenant_isolation():
         r8 = client.post("/api/v1/waste-alerts/item_b_100/apply-discount", headers=headers_a)
         results.append(("POST /api/v1/waste-alerts/{id}/apply-discount", "Enforces owner_id", "404 Not Found", r8.status_code, r8.status_code == 404))
 
-        r9 = client.post("/api/v1/waste-alerts/item_b_100/flag-donation", headers=headers_a)
-        results.append(("POST /api/v1/waste-alerts/{id}/flag-donation", "Enforces owner_id", "404 Not Found", r9.status_code, r9.status_code == 404))
+        r9 = client.post("/api/v1/waste-alerts/item_b_100/apply-bundle", headers=headers_a)
+        results.append(("POST /api/v1/waste-alerts/{id}/apply-bundle", "Enforces owner_id", "404 Not Found", r9.status_code, r9.status_code == 404))
 
         r10 = client.post("/api/v1/waste-alerts/item_b_100/dismiss", headers=headers_a)
         results.append(("POST /api/v1/waste-alerts/{id}/dismiss", "Enforces owner_id", "404 Not Found", r10.status_code, r10.status_code == 404))
@@ -185,6 +216,13 @@ def test_tenant_isolation():
 
         # Confirm stock was NOT tampered with by User A's attempts
         assert items_store["item_b_100"]["currentStock"] == 15, "Data breach: User A's restock/sale modified User B's stock!"
+        assert "fc_b_100" in forecasts_store, "Data breach: User A's delete deleted User B's forecast!"
+
+        # Legitimate delete by Owner B
+        r_b_del = client.delete("/api/v1/items/item_b_100", headers=headers_b)
+        assert r_b_del.status_code == 200, f"Owner B could not delete own item: {r_b_del.status_code}"
+        assert "item_b_100" not in items_store, "Item should be deleted from items_store"
+        assert "fc_b_100" not in forecasts_store, "Cascading forecast should be deleted by legitimate owner"
 
     finally:
         main.db = original_db

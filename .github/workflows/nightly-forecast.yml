@@ -5,6 +5,20 @@ on:
     # Run every night at 02:00 UTC (past closing time, ready for morning shift)
     - cron: '0 2 * * *'
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Simulate batch run without writing to database'
+        required: false
+        type: boolean
+        default: false
+      engine:
+        description: 'Forecasting engine (legacy or gbdt)'
+        required: false
+        type: choice
+        options:
+          - legacy
+          - gbdt
+        default: 'legacy'
 
 jobs:
   run-batch-forecast:
@@ -31,5 +45,10 @@ jobs:
       - name: Run Nightly Batch Forecasting
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          ENGINE: ${{ github.event.inputs.engine || 'legacy' }}
         run: |
-          python ML/batch_forecast.py
+          DRY_RUN_FLAG=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
+          python ML/batch_forecast.py $DRY_RUN_FLAG --engine $ENGINE

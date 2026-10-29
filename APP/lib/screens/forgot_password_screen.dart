@@ -1,45 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
-import '../widgets/custom_input.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends StatelessWidget {
   const ForgotPasswordScreen({super.key});
-
-  @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
-}
-
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  bool _isLoading = false;
-  bool _isSubmitted = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  void _handleReset() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-      _isSubmitted = true;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,75 +38,84 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ],
                 ),
-                child: _isSubmitted
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 64,
-                            color: AppColors.primary,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_reset_rounded,
+                        size: 32,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Password Reset',
+                      style: AppTypography.headlineLg,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Password reset is not available in this version.',
+                      style: AppTypography.bodyMd.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please contact your store administrator to manage account credentials.',
+                      style: AppTypography.bodyMd.copyWith(
+                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (const String.fromEnvironment('SUPPORT_EMAIL', defaultValue: '').isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputFill,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.outlineVariant.withValues(alpha: 0.3),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Password Reset Sent',
-                            style: AppTypography.headlineMd,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'We have sent a password reset link to ${_emailController.text.trim()}. Please check your email.',
-                            style: AppTypography.bodyMd,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-                          PrimaryButton(
-                            label: 'Back to Login',
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      )
-                    : Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              'Reset Password',
-                              style: AppTypography.headlineLg,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Enter your registered email address to receive password reset instructions.',
-                              style: AppTypography.bodyMd,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
-                            CustomInput(
-                              label: 'Email Address',
-                              hintText: 'manager@cafe.com',
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                if (!value.contains('@')) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            PrimaryButton(
-                              label: 'Reset Password',
-                              isLoading: _isLoading,
-                              onPressed: _handleReset,
+                            const Icon(Icons.email_outlined, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            SelectableText(
+                              const String.fromEnvironment('SUPPORT_EMAIL'),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryDark,
+                              ),
                             ),
                           ],
                         ),
                       ),
+                    ],
+                    const SizedBox(height: 24),
+                    PrimaryButton(
+                      label: 'Back to Login',
+                      icon: Icons.arrow_back_rounded,
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

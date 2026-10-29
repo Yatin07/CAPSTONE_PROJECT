@@ -23,6 +23,20 @@ import pandas as pd
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 
+# Import shared ML engine
+try:
+    from ML.engine import MLSharedEngine, NAME_MAP
+except ImportError:
+    try:
+        from engine import MLSharedEngine, NAME_MAP
+    except ImportError:
+        ml_dir = Path(__file__).resolve().parent
+        if str(ml_dir) not in sys.path:
+            sys.path.insert(0, str(ml_dir))
+        from engine import MLSharedEngine, NAME_MAP
+
+engine_instance = MLSharedEngine()
+
 # Check MongoDB URI
 MONGO_URI = os.getenv("MONGODB_URI") or os.getenv("MONGO_URI")
 if not MONGO_URI:
@@ -34,15 +48,24 @@ print("     RESTOCKIQ ML BATCH FORECAST ENGINE (STEPS 3 & 4)   ")
 print("=" * 60)
 
 # Connect to Atlas
-client = MongoClient(MONGO_URI, server_api=ServerApi("1"), serverSelectionTimeoutMS=10000)
-db = client["restockiq"]
+client = None
+db = None
 
+def init_db(uri: str = None, database_name: str = None):
+    global client, db
+    uri = uri or MONGO_URI
+    db_name = database_name or os.getenv("MONGODB_DB", "restockiq")
+    client = MongoClient(uri, server_api=ServerApi("1"), serverSelectionTimeoutMS=5000)
+    db = client[db_name]
+    return db
+
+# Auto-initialize on startup if not already initialized
 try:
+    init_db()
     client.admin.command("ping")
     print("[DB] Connected to MongoDB Atlas successfully.")
 except Exception as e:
-    print(f"[DB ERROR] Connection failed: {e}")
-    sys.exit(1)
+    print(f"[DB NOTICE] Direct Atlas connection unavailable on import ({e}). Can be injected by test runner.")
 
 # ---------------------------------------------------------------------------- #
 # Priors & Reference Data Loading
@@ -268,33 +291,60 @@ def compute_primary_forecast(item: dict) -> dict:
 # Unified Dispatcher & Batch Runner
 # ---------------------------------------------------------------------------- #
 
-def run_batch_job():
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+def get_derived_sales_history(db_conn, owner_id: str, item_id: str, as_of_date: str, fallback_history: list) -> list:
+    """
+    Derives 90-day sales history from the daily_sales collection.
+    If daily_sales has records for this item, returns the dated history.
+    Otherwise falls back to the item's salesHistory array.
+    """
+    try:
+        query = {"owner_id": owner_id, "item_id": item_id}
+        if as_of_date:
+            query["date"] = {"$lt": as_of_date}
+        cursor = db_conn.daily_sales.find(query).sort("date", 1)
+        records = list(cursor)
+        if records:
+            return [int(r.get("units", 0)) for r in records][-90:]
+    except Exception:
+        pass
+    return fallback_history[-90:] if fallback_history else []
+
+
+def run_batch_job(dry_run: bool = False, as_of: str = None, engine: str = None):
+    active_engine = (engine or os.getenv("ENGINE", "legacy")).strip().lower()
+    today_str = as_of if as_of else datetime.now(timezone.utc).strftime("%Y-%m-%d")
     items = list(db.items.find())
     
-    print(f"\n[BATCH] Processing {len(items)} items for forecast date: {today_str}")
+    mode_str = "[DRY-RUN]" if dry_run else "[LIVE]"
+    print(f"\n[BATCH {mode_str}] Processing {len(items)} items for forecast date: {today_str} using ENGINE={active_engine}")
     
     processed_count = 0
     for item in items:
         item_id = item["_id"]
         name = item.get("name", "Unknown Item")
-        is_new = item.get("isNew", False)
-        sales_history = item.get("salesHistory", [])
+        owner_id = item.get("owner_id")
+        
+        # Derive sales history strictly from daily_sales without mutating live intraday state
+        raw_history = item.get("salesHistory", [])
+        sales_history = get_derived_sales_history(db, owner_id, item_id, today_str, raw_history)
+        
+        item_for_forecast = dict(item)
+        item_for_forecast["salesHistory"] = sales_history
 
-        # Tier routing:
-        # If explicitly marked isNew=True or has zero sales history, route to Sparse / Cold Start Tier
-        clean_name = name.strip().lower()
-        if is_new or len(sales_history) == 0 and clean_name not in NAME_MAP:
-            forecast_result = compute_sparse_cold_start_forecast(item)
-        else:
-            forecast_result = compute_primary_forecast(item)
+        # Use shared ML engine dispatcher
+        forecast_result = engine_instance.predict_item(
+            item_for_forecast,
+            sales_history,
+            as_of_date=today_str,
+            engine_override=active_engine
+        )
 
         current_stock = item.get("currentStock", 0)
         
         # Store in forecasts collection
         forecast_doc = {
             "item_id": item_id,
-            "owner_id": item.get("owner_id"),
+            "owner_id": owner_id,
             "forecast_date": today_str,
             "predictedDemand": forecast_result["predictedDemand"],
             "safetyStock": forecast_result["safetyStock"],
@@ -305,34 +355,53 @@ def run_batch_job():
             "tier": forecast_result["tier"],
             "historical_7d": forecast_result["historical_7d"],
             "forecast_7d": forecast_result["forecast_7d"],
+            "engine": active_engine,
             "updatedAt": datetime.now(timezone.utc).isoformat(),
         }
         
-        # Upsert forecast for today
-        db.forecasts.update_one(
-            {"item_id": item_id, "forecast_date": today_str},
-            {"$set": forecast_doc},
-            upsert=True
-        )
-        
-        # Also sync item denormalized fields
-        db.items.update_one(
-            {"_id": item_id},
-            {"$set": {
-                "predictedDemand": forecast_result["predictedDemand"],
-                "safetyStock": forecast_result["safetyStock"],
-                "description": forecast_result["explanation"],
-                "riskLevel": forecast_result["riskLevel"],
-                "updatedAt": datetime.now(timezone.utc).isoformat(),
-            }}
-        )
+        # Update ONLY ML metadata on item — NEVER mutate intradaySales, flags, or prices
+        item_ml_update = {
+            "predictedDemand": forecast_result["predictedDemand"],
+            "safetyStock": forecast_result["safetyStock"],
+            "description": forecast_result["explanation"],
+            "riskLevel": forecast_result["riskLevel"],
+            "daysOfData": len(sales_history),
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        }
+
+        if dry_run:
+            print(f"  [DRY-RUN] {name} -> Demand: {forecast_result['predictedDemand']} | Safety: {forecast_result['safetyStock']} | Tier: {forecast_result['tier']} (NO DB WRITE)")
+        else:
+            # Upsert forecast for today with strict owner_id binding
+            db.forecasts.update_one(
+                {"item_id": item_id, "forecast_date": today_str, "owner_id": owner_id},
+                {"$set": forecast_doc},
+                upsert=True
+            )
+            # Sync ML fields to item (zero intraday mutation)
+            db.items.update_one(
+                {"_id": item_id},
+                {"$set": item_ml_update}
+            )
+            print(f"  [OK] [{forecast_result['tier'].upper()}] [{name}] -> Demand: {forecast_result['predictedDemand']} | Safety: {forecast_result['safetyStock']} | Restock: {forecast_doc['recommendedRestock']}")
         
         processed_count += 1
-        tier_tag = "[PRIMARY]" if forecast_result["tier"] == "primary" else "[COLD-START]"
-        print(f"  [OK] {tier_tag} [{name}] -> Demand: {forecast_result['predictedDemand']} | Safety: {forecast_result['safetyStock']} | Tier: {forecast_result['tier']}")
 
-    print(f"\n[SUCCESS] Completed batch forecasting for {processed_count} items in MongoDB Atlas!")
-    client.close()
+    status_tag = "Completed dry-run simulation" if dry_run else "Completed batch forecasting"
+    target_db_name = getattr(db, "name", "unknown")
+    print(f"\n[SUCCESS] {status_tag} for {processed_count} items in MongoDB database ({target_db_name})!")
 
 if __name__ == "__main__":
-    run_batch_job()
+    import argparse
+    parser = argparse.ArgumentParser(description="RestockIQ ML Batch Forecast Engine")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate batch without mutating database")
+    parser.add_argument("--as-of", type=str, default=None, help="Forecast reference date (YYYY-MM-DD)")
+    parser.add_argument("--engine", type=str, default=None, choices=["legacy", "gbdt"], help="Forecasting engine: legacy or gbdt")
+    cli_args = parser.parse_args()
+
+    run_batch_job(dry_run=cli_args.dry_run, as_of=cli_args.as_of, engine=cli_args.engine)
+    if client:
+        try:
+            client.close()
+        except Exception:
+            pass

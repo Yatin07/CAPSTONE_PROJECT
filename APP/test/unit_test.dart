@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:app/providers/inventory_provider.dart';
 import 'package:app/providers/stock_check_provider.dart';
 import 'package:app/providers/waste_alerts_provider.dart';
@@ -14,7 +17,8 @@ void main() {
       late InventoryProvider inventory;
 
       setUp(() {
-        inventory = InventoryProvider();
+        inventory = InventoryProvider(autoFetch: false);
+        inventory.initForTestingWithSampleData();
       });
 
       test('Inventory catalog initializes with exactly 5 core items', () {
@@ -91,13 +95,14 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
-    // 2. Waste Alerts Integrity & Synchronization Unit Tests
+    // 2. Waste Alerts Integrity & Action Tests (Zero Donation / Bundles)
     // -------------------------------------------------------------------------
     group('WasteAlertsProvider Catalog Alignment & Action Tests', () {
       late WasteAlertsProvider alertsProvider;
 
       setUp(() {
-        alertsProvider = WasteAlertsProvider();
+        alertsProvider = WasteAlertsProvider(autoFetch: false);
+        alertsProvider.initForTestingWithSampleData();
       });
 
       test('Alerts catalog matches InventoryProvider items (Traditional Baguette & Whole Milk)', () {
@@ -108,28 +113,34 @@ void main() {
             reason: 'Almond Croissant must not exist in alerts when absent from inventory');
       });
 
-      test('Traditional Baguette alert triggers 20% discount recommendation and primary action', () {
+      test('Traditional Baguette alert triggers 10% discount recommendation and primary action', () {
         final baguetteAlert = alertsProvider.activeAlerts.firstWhere((a) => a.id == '2');
         expect(baguetteAlert.severityLabel, 'Low Pace');
-        expect(baguetteAlert.recommendedActionText, 'Suggest 20% Discount');
+        expect(baguetteAlert.recommendedActionText, 'Suggest 10% Discount');
 
         final recResult = alertsProvider.suggestRecommendation('2');
-        expect(recResult, 'Discount suggestion recorded.');
+        expect(recResult, '10% discount suggestion recorded.');
         expect(alertsProvider.activeAlerts.firstWhere((a) => a.id == '2').isRecommendedActionDone, true);
 
         final actionResult = alertsProvider.applyPrimaryAction('2');
-        expect(actionResult, '20% discount applied successfully to Traditional Baguette.');
+        expect(actionResult, '10% discount applied successfully to Traditional Baguette.');
         expect(alertsProvider.activeAlerts.firstWhere((a) => a.id == '2').isPrimaryActionDone, true);
       });
 
-      test('Whole Milk alert triggers charity donation flow', () {
+      test('Whole Milk alert triggers 20% bundle combo flow with partner item', () {
         final milkAlert = alertsProvider.activeAlerts.firstWhere((a) => a.id == '4');
         expect(milkAlert.severityLabel, 'Critical');
-        expect(milkAlert.recommendedActionText, 'Flag for Donation');
+        expect(milkAlert.recommendedActionText, 'Apply 20% Bundle');
+        expect(milkAlert.partnerItem, isNotNull);
+        expect(milkAlert.partnerItem!['name'], 'Croissants');
 
         final recResult = alertsProvider.suggestRecommendation('4');
-        expect(recResult, 'Item flagged for charity donation.');
+        expect(recResult, 'Bundle recommendation recorded.');
         expect(alertsProvider.activeAlerts.firstWhere((a) => a.id == '4').isRecommendedActionDone, true);
+
+        final actionResult = alertsProvider.applyPrimaryAction('4');
+        expect(actionResult, contains('20% bundle applied with Croissants'));
+        expect(alertsProvider.activeAlerts.firstWhere((a) => a.id == '4').isPrimaryActionDone, true);
       });
 
       test('Dismiss and reset lifecycle behaves correctly', () {
@@ -147,13 +158,14 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
-    // 3. Stock Check Provider Unit Tests
+    // 3. Stock Check & Closing Routine Unit Tests
     // -------------------------------------------------------------------------
-    group('StockCheckProvider Alignment & Override Tests', () {
+    group('StockCheckProvider Alignment & Validation Tests', () {
       late StockCheckProvider stockCheck;
 
       setUp(() {
         stockCheck = StockCheckProvider();
+        stockCheck.initForTestingWithSampleData();
       });
 
       test('Stock check catalog matches the 5 master inventory SKUs', () {
@@ -168,25 +180,21 @@ void main() {
         ]);
       });
 
-      test('Perishable items lock manual edit while non-perishables permit override', () {
-        // Croissants is perishable (resets daily)
-        final initialCroissants = stockCheck.entries.firstWhere((e) => e.id == '1');
-        expect(initialCroissants.isPerishable, true);
-        stockCheck.updateQuantity('1', 50);
-        // Quantity should NOT mutate because it is perishable
-        expect(stockCheck.entries.firstWhere((e) => e.id == '1').actualQuantity, 30);
+      test('Closing count validation rejects units left > available stock', () {
+        final croissant = stockCheck.entries.firstWhere((e) => e.id == '1');
+        final available = croissant.availableStock; // 25 + 15 = 40
+        expect(available, 40);
 
-        // Espresso Beans is non-perishable
-        final initialBeans = stockCheck.entries.firstWhere((e) => e.id == '5');
-        expect(initialBeans.isPerishable, false);
-        expect(initialBeans.isAutoCalculated, true);
-        expect(initialBeans.isManualOverride, false);
+        // Enter valid units left
+        stockCheck.updateClosingUnitsLeft('1', 20);
+        expect(stockCheck.entries.firstWhere((e) => e.id == '1').validationError, isNull);
+        expect(stockCheck.entries.firstWhere((e) => e.id == '1').soldUnits, 20);
+        expect(stockCheck.entries.firstWhere((e) => e.id == '1').wasteUnits, 20);
 
-        stockCheck.updateQuantity('5', 25);
-        final updatedBeans = stockCheck.entries.firstWhere((e) => e.id == '5');
-        expect(updatedBeans.actualQuantity, 25);
-        expect(updatedBeans.isAutoCalculated, false);
-        expect(updatedBeans.isManualOverride, true);
+        // Enter invalid units left (exceeds 40)
+        stockCheck.updateClosingUnitsLeft('1', 50);
+        expect(stockCheck.entries.firstWhere((e) => e.id == '1').validationError, isNotNull);
+        expect(stockCheck.hasValidationErrors, true);
       });
 
       test('Confirming stock updates isConfirmed state', () {
@@ -208,14 +216,100 @@ void main() {
       setUp(() {
         api = ApiService.instance;
         api.logout();
+        api.client = MockClient((request) async {
+          // Block any unmocked real network call
+          if (request.url.path.endsWith('/auth/login')) {
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            final email = body['email'] as String? ?? '';
+            return http.Response(
+              jsonEncode({
+                'access_token': 'fake_test_jwt_token',
+                'user_id': 'fake_user_id',
+                'name': email.contains('admin') ? 'Admin User' : 'Store Manager',
+                'role': 'owner',
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          if (request.url.path.endsWith('/assistant/chat')) {
+            final body = jsonDecode(request.body) as Map<String, dynamic>;
+            final query = (body['query'] as String? ?? '').toLowerCase();
+
+            if (query.contains('fail_test')) {
+              return http.Response('{"detail": "server error"}', 500);
+            }
+            if (query.contains('baguette')) {
+              return http.Response(
+                jsonEncode({'reply': 'Traditional Baguettes are at 40% of target sales pace today with 8 units on hand. Recommend 20% discount (pricing down to \$2.24).'}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            if (query.contains('milk')) {
+              return http.Response(
+                jsonEncode({'reply': 'Whole Milk has high waste risk. Pair with Croissants for a 20% combo bundle discount.'}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            if (query.contains('croissant') || query.contains('pastry')) {
+              return http.Response(
+                jsonEncode({'reply': 'Croissants demand predicted at 80 units.'}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            if (query.contains('espresso')) {
+              return http.Response(
+                jsonEncode({'reply': 'Espresso Beans level is 20 LBS.'}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            if (query.contains('alert')) {
+              return http.Response(
+                jsonEncode({'reply': 'Active alerts today: Traditional Baguettes and Whole Milk.'}),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            return http.Response(
+              jsonEncode({'reply': 'RestockIQ operational assistant ready.'}),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          throw StateError('BLOCKED: Real network call attempted during automated test: ${request.url}');
+        });
+      });
+
+      tearDown(() {
+        ApiService.resetClient();
       });
 
       test('Default base URL targets production Render cloud backend', () {
         expect(ApiService.defaultBaseUrl, 'https://restockiq-backend.onrender.com/api/v1');
       });
 
-      test('Walkthrough credentials authenticate quickly and establish valid session', () async {
-        final success = await api.login('admin@test.com', '123456');
+      test('Fails on any real network call during test runs', () async {
+        final guardClient = MockClient((request) async {
+          throw StateError('BLOCKED: Real network call attempted during automated test: ${request.url}');
+        });
+        api.client = guardClient;
+
+        expect(
+          () => api.client.get(Uri.parse('https://restockiq-backend.onrender.com/api/v1/health')),
+          throwsA(isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('BLOCKED: Real network call attempted during automated test'),
+          )),
+        );
+      });
+
+      test('Authentication succeeds with valid credentials and establishes session', () async {
+        final success = await api.login('manager@store.com', 'SecurePassword123');
         expect(success, true);
         expect(api.isAuthenticated, true);
         expect(api.token, isNotNull);
@@ -224,8 +318,8 @@ void main() {
         expect(api.userRole, 'owner');
       });
 
-      test('Alternative walkthrough credentials also authenticate immediately', () async {
-        final successAdmin = await api.login('admin@admin.com', '123456');
+      test('Admin credentials also authenticate and set owner role', () async {
+        final successAdmin = await api.login('admin@bakery.com', 'AdminPass123');
         expect(successAdmin, true);
         expect(api.isAuthenticated, true);
 
@@ -246,7 +340,7 @@ void main() {
         final reply = await api.askAssistant('What should we do with whole milk expiry?');
         expect(reply, isNotNull);
         expect(reply!.contains('Whole Milk'), true);
-        expect(reply.contains('donation'), true);
+        expect(reply.contains('bundle'), true);
       });
 
       test('AI Assistant returns grounded contextual answer for Croissants & Pastries', () async {
@@ -270,11 +364,9 @@ void main() {
         expect(reply.contains('Whole Milk'), true);
       });
 
-      test('AI Assistant never returns null or "Could not reach assistant" on standard queries', () async {
-        final replyGeneral = await api.askAssistant('Hello, who are you?');
-        expect(replyGeneral, isNotNull);
-        expect(replyGeneral!.contains('RestockIQ'), true);
-        expect(replyGeneral.contains('Could not reach assistant'), false);
+      test('AI Assistant returns null on server failure (no canned fake answers)', () async {
+        final replyFail = await api.askAssistant('fail_test query');
+        expect(replyFail, isNull);
 
         final replyEmpty = await api.askAssistant('    ');
         expect(replyEmpty, isNull); // Empty queries intentionally return null

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/stock_check_provider.dart';
+import '../providers/waste_alerts_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/custom_dropdown.dart';
@@ -9,6 +11,8 @@ import '../widgets/custom_input.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/inventory_item_card.dart';
 import '../widgets/primary_button.dart';
+import '../repositories/app_repository.dart';
+import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 import 'item_detail_forecast_screen.dart';
 
@@ -125,7 +129,7 @@ class _ItemSetupScreenState extends State<ItemSetupScreen> {
     provider.clearEditing();
   }
 
-  void _handleSaveAndContinue(InventoryProvider provider) {
+  void _handleSaveAndContinue(InventoryProvider provider) async {
     if (provider.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -137,7 +141,22 @@ class _ItemSetupScreenState extends State<ItemSetupScreen> {
       return;
     }
 
-    Navigator.push(
+    // Switch from SampleRepository (onboarding tour) to LiveRepository for real user data
+    Provider.of<InventoryProvider>(context, listen: false)
+        .setRepository(LiveRepository());
+    Provider.of<WasteAlertsProvider>(context, listen: false)
+        .setRepository(LiveRepository());
+    Provider.of<StockCheckProvider>(context, listen: false)
+        .setRepository(LiveRepository());
+
+    // Mark onboarding complete in MongoDB Atlas so tour is never forced on future logins
+    try {
+      await ApiService.instance.updateUserProfile(onboardingCompleted: true);
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => const DashboardScreen(),

@@ -21,11 +21,13 @@ print("==================================================")
 print("     STEP 5: WASTE ACTION ENGINE VERIFICATION     ")
 print("==================================================")
 
-# 1. Login
-status, res = req("/auth/login", method="POST", data={"email": "admin@test.com", "password": "123456"})
-assert status == 200, f"Login failed: {res}"
+# 1. Login / Register
+status, res = req("/auth/login", method="POST", data={"email": "verifier@test.com", "password": "TestPassword123!"})
+if status != 200:
+    status, res = req("/auth/register", method="POST", data={"name": "Verifier", "email": "verifier@test.com", "password": "TestPassword123!"})
+assert status in (200, 201), f"Auth failed: {res}"
 token = res["access_token"]
-print("[OK] 1. Authenticated as admin@test.com")
+print("[OK] 1. Authenticated as verifier@test.com")
 
 # 2. Find a perishable item with inventory
 status, items_res = req("/items", token=token)
@@ -75,11 +77,11 @@ assert status == 200, f"Failed to apply discount: {discount_res}"
 print(f"\n[OK] 5. Mitigation Action: Applied discount successfully:")
 print(f"     - Old Price: ${discount_res['oldPrice']} -> New Discounted Price: ${discount_res['newPrice']}")
 
-# 6. Test Action: Flag for Donation
-status, donate_res = req(f"/waste-alerts/{test_item_id}/flag-donation", method="POST", token=token)
-assert status == 200, f"Failed to flag for donation: {donate_res}"
-print(f"\n[OK] 6. Mitigation Action: Flag for donation successfully:")
-print(f"     - Message: {donate_res['message']}")
+# 6. Test Action: Apply Bundle
+status, bundle_res = req(f"/waste-alerts/{test_item_id}/apply-bundle", method="POST", token=token)
+assert status == 200, f"Failed to apply bundle: {bundle_res}"
+print(f"\n[OK] 6. Mitigation Action: Apply combo bundle successfully:")
+print(f"     - Message: {bundle_res['message']}")
 
 # 7. Test Action: Dismiss Alert
 status, dismiss_res = req(f"/waste-alerts/{test_item_id}/dismiss", method="POST", token=token)

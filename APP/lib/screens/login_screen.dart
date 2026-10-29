@@ -2,15 +2,19 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/stock_check_provider.dart';
 import '../providers/waste_alerts_provider.dart';
+import '../repositories/app_repository.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/custom_input.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
+import 'dashboard_screen.dart';
 import 'forgot_password_screen.dart';
-import 'item_setup_screen.dart';
+import 'register_screen.dart';
+import 'tour_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,8 +25,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: kDebugMode ? 'admin@test.com' : '');
-  final _passwordController = TextEditingController(text: kDebugMode ? '123456' : '');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -54,44 +58,53 @@ class _LoginScreenState extends State<LoginScreen> {
     // 1. Attempt live cloud JWT authentication against MongoDB Atlas
     final apiSuccess = await ApiService.instance.login(email, password);
 
-    // 2. Allow offline easy credentials fallback ONLY in debug mode for emulator testing
-    final isFallbackValid = kDebugMode && (
-        (email == 'admin@test.com' && password == '123456') ||
-        (email == 'admin@admin.com' && password == '123456') ||
-        (email == 'manager@cafe.com' && password == 'password123')
-    );
-
     if (!mounted) return;
 
-    if (apiSuccess || isFallbackValid) {
-      if (!ApiService.instance.isAuthenticated) {
-        ApiService.instance.setWalkthroughSession(email: email);
-      }
-      // Sync fresh cloud data into providers
-      try {
-        Provider.of<InventoryProvider>(context, listen: false).fetchDashboardItems();
-        Provider.of<WasteAlertsProvider>(context, listen: false).fetchCloudWasteAlerts();
-      } catch (_) {}
+    if (apiSuccess) {
+      // Check onboarding state from backend profile
+      final profile = await ApiService.instance.fetchUserProfile();
+      final onboardingCompleted = profile?['onboarding_completed'] == true;
+
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ItemSetupScreen(),
-        ),
-      );
+      if (onboardingCompleted) {
+        // Active store: switch to LiveRepository and open Dashboard
+        Provider.of<InventoryProvider>(context, listen: false)
+            .setRepository(LiveRepository());
+        Provider.of<WasteAlertsProvider>(context, listen: false)
+            .setRepository(LiveRepository());
+        Provider.of<StockCheckProvider>(context, listen: false)
+            .setRepository(LiveRepository());
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DashboardScreen(),
+          ),
+        );
+      } else {
+        // First login: start Tour once -> Store Setup -> Add Items -> Dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const TourScreen(isReplay: false),
+          ),
+        );
+      }
     } else {
+      final errorMsg = ApiService.instance.lastAuthError ?? 'Invalid email or password';
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Invalid email or password';
+        _errorMessage = errorMsg;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid email or password'),
+        SnackBar(
+          content: Text(errorMsg),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -99,13 +112,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
-  // One-tap demo bypass — skips auth for Android Studio testing
-  void _handleDemoLogin() {
-    Navigator.pushReplacement(
+  // Client-only Demo Tour — zero network calls, zero token, using SampleRepository
+  void _handleExploreTour() {
+    Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const ItemSetupScreen(),
+        builder: (context) => const TourScreen(isReplay: true),
       ),
     );
   }
@@ -245,6 +257,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
                           }
+                          if (value.length < 8 && !kDebugMode) {
+                            return 'Password must be at least 8 characters';
+                          }
                           return null;
                         },
                       ),
@@ -298,27 +313,55 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
-                      if (kDebugMode) ...[
-                        const SizedBox(height: 16),
-                        // Demo Login — one-tap bypass for debug / emulator testing
-                        OutlinedButton.icon(
-                          onPressed: _handleDemoLogin,
-                          icon: const Icon(
-                            Icons.play_circle_outline_rounded,
-                            size: 18,
+                      const SizedBox(height: 20),
+
+                      // Register / Sign-up Link
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
+                            style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
                           ),
-                          label: const Text('Demo Login (Skip Auth)'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: const BorderSide(
-                              color: AppColors.primary,
-                              width: 1.5,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Register',
+                              style: AppTypography.bodyMd.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            shape: const StadiumBorder(),
-                            minimumSize: const Size(double.infinity, 48),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Client-only demo tour walkthrough (no network, no token)
+                      OutlinedButton.icon(
+                        onPressed: _handleExploreTour,
+                        icon: const Icon(
+                          Icons.explore_outlined,
+                          size: 18,
                         ),
-                      ],
+                        label: const Text('Explore Demo Tour (Offline)'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                          shape: const StadiumBorder(),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
                     ],
                   ),
                 ),

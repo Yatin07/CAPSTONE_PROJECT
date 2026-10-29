@@ -6,8 +6,18 @@ import '../models/inventory_item.dart';
 import '../models/waste_alert.dart';
 
 class ApiService {
-  ApiService._internal();
-  static final ApiService instance = ApiService._internal();
+  http.Client client;
+
+  ApiService({http.Client? client}) : client = client ?? http.Client();
+  static final ApiService instance = ApiService();
+
+  static void setMockClient(http.Client mockClient) {
+    instance.client = mockClient;
+  }
+
+  static void resetClient() {
+    instance.client = http.Client();
+  }
 
   /// Reactive status for UI to display cold start wake-up progress
   static final ValueNotifier<bool> isWakingUpServer = ValueNotifier<bool>(false);
@@ -39,16 +49,27 @@ class ApiService {
   String? _userId;
   String? _userName;
   String? _userRole;
+  String? _lastAuthError;
+
+  String? get lastAuthError => _lastAuthError;
+  String? _workspace;
 
   String? get token => _token;
   String? get userId => _userId;
   String? get userName => _userName;
   String? get userRole => _userRole;
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
+  String? get workspace => _workspace;
+  bool get isDemoWorkspace => _workspace == 'demo';
+
+  void setWorkspace(String? ws) {
+    _workspace = ws;
+  }
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
+        if (_workspace != null && _workspace!.isNotEmpty) 'X-Workspace': _workspace!,
       };
 
   /// Core HTTP execution with exponential backoff retry and cold-start wake detection
@@ -117,28 +138,13 @@ class ApiService {
   // Authentication
   // --------------------------------------------------------------------------
 
-  void setWalkthroughSession({String email = 'admin@test.com', String name = 'Store Manager'}) {
-    assert(kDebugMode, 'Walkthrough sessions are strictly forbidden in release builds.');
-    if (!kDebugMode) return;
-    _token = 'offline_jwt_walkthrough_${DateTime.now().millisecondsSinceEpoch}';
-    _userId = 'demo_walkthrough_owner';
-    _userName = email.contains('admin') ? 'Admin Manager' : name;
-    _userRole = 'owner';
-    isWakingUpServer.value = false;
-    serverStatusMessage.value = null;
-  }
-
   Future<bool> login(String email, String password) async {
     final cleanEmail = email.trim().toLowerCase();
-    final isWalkthroughCred = kDebugMode && (
-        (cleanEmail == 'admin@test.com' && password == '123456') ||
-        (cleanEmail == 'admin@admin.com' && password == '123456') ||
-        (cleanEmail == 'manager@cafe.com' && password == 'password123')
-    );
+    _lastAuthError = null;
 
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .post(
               Uri.parse('$_baseUrl/auth/login'),
               headers: {'Content-Type': 'application/json'},
@@ -148,8 +154,8 @@ class ApiService {
               }),
             )
             .timeout(timeout),
-        maxTries: isWalkthroughCred ? 1 : 2,
-        firstRequestTimeout: isWalkthroughCred ? const Duration(seconds: 4) : const Duration(seconds: 15),
+        maxTries: 2,
+        firstRequestTimeout: const Duration(seconds: 15),
         normalTimeout: const Duration(seconds: 10),
       );
 
@@ -159,41 +165,50 @@ class ApiService {
         _userId = data['user_id'];
         _userName = data['name'];
         _userRole = data['role'] ?? 'owner';
+        _lastAuthError = null;
         if (kDebugMode) print('[API] Logged in successfully as $_userName');
         return true;
-      } else if (isWalkthroughCred) {
-        setWalkthroughSession(email: cleanEmail);
-        return true;
+      } else if (response.statusCode == 401) {
+        try {
+          final data = jsonDecode(response.body);
+          _lastAuthError = data['detail'] ?? 'Invalid email or password';
+        } catch (_) {
+          _lastAuthError = 'Invalid email or password';
+        }
+        if (kDebugMode) print('[API] Login failed 401: $_lastAuthError');
+        return false;
       } else {
+        _lastAuthError = 'Server error (${response.statusCode}). Please verify backend is running.';
         if (kDebugMode) print('[API] Login failed: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {
+      _lastAuthError = 'Connection failed: Cannot reach backend server. Check server target.';
       if (kDebugMode) print('[API] Login network error: $e');
-      if (isWalkthroughCred) {
-        isWakingUpServer.value = false;
-        serverStatusMessage.value = null;
-        setWalkthroughSession(email: cleanEmail);
-        return true;
-      }
       return false;
     }
   }
 
   Future<bool> register(String name, String email, String password, {String role = 'owner'}) async {
+    _lastAuthError = null;
     try {
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/auth/register'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'name': name.trim(),
-              'email': email.trim().toLowerCase(),
-              'password': password,
-              'role': role,
-            }),
-          )
-          .timeout(const Duration(seconds: 6));
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => client
+            .post(
+              Uri.parse('$_baseUrl/auth/register'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'name': name.trim(),
+                'email': email.trim().toLowerCase(),
+                'password': password,
+                'role': role,
+              }),
+            )
+            .timeout(timeout),
+        maxTries: 2,
+        firstRequestTimeout: const Duration(seconds: 15),
+        normalTimeout: const Duration(seconds: 10),
+      );
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -201,10 +216,17 @@ class ApiService {
         _userId = data['user_id'];
         _userName = data['name'];
         _userRole = data['role'] ?? role;
+        _lastAuthError = null;
         return true;
+      } else if (response.statusCode == 409) {
+        _lastAuthError = 'Email is already registered. Please login instead.';
+        return false;
+      } else {
+        _lastAuthError = 'Registration failed (${response.statusCode}). Check details or backend.';
+        return false;
       }
-      return false;
     } catch (e) {
+      _lastAuthError = 'Connection failed: Cannot reach backend server. Check connection.';
       if (kDebugMode) print('[API] Register error: $e');
       return false;
     }
@@ -224,7 +246,7 @@ class ApiService {
   Future<Map<String, dynamic>?> fetchTodayDashboard() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/forecasts/today'),
               headers: _headers,
@@ -255,7 +277,7 @@ class ApiService {
   Future<List<InventoryItem>?> fetchItems() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/items'),
               headers: _headers,
@@ -285,7 +307,7 @@ class ApiService {
     double? price,
   }) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/items'),
             headers: _headers,
@@ -325,7 +347,7 @@ class ApiService {
 
   Future<bool> restockItem(String itemId, {int? quantity}) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/items/$itemId/restock'),
             headers: _headers,
@@ -359,7 +381,7 @@ class ApiService {
         if (price != null) 'price': price,
       };
 
-      final response = await http
+      final response = await client
           .put(
             Uri.parse('$_baseUrl/items/$itemId'),
             headers: _headers,
@@ -376,7 +398,7 @@ class ApiService {
 
   Future<bool> deleteItem(String itemId) async {
     try {
-      final response = await http
+      final response = await client
           .delete(
             Uri.parse('$_baseUrl/items/$itemId'),
             headers: _headers,
@@ -397,7 +419,7 @@ class ApiService {
   Future<List<WasteAlert>?> fetchWasteAlerts() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/waste-alerts'),
               headers: _headers,
@@ -420,7 +442,7 @@ class ApiService {
 
   Future<bool> recordIntradaySale(String itemId, int quantity) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/sales/intraday'),
             headers: _headers,
@@ -435,12 +457,13 @@ class ApiService {
     }
   }
 
-  Future<bool> applyDiscount(String itemId) async {
+  Future<bool> applyDiscount(String itemId, {double? discountPct}) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/waste-alerts/$itemId/apply-discount'),
             headers: _headers,
+            body: jsonEncode({if (discountPct != null) 'discount_pct': discountPct}),
           )
           .timeout(const Duration(seconds: 10));
 
@@ -451,25 +474,29 @@ class ApiService {
     }
   }
 
-  Future<bool> flagDonation(String itemId) async {
+  Future<bool> applyBundle(String itemId, {String? partnerId, double? bundleDiscountPct}) async {
     try {
-      final response = await http
+      final response = await client
           .post(
-            Uri.parse('$_baseUrl/waste-alerts/$itemId/flag-donation'),
+            Uri.parse('$_baseUrl/waste-alerts/$itemId/apply-bundle'),
             headers: _headers,
+            body: jsonEncode({
+              if (partnerId != null) 'partner_item_id': partnerId,
+              'bundle_discount_pct': bundleDiscountPct ?? 20.0,
+            }),
           )
           .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
-      if (kDebugMode) print('[API] flagDonation error: $e');
+      if (kDebugMode) print('[API] applyBundle error: $e');
       return false;
     }
   }
 
   Future<bool> dismissAlert(String itemId) async {
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/waste-alerts/$itemId/dismiss'),
             headers: _headers,
@@ -484,13 +511,129 @@ class ApiService {
   }
 
   // --------------------------------------------------------------------------
+  // Daily Operations (Closing Count, Midday Count, Yesterday Review)
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>> submitClosingCount({
+    String? date,
+    required List<Map<String, dynamic>> counts,
+  }) async {
+    final response = await client
+        .post(
+          Uri.parse('$_baseUrl/closing-count'),
+          headers: _headers,
+          body: jsonEncode({
+            if (date != null) 'date': date,
+            'counts': counts,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    final err = jsonDecode(response.body);
+    throw Exception(err['detail'] ?? 'Failed to submit closing count');
+  }
+
+  Future<Map<String, dynamic>> submitMiddayCount({
+    required List<Map<String, dynamic>> counts,
+  }) async {
+    final response = await client
+        .post(
+          Uri.parse('$_baseUrl/midday-count'),
+          headers: _headers,
+          body: jsonEncode({'counts': counts}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    final err = jsonDecode(response.body);
+    throw Exception(err['detail'] ?? 'Failed to submit midday count');
+  }
+
+  Future<Map<String, dynamic>> fetchYesterdayReview() async {
+    final response = await client
+        .get(
+          Uri.parse('$_baseUrl/review/yesterday'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load yesterday review');
+  }
+
+  // --------------------------------------------------------------------------
+  // User Profile
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>?> fetchUserProfile() async {
+    try {
+      final response = await client
+          .get(
+            Uri.parse('$_baseUrl/me'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      if (kDebugMode) print('[API] fetchUserProfile error: $e');
+    }
+    return null;
+  }
+
+  Future<bool> updateUserProfile({
+    String? name,
+    String? storeName,
+    String? timezone,
+    double? openingHour,
+    double? closingHour,
+    String? currency,
+    bool? onboardingCompleted,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (storeName != null) 'store_name': storeName,
+        if (timezone != null) 'timezone': timezone,
+        if (openingHour != null) 'opening_hour': openingHour,
+        if (closingHour != null) 'closing_hour': closingHour,
+        if (currency != null) 'currency': currency,
+        if (onboardingCompleted != null) 'onboarding_completed': onboardingCompleted,
+      };
+
+      final response = await _executeWithRetry(
+        requestFn: (timeout) => client
+            .patch(
+              Uri.parse('/me'),
+              headers: _headers,
+              body: jsonEncode(payload),
+            )
+            .timeout(timeout),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) print('[API] updateUserProfile error: $e');
+      return false;
+    }
+  }
+
+  // --------------------------------------------------------------------------
   // AI Executive Briefing & Manager Assistant (Google Gemini)
   // --------------------------------------------------------------------------
 
   Future<Map<String, dynamic>?> fetchTodayBriefing() async {
     try {
       final response = await _executeWithRetry(
-        requestFn: (timeout) => http
+        requestFn: (timeout) => client
             .get(
               Uri.parse('$_baseUrl/briefing/today'),
               headers: _headers,
@@ -514,13 +657,13 @@ class ApiService {
     if (cleanQuery.isEmpty) return null;
 
     try {
-      final response = await http
+      final response = await client
           .post(
             Uri.parse('$_baseUrl/assistant/chat'),
             headers: _headers,
             body: jsonEncode({'query': cleanQuery}),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -533,41 +676,70 @@ class ApiService {
       if (kDebugMode) print('[API] askAssistant network error: $e');
     }
 
-    // Grounded intelligence fallback: Never leave the user hanging with "Could not reach assistant"
-    return _generateContextualAssistantReply(cleanQuery);
+    // No canned responses: return null so UI renders honest error / retry state
+    return null;
   }
 
-  String _generateContextualAssistantReply(String query) {
-    final q = query.toLowerCase();
+  // --------------------------------------------------------------------------
+  // Demo Sandbox API
+  // --------------------------------------------------------------------------
 
-    if (q.contains('baguette') || q.contains('bread') || q.contains('loaf') || q.contains('discount')) {
-      return "Traditional Baguettes are at 40% of target sales pace today with 8 units on hand. The recommended 20% discount (pricing down to \$2.24) will accelerate mid-day sales and eliminate end-of-day waste.";
+  Future<Map<String, dynamic>> startDemo() async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.post(
+        Uri.parse('$_baseUrl/demo/start'),
+        headers: _headers,
+      ).timeout(timeout),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      setWorkspace('demo');
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to start demo sandbox: ${response.statusCode}');
     }
+  }
 
-    if (q.contains('milk') || q.contains('dairy') || q.contains('donate') || q.contains('donation') || q.contains('spoil')) {
-      return "Whole Milk has 4 gallons remaining with 25% expected velocity today (spoilage risk: High). Flagging for local food donation before 6:00 PM will ensure community impact and standard tax write-off.";
+  Future<Map<String, dynamic>> resetDemo() async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.post(
+        Uri.parse('$_baseUrl/demo/reset'),
+        headers: _headers,
+      ).timeout(timeout),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to reset demo sandbox: ${response.statusCode}');
     }
+  }
 
-    if (q.contains('croissant') || q.contains('pastry') || q.contains('pain')) {
-      return "Croissants have 30 units on hand with predicted weekend demand of 80 (safety stock: 40). Pain au Chocolat has 15 units remaining against 62 expected. Pastry demand remains strong.";
+  Future<Map<String, dynamic>> exitDemo() async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.delete(
+        Uri.parse('$_baseUrl/demo'),
+        headers: _headers,
+      ).timeout(timeout),
+    );
+    setWorkspace(null);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to exit demo sandbox: ${response.statusCode}');
     }
+  }
 
-    if (q.contains('bean') || q.contains('coffee') || q.contains('espresso')) {
-      return "Espresso Beans stock is healthy at 20 LBS against a baseline daily demand of 5 LBS and safety stock of 4 LBS. No restock needed today.";
+  Future<Map<String, dynamic>> setDemoClock(double hour) async {
+    final response = await _executeWithRetry(
+      requestFn: (timeout) => client.post(
+        Uri.parse('$_baseUrl/demo/clock'),
+        headers: _headers,
+        body: jsonEncode({'hour': hour}),
+      ).timeout(timeout),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to set demo simulated clock: ${response.statusCode}');
     }
-
-    if (q.contains('alert') || q.contains('waste') || q.contains('attention') || q.contains('action')) {
-      return "You have 2 items requiring operational attention today: 1) Traditional Baguettes (Low Pace — recommend 20% discount), and 2) Whole Milk (Critical Expiry — recommend donation flag). Check the Waste Alerts tab to execute actions.";
-    }
-
-    if (q.contains('hi') || q.contains('hello') || q.contains('who are you') || q.contains('help')) {
-      return "Hello! I am your RestockIQ Store Assistant. I track real-time inventory velocity, safety thresholds, and waste risks across your 5 core items. How can I help you optimize stock today?";
-    }
-
-    if (q.contains('stock') || q.contains('inventory') || q.contains('restock') || q.contains('forecast') || q.contains('order')) {
-      return "Current stock levels across your catalog: Croissants (30 units, demand 80), Traditional Baguettes (8 units, demand 39), Pain au Chocolat (15 units, demand 62), Whole Milk (4 GAL, demand 42), and Espresso Beans (20 LBS, optimal).";
-    }
-
-    return "RestockIQ operational briefing: Focus on afternoon baguette discounting to clear slow-moving bakery stock, and confirm the whole milk donation flag before closing. All other items are tracking within normal variance.";
   }
 }

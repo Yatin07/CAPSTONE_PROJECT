@@ -22,7 +22,8 @@ def inspect_and_disable_test_users():
 
     # Connect to MongoDB
     client = MongoClient(uri)
-    db = client["restockiq"]
+    db_name = os.getenv("MONGODB_DB", "restockiq")
+    db = client[db_name]
     users_coll = db.users
 
     print("=" * 70)

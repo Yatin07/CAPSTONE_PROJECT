@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/inventory_item.dart';
+import '../utils/string_extensions.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
@@ -95,7 +96,7 @@ class DashboardForecastCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Circular Icon + Item Name + Status Dot
+                // Top Row: Circular Icon + Item Name & Maturity Chip + Status Dot
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -114,16 +115,50 @@ class DashboardForecastCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          item.name,
-                          style: GoogleFonts.montserrat(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.onSurface,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name.toTitleCase(),
+                            style: GoogleFonts.montserrat(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.onSurface,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: item.maturity == 'Mature'
+                                  ? const Color(0xFFE8F5E9)
+                                  : (item.maturity == 'Improving'
+                                      ? const Color(0xFFE3F2FD)
+                                      : const Color(0xFFFFF8E1)),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: item.maturity == 'Mature'
+                                    ? const Color(0xFFA5D6A7)
+                                    : (item.maturity == 'Improving'
+                                        ? const Color(0xFF90CAF9)
+                                        : const Color(0xFFFFE082)),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              item.maturityLabel,
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: item.maturity == 'Mature'
+                                    ? const Color(0xFF2E7D32)
+                                    : (item.maturity == 'Improving'
+                                        ? const Color(0xFF1565C0)
+                                        : const Color(0xFF8D6E63)),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     if (_hasStatusDot())
