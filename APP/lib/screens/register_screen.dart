@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/waste_alerts_provider.dart';
+import '../repositories/app_repository.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/custom_input.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
-import 'item_setup_screen.dart';
+import 'tour_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -23,7 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _selectedRole = 'owner';
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   String? _errorMessage;
@@ -57,18 +57,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       name,
       email,
       password,
-      role: _selectedRole,
     );
 
     if (!mounted) return;
 
     if (success) {
-      // Sync fresh blank tenant state into providers
+      // First-time tenant starts in Tour mode, then proceeds to Store Setup
       try {
-        if (!mounted) return;
-        await Provider.of<InventoryProvider>(context, listen: false).fetchDashboardItems();
-        if (!mounted) return;
-        await Provider.of<WasteAlertsProvider>(context, listen: false).fetchCloudWasteAlerts();
+        Provider.of<InventoryProvider>(context, listen: false)
+            .setRepository(SampleRepository());
+        Provider.of<WasteAlertsProvider>(context, listen: false)
+            .setRepository(SampleRepository());
       } catch (_) {}
 
       if (!mounted) return;
@@ -84,22 +83,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      // Onboarding step: Guide first-time user directly to catalog item setup
+      // Onboarding flow: Tour -> Store Setup -> Add Items -> Dashboard
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const ItemSetupScreen(),
+          builder: (context) => const TourScreen(isReplay: false),
         ),
       );
     } else {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Registration failed. Email may already be registered.';
+        _errorMessage = 'Registration failed. Email may already be registered or rate limited (5/min).';
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Registration failed. Please check your details or try logging in.'),
+          content: Text('Registration failed. Check details or try again shortly.'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -194,14 +193,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 16),
                       ],
 
-                      // Full Name / Store Name Input
+                      // Full Name Input
                       CustomInput(
-                        label: 'Full Name / Business Name',
-                        hintText: 'e.g. Marie Dubois or Artisanal Bakery',
+                        label: 'Full Name',
+                        hintText: 'e.g. Marie Dubois',
                         controller: _nameController,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your name or business name';
+                            return 'Please enter your name';
                           }
                           if (value.trim().length < 2) {
                             return 'Name must be at least 2 characters';
@@ -230,9 +229,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Password Input
+                      // Password Input (>= 8 chars enforced)
                       CustomInput(
-                        label: 'Password',
+                        label: 'Password (min. 8 characters)',
                         hintText: '••••••••',
                         controller: _passwordController,
                         isPassword: true,
@@ -246,54 +245,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter a password';
                           }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
+                          if (value.length < 8) {
+                            return 'Password must be at least 8 characters';
                           }
                           return null;
                         },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Role Selection Segment
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Operational Role', style: AppTypography.labelBold),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ChoiceChip(
-                                  label: const Center(child: Text('Store Owner')),
-                                  selected: _selectedRole == 'owner',
-                                  selectedColor: AppColors.primary.withValues(alpha: 0.12),
-                                  labelStyle: TextStyle(
-                                    color: _selectedRole == 'owner' ? AppColors.primary : AppColors.onSurface,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  onSelected: (selected) {
-                                    if (selected) setState(() => _selectedRole = 'owner');
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ChoiceChip(
-                                  label: const Center(child: Text('Manager')),
-                                  selected: _selectedRole == 'manager',
-                                  selectedColor: AppColors.primary.withValues(alpha: 0.12),
-                                  labelStyle: TextStyle(
-                                    color: _selectedRole == 'manager' ? AppColors.primary : AppColors.onSurface,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  onSelected: (selected) {
-                                    if (selected) setState(() => _selectedRole = 'manager');
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 24),
 
@@ -310,16 +266,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         valueListenable: ApiService.isWakingUpServer,
                         builder: (context, isWaking, _) {
                           if (!isWaking) return const SizedBox.shrink();
-                          return Container(
-                            margin: const EdgeInsets.only(top: 14),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF8E7),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFFFD580)),
-                            ),
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 14),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const SizedBox(
@@ -327,20 +276,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   height: 14,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8A5A00)),
+                                    color: AppColors.primary,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                ValueListenableBuilder<String?>(
-                                  valueListenable: ApiService.serverStatusMessage,
-                                  builder: (context, msg, _) {
-                                    return Text(
-                                      msg ?? 'Waking up server...',
-                                      style: AppTypography.captionBold.copyWith(
-                                        color: const Color(0xFF8A5A00),
-                                      ),
-                                    );
-                                  },
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Waking up server...',
+                                  style: AppTypography.captionBold.copyWith(
+                                    color: AppColors.primary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -349,20 +293,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Return to Login Link
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      // Back to Login Link
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
                             'Already have an account? ',
                             style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
+                            onTap: () => Navigator.pop(context),
                             child: Text(
-                              'Login',
+                              'Sign In',
                               style: AppTypography.bodyMd.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w700,

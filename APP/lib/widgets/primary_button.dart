@@ -41,10 +41,14 @@ class PrimaryButton extends StatelessWidget {
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    label,
-                    style: AppTypography.buttonLabel,
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: AppTypography.buttonLabel,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   if (icon != null) ...[
                     const SizedBox(width: 8),

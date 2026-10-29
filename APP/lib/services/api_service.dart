@@ -445,12 +445,13 @@ class ApiService {
     }
   }
 
-  Future<bool> applyDiscount(String itemId) async {
+  Future<bool> applyDiscount(String itemId, {double? discountPct}) async {
     try {
       final response = await client
           .post(
             Uri.parse('$_baseUrl/waste-alerts/$itemId/apply-discount'),
             headers: _headers,
+            body: jsonEncode({if (discountPct != null) 'discount_pct': discountPct}),
           )
           .timeout(const Duration(seconds: 10));
 
@@ -461,18 +462,22 @@ class ApiService {
     }
   }
 
-  Future<bool> flagDonation(String itemId) async {
+  Future<bool> applyBundle(String itemId, {String? partnerId, double? bundleDiscountPct}) async {
     try {
       final response = await client
           .post(
-            Uri.parse('$_baseUrl/waste-alerts/$itemId/flag-donation'),
+            Uri.parse('$_baseUrl/waste-alerts/$itemId/apply-bundle'),
             headers: _headers,
+            body: jsonEncode({
+              if (partnerId != null) 'partner_item_id': partnerId,
+              'bundle_discount_pct': bundleDiscountPct ?? 20.0,
+            }),
           )
           .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
-      if (kDebugMode) print('[API] flagDonation error: $e');
+      if (kDebugMode) print('[API] applyBundle error: $e');
       return false;
     }
   }
@@ -489,6 +494,121 @@ class ApiService {
       return response.statusCode == 200;
     } catch (e) {
       if (kDebugMode) print('[API] dismissAlert error: $e');
+      return false;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Daily Operations (Closing Count, Midday Count, Yesterday Review)
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>> submitClosingCount({
+    String? date,
+    required List<Map<String, dynamic>> counts,
+  }) async {
+    final response = await client
+        .post(
+          Uri.parse('$_baseUrl/closing-count'),
+          headers: _headers,
+          body: jsonEncode({
+            if (date != null) 'date': date,
+            'counts': counts,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    final err = jsonDecode(response.body);
+    throw Exception(err['detail'] ?? 'Failed to submit closing count');
+  }
+
+  Future<Map<String, dynamic>> submitMiddayCount({
+    required List<Map<String, dynamic>> counts,
+  }) async {
+    final response = await client
+        .post(
+          Uri.parse('$_baseUrl/midday-count'),
+          headers: _headers,
+          body: jsonEncode({'counts': counts}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    final err = jsonDecode(response.body);
+    throw Exception(err['detail'] ?? 'Failed to submit midday count');
+  }
+
+  Future<Map<String, dynamic>> fetchYesterdayReview() async {
+    final response = await client
+        .get(
+          Uri.parse('$_baseUrl/review/yesterday'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load yesterday review');
+  }
+
+  // --------------------------------------------------------------------------
+  // User Profile
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>?> fetchUserProfile() async {
+    try {
+      final response = await client
+          .get(
+            Uri.parse('$_baseUrl/me'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      if (kDebugMode) print('[API] fetchUserProfile error: $e');
+    }
+    return null;
+  }
+
+  Future<bool> updateUserProfile({
+    String? name,
+    String? storeName,
+    String? timezone,
+    double? openingHour,
+    double? closingHour,
+    String? currency,
+    bool? onboardingCompleted,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (storeName != null) 'store_name': storeName,
+        if (timezone != null) 'timezone': timezone,
+        if (openingHour != null) 'opening_hour': openingHour,
+        if (closingHour != null) 'closing_hour': closingHour,
+        if (currency != null) 'currency': currency,
+        if (onboardingCompleted != null) 'onboarding_completed': onboardingCompleted,
+      };
+
+      final response = await client
+          .patch(
+            Uri.parse('$_baseUrl/me'),
+            headers: _headers,
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) print('[API] updateUserProfile error: $e');
       return false;
     }
   }
@@ -543,41 +663,7 @@ class ApiService {
       if (kDebugMode) print('[API] askAssistant network error: $e');
     }
 
-    // Grounded intelligence fallback: Never leave the user hanging with "Could not reach assistant"
-    return _generateContextualAssistantReply(cleanQuery);
-  }
-
-  String _generateContextualAssistantReply(String query) {
-    final q = query.toLowerCase();
-
-    if (q.contains('baguette') || q.contains('bread') || q.contains('loaf') || q.contains('discount')) {
-      return "Traditional Baguettes are at 40% of target sales pace today with 8 units on hand. The recommended 20% discount (pricing down to \$2.24) will accelerate mid-day sales and eliminate end-of-day waste.";
-    }
-
-    if (q.contains('milk') || q.contains('dairy') || q.contains('donate') || q.contains('donation') || q.contains('spoil')) {
-      return "Whole Milk has 4 gallons remaining with 25% expected velocity today (spoilage risk: High). Flagging for local food donation before 6:00 PM will ensure community impact and standard tax write-off.";
-    }
-
-    if (q.contains('croissant') || q.contains('pastry') || q.contains('pain')) {
-      return "Croissants have 30 units on hand with predicted weekend demand of 80 (safety stock: 40). Pain au Chocolat has 15 units remaining against 62 expected. Pastry demand remains strong.";
-    }
-
-    if (q.contains('bean') || q.contains('coffee') || q.contains('espresso')) {
-      return "Espresso Beans stock is healthy at 20 LBS against a baseline daily demand of 5 LBS and safety stock of 4 LBS. No restock needed today.";
-    }
-
-    if (q.contains('alert') || q.contains('waste') || q.contains('attention') || q.contains('action')) {
-      return "You have 2 items requiring operational attention today: 1) Traditional Baguettes (Low Pace — recommend 20% discount), and 2) Whole Milk (Critical Expiry — recommend donation flag). Check the Waste Alerts tab to execute actions.";
-    }
-
-    if (q.contains('hi') || q.contains('hello') || q.contains('who are you') || q.contains('help')) {
-      return "Hello! I am your RestockIQ Store Assistant. I track real-time inventory velocity, safety thresholds, and waste risks across your 5 core items. How can I help you optimize stock today?";
-    }
-
-    if (q.contains('stock') || q.contains('inventory') || q.contains('restock') || q.contains('forecast') || q.contains('order')) {
-      return "Current stock levels across your catalog: Croissants (30 units, demand 80), Traditional Baguettes (8 units, demand 39), Pain au Chocolat (15 units, demand 62), Whole Milk (4 GAL, demand 42), and Espresso Beans (20 LBS, optimal).";
-    }
-
-    return "RestockIQ operational briefing: Focus on afternoon baguette discounting to clear slow-moving bakery stock, and confirm the whole milk donation flag before closing. All other items are tracking within normal variance.";
+    // No canned responses: return null so UI renders honest error / retry state
+    return null;
   }
 }

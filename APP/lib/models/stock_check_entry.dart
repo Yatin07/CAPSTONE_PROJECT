@@ -7,6 +7,12 @@ class StockCheckEntry {
   bool isAutoCalculated;
   bool isManualOverride;
   final bool isPerishable;
+  final int openingStock;
+  final int producedOrRestocked;
+  final int? closingUnitsLeft;
+  final int? soldUnits;
+  final int? wasteUnits;
+  final String? validationError;
 
   StockCheckEntry({
     required this.id,
@@ -17,7 +23,15 @@ class StockCheckEntry {
     required this.isAutoCalculated,
     required this.isManualOverride,
     required this.isPerishable,
+    this.openingStock = 0,
+    this.producedOrRestocked = 0,
+    this.closingUnitsLeft,
+    this.soldUnits,
+    this.wasteUnits,
+    this.validationError,
   });
+
+  int get availableStock => openingStock + producedOrRestocked;
 
   StockCheckEntry copyWith({
     String? id,
@@ -28,6 +42,12 @@ class StockCheckEntry {
     bool? isAutoCalculated,
     bool? isManualOverride,
     bool? isPerishable,
+    int? openingStock,
+    int? producedOrRestocked,
+    int? closingUnitsLeft,
+    int? soldUnits,
+    int? wasteUnits,
+    String? validationError,
   }) {
     return StockCheckEntry(
       id: id ?? this.id,
@@ -38,6 +58,12 @@ class StockCheckEntry {
       isAutoCalculated: isAutoCalculated ?? this.isAutoCalculated,
       isManualOverride: isManualOverride ?? this.isManualOverride,
       isPerishable: isPerishable ?? this.isPerishable,
+      openingStock: openingStock ?? this.openingStock,
+      producedOrRestocked: producedOrRestocked ?? this.producedOrRestocked,
+      closingUnitsLeft: closingUnitsLeft ?? this.closingUnitsLeft,
+      soldUnits: soldUnits ?? this.soldUnits,
+      wasteUnits: wasteUnits ?? this.wasteUnits,
+      validationError: validationError ?? this.validationError,
     );
   }
 }

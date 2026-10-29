@@ -13,6 +13,10 @@ class InventoryItem {
   final DateTime updatedAt;
   final String? description;
   final String? riskLevel;
+  final int daysOfData;
+  final String maturity;
+  final String maturityLabel;
+  final int? shelfLifeDays;
 
   const InventoryItem({
     required this.id,
@@ -27,6 +31,10 @@ class InventoryItem {
     required this.updatedAt,
     this.description,
     this.riskLevel,
+    this.daysOfData = 0,
+    this.maturity = 'Learning',
+    this.maturityLabel = 'Learning (0/7 days)',
+    this.shelfLifeDays,
   });
 
   int get restockQuantity {
@@ -54,6 +62,10 @@ class InventoryItem {
     DateTime? updatedAt,
     String? description,
     String? riskLevel,
+    int? daysOfData,
+    String? maturity,
+    String? maturityLabel,
+    int? shelfLifeDays,
   }) {
     return InventoryItem(
       id: id ?? this.id,
@@ -68,6 +80,10 @@ class InventoryItem {
       updatedAt: updatedAt ?? this.updatedAt,
       description: description ?? this.description,
       riskLevel: riskLevel ?? this.riskLevel,
+      daysOfData: daysOfData ?? this.daysOfData,
+      maturity: maturity ?? this.maturity,
+      maturityLabel: maturityLabel ?? this.maturityLabel,
+      shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
     );
   }
 
@@ -93,6 +109,12 @@ class InventoryItem {
       parsedDate = DateTime.now();
     }
 
+    final dod = (json['daysOfData'] as num?)?.toInt() ?? 0;
+    final mat = json['maturity']?.toString() ??
+        (dod >= 28 ? 'Mature' : (dod >= 7 ? 'Improving' : 'Learning'));
+    final matLbl = json['maturityLabel']?.toString() ??
+        (dod >= 28 ? 'Mature ($dod days)' : (dod >= 7 ? 'Improving ($dod/28 days)' : 'Learning ($dod/7 days)'));
+
     return InventoryItem(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
@@ -106,6 +128,10 @@ class InventoryItem {
       updatedAt: parsedDate,
       description: json['description']?.toString(),
       riskLevel: json['riskLevel']?.toString() ?? 'normal',
+      daysOfData: dod,
+      maturity: mat,
+      maturityLabel: matLbl,
+      shelfLifeDays: (json['shelfLifeDays'] as num?)?.toInt(),
     );
   }
 
@@ -123,8 +149,10 @@ class InventoryItem {
       'updatedAt': updatedAt.toIso8601String(),
       'description': description,
       'riskLevel': riskLevel,
+      'daysOfData': daysOfData,
+      'maturity': maturity,
+      'maturityLabel': maturityLabel,
+      'shelfLifeDays': shelfLifeDays,
     };
   }
 }
-
-

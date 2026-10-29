@@ -328,10 +328,95 @@ Every entry documents:
   ```powershell
   Backend\venv\Scripts\python.exe -m unittest discover -s Backend -p "test_*.py" -v
   ```
+---
+
+## Block 3: App Flow, Dual Repositories, Onboarding Routine, and Daily Data Capture
+
+### 1. Dual Repository Architecture & Provider Decoupling
+- **What**: Implemented `AppRepository` interface with two concrete implementations:
+  - `LiveRepository`: Communicates directly with the FastAPI cloud/local backend via `ApiService`. Starts empty for genuine user stores.
+  - `SampleRepository`: Houses in-memory demonstration bakery data strictly for interactive app tours. Makes zero network calls and persists nothing to the backend.
+  - Decoupled `InventoryProvider`, `StockCheckProvider`, and `WasteAlertsProvider` from hardcoded items and alert lists. All providers default to empty state in Live mode, support dynamic repository injection via `setRepository()`, and include `initForTestingWithSampleData()` for isolated test suites.
+- **Why**: Eliminates mock data leaking into real stores and cleanly separates the read-only Tour experience from live store forecasting.
+- **Files**:
+  - `APP/lib/repositories/app_repository.dart`
+  - `APP/lib/providers/inventory_provider.dart`
+  - `APP/lib/providers/stock_check_provider.dart`
+  - `APP/lib/providers/waste_alerts_provider.dart`
+- **How to Test**:
+  ```powershell
+  Set-Location E:\CAP\APP; flutter test test/unit_test.dart
+  ```
+
+---
+
+### 2. Auth Flow, Store Setup & Onboarding Routing
+- **What**:
+  - `LoginScreen`: Enforces password validation (>= 8 characters), checks user profile onboarding flag (`onboarding_completed`), routing first-time users to `TourScreen` and existing store owners directly to `DashboardScreen`. Removed demo login bypass from release builds.
+  - `RegisterScreen`: Enforces password >= 8 characters, removes client role selection (server strictly sets `owner`), and initiates the onboarding sequence.
+  - `ForgotPasswordScreen`: Replaced fake mock timer and fake email dispatch with honest instructions directing users to store administrative support (`support@restockiq.com`).
+  - `TourScreen`: Interactive 3-step walkthrough labeled `DEMO TOUR` highlighting predictive replenishment, commercial combo bundling, and daily closing routines with `SampleRepository`.
+  - `StoreSetupScreen`: First-time store configuration capturing store name, IANA timezone dropdown (default `Asia/Kolkata`), opening/closing hours (default `08:00` - `20:00`), and currency (`₹`). Updates profile via `PATCH /me`.
+  - `ItemSetupScreen`: Catalog management enforcing category constraints (`Bakery`, `Beverage`, `Food`, `Dessert`, `Snack`, `Other`), starting stock, perishability, price, and shelf-life days. Sets `onboarding_completed = true` upon adding the initial catalog item.
+- **Why**: Enforces complete authentication security, guides first-time users through the tour and store setup, and ensures a store has at least one valid item before entering live forecasting.
+- **Files**:
+  - `APP/lib/screens/login_screen.dart`
+  - `APP/lib/screens/register_screen.dart`
+  - `APP/lib/screens/forgot_password_screen.dart`
+  - `APP/lib/screens/tour_screen.dart`
+  - `APP/lib/screens/store_setup_screen.dart`
+  - `APP/lib/screens/item_setup_screen.dart`
+- **How to Test**:
+  ```powershell
+  Set-Location E:\CAP\APP; flutter test test/widget_test.dart
+  ```
+
+---
+
+### 3. Daily Operations: Closing Count Validation, Midday Pace, and Yesterday Review
+- **What**:
+  - Re-architected `InventoryCheckInScreen` with 3 segmented routine tabs:
+    1. **Closing Count**: Authoritative end-of-day capture supporting Today or Yesterday backfill. Validates `units_left <= availableStock` (`opening + producedOrRestocked`). Computes `sold = available - left` and perishable waste in real-time. Displays validation errors and blocks submission if exceeded. Calls `POST /closing-count`.
+    2. **Mid-Day Pace**: Captures midday remaining stock, computes elapsed store hours fraction, and calculates same-day sales pace via `POST /midday-count`.
+    3. **Yesterday Review**: Queries `GET /review/yesterday`, rendering item sell-through percentages with visual status badges (`High` >90%, `Normal` 70-90%, `Low` <70%, `Critical` <35%). Explicitly marks unsubmitted days as `"no data"` (`status: "missing"`, never zero).
+- **Why**: Establishes the daily closing count as the authoritative source of truth for historical sales and ML training.
+- **Files**:
+  - `APP/lib/screens/inventory_checkin_screen.dart`
+  - `APP/lib/models/stock_check_entry.dart`
+  - `APP/lib/providers/stock_check_provider.dart`
+- **How to Test**:
+  ```powershell
+  Set-Location E:\CAP\APP; flutter test test/widget_test.dart
+  ```
+
+---
+
+### 4. Waste Mitigations, Commercial Bundles, and AI Assistant Integrity
+- **What**:
+  - Eliminated donation actions across mobile models, providers, widgets, screens, and tests.
+  - Implemented 10% promotional discount for Low Pace alerts and 20% combo bundle pairing with complementary partner items for Critical alerts in `WasteAlertCard` and `WasteAlertsScreen`.
+  - Displayed real maturity chips (`Learning`, `Improving`, `Mature` with exact day count) on `DashboardForecastCard`.
+  - Added `LIVE` / `DEMO TOUR` badge chip, "Data as of [time]" synchronization label, and "Waking up server..." cold-start indicator on `DashboardScreen`.
+  - Rendered clean empty store state ("Catalog is empty") on `DashboardScreen` when a user has not yet added items.
+  - Removed canned fallback replies from `AiBriefingCard` and `ApiService.askAssistant()`, showing honest loading spinners, error messages, and retry actions.
+  - Added debug server target switcher in `SettingsScreen` (available in debug mode) to switch between Render Cloud, Local Emulator, Localhost, or custom URLs with reset capability.
+- **Files**:
+  - `APP/lib/widgets/waste_alert_card.dart`
+  - `APP/lib/screens/waste_alerts_screen.dart`
+  - `APP/lib/widgets/dashboard_forecast_card.dart`
+  - `APP/lib/screens/dashboard_screen.dart`
+  - `APP/lib/screens/settings_screen.dart`
+  - `APP/lib/widgets/ai_briefing_card.dart`
+  - `APP/lib/services/api_service.dart`
+- **How to Test**:
+  ```powershell
+  Set-Location E:\CAP\APP; flutter test
+  ```
 - **How to Revert**:
   ```powershell
-  git checkout cef3d658 -- Backend/
+  git checkout 642741c2 -- APP/
   ```
+
 
 
 

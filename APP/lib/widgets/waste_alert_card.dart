@@ -103,6 +103,36 @@ class WasteAlertCard extends StatelessWidget {
                     ),
                   ],
                 ),
+
+                // Partner Item Combo Banner (for Critical alerts)
+                if (alert.partnerItem != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF8E1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFFD54F), width: 0.8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.link_rounded, size: 16, color: Color(0xFF8A5A00)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Combo Bundle: Pair with ${alert.partnerItem!['name']} (-20%)',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF5D4037),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
 
                 // ROW 4: Recommended Action Pill Button
@@ -182,8 +212,8 @@ class WasteAlertCard extends StatelessWidget {
                 Expanded(
                   child: _buildPrimaryButton(
                     text: alert.isPrimaryActionDone
-                        ? alert.primaryDoneText
-                        : alert.primaryActionText,
+                      ? alert.primaryDoneText
+                      : alert.primaryActionText,
                     isDone: alert.isPrimaryActionDone,
                     onPressed: alert.isPrimaryActionDone ? null : onPrimaryTap,
                   ),

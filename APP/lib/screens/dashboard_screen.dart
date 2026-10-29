@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -12,24 +13,26 @@ import 'item_detail_forecast_screen.dart';
 import 'item_setup_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  final int learningDay;
-  final int learningTotalDays;
-
-  const DashboardScreen({
-    super.key,
-    this.learningDay = 5,
-    this.learningTotalDays = 14,
-  });
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String _formatTime(DateTime? dt) {
+    if (dt == null) return 'Synchronized';
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return 'Data as of $h:$m';
+  }
+
   @override
   Widget build(BuildContext context) {
     final inventoryProvider = Provider.of<InventoryProvider>(context);
     final items = inventoryProvider.items;
+    final isDemo = inventoryProvider.isDemoTour;
+    final modeLabel = inventoryProvider.modeLabel;
 
     return Scaffold(
       bottomNavigationBar: const WarmTechBottomNavBar(selectedIndex: 0),
@@ -37,41 +40,119 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           children: [
             // Top Header Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: AppColors.primaryDark,
-                      size: 22,
-                    ),
-                    onPressed: () {
-                      if (Navigator.canPop(context)) {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.pushReplacement(
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.store_rounded,
+                        color: AppColors.primaryDark,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const ItemSetupScreen(),
                           ),
                         );
-                      }
-                    },
-                    tooltip: 'Back',
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'RestockIQ',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryDark,
+                      },
+                      tooltip: 'Catalog',
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      'RestockIQ',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    const Spacer(),
+
+                    // LIVE / DEMO TOUR Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: isDemo
+                            ? const Color(0xFFFFF3E0)
+                            : const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDemo
+                              ? const Color(0xFFFFB74D)
+                              : const Color(0xFFA5D6A7),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDemo
+                                  ? const Color(0xFFE65100)
+                                  : const Color(0xFF2E7D32),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            modeLabel,
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isDemo
+                                  ? const Color(0xFFE65100)
+                                  : const Color(0xFF2E7D32),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+
+            // Waking Server Notification Banner
+            ValueListenableBuilder<bool>(
+              valueListenable: ApiService.isWakingUpServer,
+              builder: (context, isWaking, _) {
+                if (!isWaking) return const SizedBox.shrink();
+                return Container(
+                  width: double.infinity,
+                  color: const Color(0xFFFFF3E0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFE65100),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Waking cloud backend server on Render...',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFFE65100),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
 
             // Main Scrollable Area with Pull-To-Refresh
@@ -90,152 +171,149 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Learning Badge Pill
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 7,
+                          // Operational Status / Timestamp Pill
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatTime(inventoryProvider.lastSyncedAt),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.onSurfaceVariant,
+                                ),
                               ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFE8B0),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 18,
-                                    height: 18,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF8A5A00),
-                                      shape: BoxShape.circle,
+                              if (inventoryProvider.isLoading)
+                                Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 10,
+                                      height: 10,
+                                      child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primary),
                                     ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.lightbulb_rounded,
-                                        size: 11,
-                                        color: Color(0xFFFFE8B0),
-                                      ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Syncing...',
+                                      style: GoogleFonts.inter(fontSize: 11, color: AppColors.primary),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Executive AI Briefing Card
+                          const AiBriefingCard(),
+                          const SizedBox(height: 16),
+
+                          // Main Section Heading
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Today's Forecast",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                              Text(
+                                '${items.length} items',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Forecast Items List or Empty State
+                          if (items.isEmpty && !inventoryProvider.isLoading)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(28),
+                              decoration: BoxDecoration(
+                                color: AppColors.cardSurface,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: AppColors.ambientShadow,
+                                    blurRadius: 16,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.storefront_outlined,
+                                    size: 48,
+                                    color: AppColors.outlineVariant,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Catalog is empty',
+                                    style: AppTypography.headlineMd.copyWith(
+                                      fontSize: 18,
+                                      color: AppColors.primaryDark,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      'Learning your patterns • Day ${widget.learningDay} of ${widget.learningTotalDays}',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF4A3400),
-                                      ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Add your first item to begin generating AI demand forecasts and replenishment orders.',
+                                    style: AppTypography.bodyMd,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 18),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const ItemSetupScreen(),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.add_rounded),
+                                    label: const Text('Add Menu Item'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: AppColors.onPrimary,
+                                      shape: const StadiumBorder(),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-
-                          // Executive AI Briefing Card
-                          const AiBriefingCard(),
-                          const SizedBox(height: 10),
-
-
-                        // Main Section Heading
-                        Text(
-                          "Today's Forecast",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryDark,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Forecast Items List or Empty State
-                        if (items.isEmpty)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(28),
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: AppColors.ambientShadow,
-                                  blurRadius: 16,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                const Icon(
-                                  Icons.inventory_2_outlined,
-                                  size: 48,
-                                  color: AppColors.outlineVariant,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'No menu items yet',
-                                  style: AppTypography.headlineMd.copyWith(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Add your first menu item to start generating forecasts.',
-                                  style: AppTypography.bodyMd,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 18),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ItemSetupScreen(),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.add_rounded),
-                                  label: const Text('Add Menu Item'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: AppColors.onPrimary,
-                                    shape: const StadiumBorder(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          ...items.map((item) {
-                            return DashboardForecastCard(
-                              item: item,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ItemDetailForecastScreen(item: item),
-                                  ),
-                                );
-                              },
-                            );
-                          }),
-                        const SizedBox(height: 16),
-                      ],
+                            )
+                          else
+                            ...items.map((item) {
+                              return DashboardForecastCard(
+                                item: item,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ItemDetailForecastScreen(item: item),
+                                    ),
+                                  );
+                                },
+                              );
+                            }),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 }

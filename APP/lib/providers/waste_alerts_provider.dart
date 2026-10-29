@@ -1,42 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/waste_alert.dart';
-import '../services/api_service.dart';
+import '../repositories/app_repository.dart';
 
 class WasteAlertsProvider extends ChangeNotifier {
-  final List<WasteAlert> _alerts = [
-    WasteAlert(
-      id: '2',
-      itemName: 'Traditional Baguette',
-      salesText: '40% of expected sales so far\ntoday',
-      progress: 0.40,
-      severityLabel: 'Low Pace',
-      severityColor: const Color(0xFFB91C1C),
-      recommendedActionText: 'Suggest 20% Discount',
-      recommendedActionIcon: Icons.local_offer_outlined,
-      recommendedActionColor: const Color(0xFF8B1E22),
-      recommendedDoneText: 'Discount Suggested',
-      primaryActionText: 'Apply Discount',
-      primaryDoneText: 'Discount Applied',
-      layoutStyle: WasteAlertCardLayoutStyle.stacked,
-      foodType: 'baguette',
-    ),
-    WasteAlert(
-      id: '4',
-      itemName: 'Whole Milk',
-      salesText: '25% of expected sales so far\ntoday',
-      progress: 0.25,
-      severityLabel: 'Critical',
-      severityColor: const Color(0xFFD97706),
-      recommendedActionText: 'Flag for Donation',
-      recommendedActionIcon: Icons.volunteer_activism_outlined,
-      recommendedActionColor: const Color(0xFFFFB702),
-      recommendedDoneText: 'Flagged for Donation',
-      primaryActionText: 'Flag Item',
-      primaryDoneText: 'Item Flagged',
-      layoutStyle: WasteAlertCardLayoutStyle.sideBySide,
-      foodType: 'milk',
-    ),
-  ];
+  AppRepository _repository;
+  final List<WasteAlert> _alerts = [];
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -46,8 +14,67 @@ class WasteAlertsProvider extends ChangeNotifier {
 
   List<WasteAlert> get allAlerts => List.unmodifiable(_alerts);
 
-  WasteAlertsProvider() {
+  WasteAlertsProvider({AppRepository? repository, bool autoFetch = true})
+      : _repository = repository ?? LiveRepository() {
+    if (autoFetch) {
+      fetchCloudWasteAlerts();
+    }
+  }
+
+  void setRepository(AppRepository newRepo) {
+    _repository = newRepo;
+    _alerts.clear();
+    notifyListeners();
     fetchCloudWasteAlerts();
+  }
+
+  void initForTestingWithSampleData() {
+    _alerts.clear();
+    _alerts.addAll([
+      const WasteAlert(
+        id: '2',
+        itemName: 'Traditional Baguette',
+        salesText: '40% of expected sales so far\ntoday',
+        progress: 0.40,
+        severityLabel: 'Low Pace',
+        severityColor: Color(0xFFB91C1C),
+        recommendedActionText: 'Suggest 10% Discount',
+        recommendedActionIcon: Icons.local_offer_outlined,
+        recommendedActionColor: Color(0xFF8B1E22),
+        recommendedDoneText: 'Discount Suggested',
+        primaryActionText: 'Apply Discount',
+        primaryDoneText: 'Discount Applied',
+        layoutStyle: WasteAlertCardLayoutStyle.stacked,
+        foodType: 'baguette',
+      ),
+      const WasteAlert(
+        id: '4',
+        itemName: 'Whole Milk',
+        salesText: '25% of expected sales so far\ntoday',
+        progress: 0.25,
+        severityLabel: 'Critical',
+        severityColor: Color(0xFFD97706),
+        recommendedActionText: 'Apply 20% Bundle',
+        recommendedActionIcon: Icons.local_offer_outlined,
+        recommendedActionColor: Color(0xFFFFB702),
+        recommendedDoneText: 'Bundle Applied',
+        primaryActionText: 'Apply Bundle',
+        primaryDoneText: 'Bundle Active',
+        layoutStyle: WasteAlertCardLayoutStyle.sideBySide,
+        foodType: 'milk',
+        partnerItem: {
+          'id': '1',
+          'name': 'Croissants',
+          'category': 'Bakery',
+          'price': 3.50,
+          'comboOriginalPrice': 8.00,
+          'bundlePrice': 6.40,
+          'discountPct': 20,
+        },
+        bundleDiscountPct: 20,
+      ),
+    ]);
+    notifyListeners();
   }
 
   Future<void> fetchCloudWasteAlerts() async {
@@ -55,13 +82,11 @@ class WasteAlertsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final cloudAlerts = await ApiService.instance.fetchWasteAlerts();
-      if (cloudAlerts != null) {
-        _alerts.clear();
-        _alerts.addAll(cloudAlerts);
-      }
+      final cloudAlerts = await _repository.fetchWasteAlerts();
+      _alerts.clear();
+      _alerts.addAll(cloudAlerts);
     } catch (_) {
-      // Graceful fallback to initial alerts
+      // Graceful fallback: maintain current state
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -75,13 +100,16 @@ class WasteAlertsProvider extends ChangeNotifier {
       _alerts[index] = alert.copyWith(isRecommendedActionDone: true);
       notifyListeners();
 
-      // Sync donation flag to Atlas
-      ApiService.instance.flagDonation(id);
-
-      if (alert.recommendedActionText.toLowerCase().contains('donation')) {
-        return 'Item flagged for charity donation.';
+      if (alert.partnerItem != null) {
+        _repository.applyBundle(
+          id,
+          partnerId: alert.partnerItem?['id']?.toString(),
+          discountPct: 0.20,
+        );
+        return 'Bundle recommendation recorded.';
       } else {
-        return 'Discount suggestion recorded.';
+        _repository.applyDiscount(id, discountPct: 0.10);
+        return '10% discount suggestion recorded.';
       }
     }
     return '';
@@ -94,10 +122,17 @@ class WasteAlertsProvider extends ChangeNotifier {
       _alerts[index] = alert.copyWith(isPrimaryActionDone: true);
       notifyListeners();
 
-      // Sync 20% discount to Atlas
-      ApiService.instance.applyDiscount(id);
-
-      return '20% discount applied successfully to ${alert.itemName}.';
+      if (alert.partnerItem != null) {
+        _repository.applyBundle(
+          id,
+          partnerId: alert.partnerItem?['id']?.toString(),
+          discountPct: 0.20,
+        );
+        return '20% bundle applied with ${alert.partnerItem?['name'] ?? 'partner item'}.';
+      } else {
+        _repository.applyDiscount(id, discountPct: 0.10);
+        return '10% discount applied successfully to ${alert.itemName}.';
+      }
     }
     return '';
   }
@@ -108,8 +143,7 @@ class WasteAlertsProvider extends ChangeNotifier {
       _alerts[index] = _alerts[index].copyWith(isDismissed: true);
       notifyListeners();
 
-      // Sync dismiss to Atlas
-      ApiService.instance.dismissAlert(id);
+      _repository.dismissAlert(id);
     }
   }
 

@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/waste_alerts_provider.dart';
+import '../repositories/app_repository.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/custom_input.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
+import 'dashboard_screen.dart';
 import 'forgot_password_screen.dart';
-import 'item_setup_screen.dart';
 import 'register_screen.dart';
+import 'tour_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,22 +70,39 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!ApiService.instance.isAuthenticated) {
         ApiService.instance.setWalkthroughSession(email: email);
       }
-      // Sync fresh cloud data into providers
-      try {
-        Provider.of<InventoryProvider>(context, listen: false).fetchDashboardItems();
-        Provider.of<WasteAlertsProvider>(context, listen: false).fetchCloudWasteAlerts();
-      } catch (_) {}
+
+      // Check onboarding state from backend profile
+      final profile = await ApiService.instance.fetchUserProfile();
+      final onboardingCompleted = profile?['onboarding_completed'] == true;
+
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ItemSetupScreen(),
-        ),
-      );
+      if (onboardingCompleted) {
+        // Active store: switch to LiveRepository and open Dashboard
+        Provider.of<InventoryProvider>(context, listen: false)
+            .setRepository(LiveRepository());
+        Provider.of<WasteAlertsProvider>(context, listen: false)
+            .setRepository(LiveRepository());
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DashboardScreen(),
+          ),
+        );
+      } else {
+        // First login: start Tour once -> Store Setup -> Add Items -> Dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const TourScreen(isReplay: false),
+          ),
+        );
+      }
     } else {
       setState(() {
         _isLoading = false;
@@ -100,14 +119,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
   // One-tap demo bypass — skips auth for Android Studio testing
   void _handleDemoLogin() {
     ApiService.instance.setWalkthroughSession();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const ItemSetupScreen(),
+        builder: (context) => const TourScreen(isReplay: false),
       ),
     );
   }
@@ -312,6 +330,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
+                          }
+                          if (value.length < 8 && !kDebugMode) {
+                            return 'Password must be at least 8 characters';
                           }
                           return null;
                         },
