@@ -24,8 +24,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: kDebugMode ? 'admin@test.com' : '');
-  final _passwordController = TextEditingController(text: kDebugMode ? '123456' : '');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -57,20 +57,9 @@ class _LoginScreenState extends State<LoginScreen> {
     // 1. Attempt live cloud JWT authentication against MongoDB Atlas
     final apiSuccess = await ApiService.instance.login(email, password);
 
-    // 2. Allow offline easy credentials fallback ONLY in debug mode for emulator testing
-    final isFallbackValid = kDebugMode && (
-        (email == 'admin@test.com' && password == '123456') ||
-        (email == 'admin@admin.com' && password == '123456') ||
-        (email == 'manager@cafe.com' && password == 'password123')
-    );
-
     if (!mounted) return;
 
-    if (apiSuccess || isFallbackValid) {
-      if (!ApiService.instance.isAuthenticated) {
-        ApiService.instance.setWalkthroughSession(email: email);
-      }
-
+    if (apiSuccess) {
       // Check onboarding state from backend profile
       final profile = await ApiService.instance.fetchUserProfile();
       final onboardingCompleted = profile?['onboarding_completed'] == true;
@@ -119,13 +108,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // One-tap demo bypass — skips auth for Android Studio testing
-  void _handleDemoLogin() {
-    ApiService.instance.setWalkthroughSession();
-    Navigator.pushReplacement(
+  // Client-only Demo Tour — zero network calls, zero token, using SampleRepository
+  void _handleExploreTour() {
+    Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const TourScreen(isReplay: false),
+        builder: (context) => const TourScreen(isReplay: true),
       ),
     );
   }
@@ -430,27 +418,25 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      if (kDebugMode) ...[
-                        const SizedBox(height: 16),
-                        // Demo Login — one-tap bypass for debug / emulator testing
-                        OutlinedButton.icon(
-                          onPressed: _handleDemoLogin,
-                          icon: const Icon(
-                            Icons.play_circle_outline_rounded,
-                            size: 18,
-                          ),
-                          label: const Text('Demo Login (Skip Auth)'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: const BorderSide(
-                              color: AppColors.primary,
-                              width: 1.5,
-                            ),
-                            shape: const StadiumBorder(),
-                            minimumSize: const Size(double.infinity, 48),
-                          ),
+                      const SizedBox(height: 16),
+                      // Client-only demo tour walkthrough (no network, no token)
+                      OutlinedButton.icon(
+                        onPressed: _handleExploreTour,
+                        icon: const Icon(
+                          Icons.explore_outlined,
+                          size: 18,
                         ),
-                      ],
+                        label: const Text('Explore Demo Tour (Offline)'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                          shape: const StadiumBorder(),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
                     ],
                   ),
                 ),

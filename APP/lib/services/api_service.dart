@@ -127,24 +127,8 @@ class ApiService {
   // Authentication
   // --------------------------------------------------------------------------
 
-  void setWalkthroughSession({String email = 'admin@test.com', String name = 'Store Manager'}) {
-    assert(kDebugMode, 'Walkthrough sessions are strictly forbidden in release builds.');
-    if (!kDebugMode) return;
-    _token = 'offline_jwt_walkthrough_${DateTime.now().millisecondsSinceEpoch}';
-    _userId = 'demo_walkthrough_owner';
-    _userName = email.contains('admin') ? 'Admin Manager' : name;
-    _userRole = 'owner';
-    isWakingUpServer.value = false;
-    serverStatusMessage.value = null;
-  }
-
   Future<bool> login(String email, String password) async {
     final cleanEmail = email.trim().toLowerCase();
-    final isWalkthroughCred = kDebugMode && (
-        (cleanEmail == 'admin@test.com' && password == '123456') ||
-        (cleanEmail == 'admin@admin.com' && password == '123456') ||
-        (cleanEmail == 'manager@cafe.com' && password == 'password123')
-    );
 
     try {
       final response = await _executeWithRetry(
@@ -158,8 +142,8 @@ class ApiService {
               }),
             )
             .timeout(timeout),
-        maxTries: isWalkthroughCred ? 1 : 2,
-        firstRequestTimeout: isWalkthroughCred ? const Duration(seconds: 4) : const Duration(seconds: 15),
+        maxTries: 2,
+        firstRequestTimeout: const Duration(seconds: 15),
         normalTimeout: const Duration(seconds: 10),
       );
 
@@ -171,21 +155,12 @@ class ApiService {
         _userRole = data['role'] ?? 'owner';
         if (kDebugMode) print('[API] Logged in successfully as $_userName');
         return true;
-      } else if (isWalkthroughCred) {
-        setWalkthroughSession(email: cleanEmail);
-        return true;
       } else {
         if (kDebugMode) print('[API] Login failed: ${response.statusCode} ${response.body}');
         return false;
       }
     } catch (e) {
       if (kDebugMode) print('[API] Login network error: $e');
-      if (isWalkthroughCred) {
-        isWakingUpServer.value = false;
-        serverStatusMessage.value = null;
-        setWalkthroughSession(email: cleanEmail);
-        return true;
-      }
       return false;
     }
   }

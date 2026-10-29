@@ -1,5 +1,5 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../models/inventory_item.dart';
 import '../providers/inventory_provider.dart';
@@ -29,9 +29,14 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
   int get _safetyStock => widget.item.safetyStock ?? 6;
   int get _currentStock => widget.item.currentStock;
 
+  bool get _hasActiveAlert =>
+      widget.item.hasActiveAlert ||
+      (widget.item.description != null &&
+          widget.item.description!.contains('Restock held to 0'));
+
   int get _calculatedRestockQty {
-    final rawQty = _predictedDemand + _safetyStock - _currentStock;
-    return max(0, rawQty);
+    if (_hasActiveAlert) return 0;
+    return widget.item.restockQuantity;
   }
 
   void _handleConfirmRestock() {
@@ -263,6 +268,33 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_hasActiveAlert) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 20, color: Color(0xFFB91C1C)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Restock held to 0: active waste mitigation alert. Slow-selling inventory prioritized for clearance.',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFB91C1C),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           // Section Heading
           Text(
             'Restock Formula',
@@ -336,7 +368,9 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: _isRestockConfirmed ? null : _handleConfirmRestock,
+              onPressed: (_isRestockConfirmed || _hasActiveAlert || _calculatedRestockQty == 0)
+                  ? null
+                  : _handleConfirmRestock,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isRestockConfirmed
                     ? AppColors.primary.withValues(alpha: 0.6)
@@ -352,7 +386,11 @@ class _ItemDetailForecastScreenState extends State<ItemDetailForecastScreen> {
                 size: 20,
               ),
               label: Text(
-                _isRestockConfirmed ? 'Restock Confirmed' : '✓ Restock Confirmed',
+                _isRestockConfirmed
+                    ? 'Restock Confirmed'
+                    : (_hasActiveAlert || _calculatedRestockQty == 0
+                        ? 'Restock Held to 0'
+                        : '✓ Restock Confirmed'),
                 style: AppTypography.buttonLabel.copyWith(
                   fontSize: 15,
                 ),

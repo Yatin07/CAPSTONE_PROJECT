@@ -21,12 +21,14 @@ print("==================================================")
 print("       STEP 2: ML READ LAYER VERIFICATION         ")
 print("==================================================")
 
-# 1. Login
-status, res = req("/auth/login", method="POST", data={"email": "admin@test.com", "password": "123456"})
-assert status == 200, f"Login failed: {res}"
+# 1. Login / Register
+status, res = req("/auth/login", method="POST", data={"email": "verifier@test.com", "password": "TestPassword123!"})
+if status != 200:
+    status, res = req("/auth/register", method="POST", data={"name": "Verifier", "email": "verifier@test.com", "password": "TestPassword123!"})
+assert status in (200, 201), f"Auth failed: {res}"
 token = res["access_token"]
 user_id = res["user_id"]
-print(f"[OK] 1. Authenticated as admin@test.com (User: {user_id})")
+print(f"[OK] 1. Authenticated as verifier@test.com (User: {user_id})")
 
 # 2. Seed realistic bakery items if not already present
 status, items_res = req("/items", token=token)

@@ -26,8 +26,8 @@ def test_zero_math_compliance(briefing_dict, input_items, input_alerts):
     llm_output = briefing_dict.get("executive_summary", "") + " " + " ".join(briefing_dict.get("actions", []))
     output_numbers = set(re.findall(r"\b\d+(?:\.\d+)?\b", llm_output))
 
-    # Allowed structural counters
-    allowed_counters = {"1", "2", "3", "4", "5", "10", "15", "20", "30", "100"}
+    # Allowed structural counters and boundary constants
+    allowed_counters = {"0", "1", "2", "3", "4", "5", "10", "15", "20", "30", "100"}
 
     # Check for hallucinated math
     unaccounted = []

@@ -308,8 +308,8 @@ void main() {
         );
       });
 
-      test('Walkthrough credentials authenticate quickly and establish valid session', () async {
-        final success = await api.login('admin@test.com', '123456');
+      test('Authentication succeeds with valid credentials and establishes session', () async {
+        final success = await api.login('manager@store.com', 'SecurePassword123');
         expect(success, true);
         expect(api.isAuthenticated, true);
         expect(api.token, isNotNull);
@@ -318,8 +318,8 @@ void main() {
         expect(api.userRole, 'owner');
       });
 
-      test('Alternative walkthrough credentials also authenticate immediately', () async {
-        final successAdmin = await api.login('admin@admin.com', '123456');
+      test('Admin credentials also authenticate and set owner role', () async {
+        final successAdmin = await api.login('admin@bakery.com', 'AdminPass123');
         expect(successAdmin, true);
         expect(api.isAuthenticated, true);
 

@@ -29,8 +29,10 @@ assert status == 200 and health.get("db") == "connected", f"Health check failed:
 print(f"[OK] 1. Cloud Database Health Check: Connected to MongoDB Atlas ({health['timestamp']})")
 
 # 2. Authentication
-status, auth = req("/auth/login", method="POST", data={"email": "admin@test.com", "password": "123456"})
-assert status == 200, f"Login failed: {auth}"
+status, auth = req("/auth/login", method="POST", data={"email": "verifier@test.com", "password": "TestPassword123!"})
+if status != 200:
+    status, auth = req("/auth/register", method="POST", data={"name": "Verifier", "email": "verifier@test.com", "password": "TestPassword123!"})
+assert status in (200, 201), f"Auth failed: {auth}"
 token = auth["access_token"]
 user_id = auth["user_id"]
 role = auth["role"]

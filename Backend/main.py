@@ -2,7 +2,7 @@ import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,7 +36,6 @@ if not SECRET_KEY:
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
-ALLOW_DEMO_SEED = os.getenv("ALLOW_DEMO_SEED", "false").lower() in ("true", "1", "yes")
 
 # ---------------------------------------------------------------------------- #
 # App & CORS Configuration
@@ -243,21 +242,6 @@ async def startup_db():
         await db.daily_sales.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
         await db.daily_stock.create_index([("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
         await db.items.create_index([("owner_id", 1), ("name_lower", 1)], unique=True)
-        
-        # Guarded demo user seeding
-        if ALLOW_DEMO_SEED:
-            demo_user = await db.users.find_one({"email": "admin@test.com"})
-            if not demo_user:
-                from bson import ObjectId
-                await db.users.insert_one({
-                    "_id": str(ObjectId()),
-                    "name": "Demo Admin",
-                    "email": "admin@test.com",
-                    "password_hash": hash_password("123456"),
-                    "role": "owner",
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                })
-                print("[DB] Initialized demo user admin@test.com (ALLOW_DEMO_SEED=true).")
     except Exception as e:
         print(f"[DB] WARNING: Could not reach Atlas on startup ({e}). "
               "Server will start anyway. Fix network/VPN to enable real DB operations.")
@@ -418,12 +402,6 @@ class ApplyBundleRequest(BaseModel):
 async def register(req: RegisterRequest):
     normalized_email = req.email.strip().lower()
 
-    if normalized_email == "admin@test.com" and not ALLOW_DEMO_SEED:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Creation of default demo accounts is restricted in production environments."
-        )
-
     existing = await db.users.find_one({"email": normalized_email})
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -459,12 +437,44 @@ async def register(req: RegisterRequest):
     )
 
 
+# In-memory account lockout tracker: {normalized_email: {"failed_count": int, "locked_until": float}}
+ACCOUNT_LOCKOUTS: Dict[str, Dict[str, Any]] = {}
+MAX_FAILED_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION_SECONDS = 15 * 60  # 15 minutes
+
+
 @app.post("/api/v1/auth/login", response_model=TokenResponse, dependencies=[Depends(login_limiter)])
 async def login(req: LoginRequest):
     normalized_email = req.email.strip().lower()
+    now_ts = time.time()
+
+    lockout_record = ACCOUNT_LOCKOUTS.get(normalized_email)
+    if lockout_record and lockout_record.get("locked_until", 0) > now_ts:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password. Account is temporarily locked. Please try again later."
+        )
+
     user = await db.users.find_one({"email": normalized_email})
-    if not user or not verify_password(req.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    is_valid = user and verify_password(req.password, user["password_hash"])
+
+    if not is_valid:
+        if not lockout_record:
+            lockout_record = {"failed_count": 0, "locked_until": 0}
+            ACCOUNT_LOCKOUTS[normalized_email] = lockout_record
+
+        lockout_record["failed_count"] += 1
+        if lockout_record["failed_count"] >= MAX_FAILED_LOGIN_ATTEMPTS:
+            lockout_record["locked_until"] = now_ts + LOCKOUT_DURATION_SECONDS
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password. Account is temporarily locked. Please try again later."
+            )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    # Clear lockout tracking upon valid credentials
+    if normalized_email in ACCOUNT_LOCKOUTS:
+        del ACCOUNT_LOCKOUTS[normalized_email]
 
     token = create_access_token({"sub": user["_id"], "role": user.get("role", "owner")})
     return TokenResponse(
@@ -609,6 +619,13 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_u
     from bson import ObjectId
     item_id = str(ObjectId())
 
+    # Cold-start category prior lookup (Pure Python, Step 1e)
+    from constants import CATEGORY_PRIORS
+    prior = CATEGORY_PRIORS.get(matched_cat, CATEGORY_PRIORS["Other"])
+    predicted_demand = prior["predictedDemand"]
+    safety_stock = prior["safetyStock"]
+    explanation = f"Cold-start initial forecast based on {matched_cat} category prior ({predicted_demand} units/day)."
+
     item_doc = {
         "_id": item_id,
         "owner_id": current_user["_id"],
@@ -620,20 +637,42 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_u
         "isPerishable": req.isPerishable,
         "price": req.price,
         "shelfLifeDays": req.shelfLifeDays,
-        # ML fields - populated by nightly batch job later
-        "predictedDemand": None,
-        "safetyStock": None,
-        "description": "LLM analysis pending",
+        "predictedDemand": predicted_demand,
+        "safetyStock": safety_stock,
+        "description": explanation,
         "riskLevel": "normal",
-        "salesHistory": [],  # cold-start: triggers TSB engine
+        "tier": "Learning",
+        "salesHistory": [],  # cold-start: initial state
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "updatedAt": datetime.now(timezone.utc).isoformat(),
     }
     await db.items.insert_one(item_doc)
+
+    today_str = get_store_local_now(current_user).strftime("%Y-%m-%d")
+    forecast_doc = {
+        "_id": str(ObjectId()),
+        "item_id": item_id,
+        "owner_id": current_user["_id"],
+        "forecast_date": today_str,
+        "predictedDemand": predicted_demand,
+        "safetyStock": safety_stock,
+        "explanation": explanation,
+        "tier": "Learning",
+        "riskLevel": "normal",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.forecasts.insert_one(forecast_doc)
+
     return {
         "status": "created",
         "item_id": item_id,
-        "message": f"'{name_stripped}' added. Routed to cold-start ML engine.",
+        "message": f"'{name_stripped}' added. Immediate cold-start forecast initialized from {matched_cat} category prior.",
+        "forecast": {
+            "predictedDemand": predicted_demand,
+            "safetyStock": safety_stock,
+            "tier": "Learning",
+            "explanation": explanation,
+        },
         "item": {
             "id": item_id,
             "name": name_stripped,
@@ -642,6 +681,10 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_current_u
             "currentStock": req.currentStock,
             "isPerishable": req.isPerishable,
             "price": req.price,
+            "predictedDemand": predicted_demand,
+            "safetyStock": safety_stock,
+            "tier": "Learning",
+            "description": explanation,
         }
     }
 
@@ -781,6 +824,98 @@ async def restock_item(item_id: str, req: RestockRequest, current_user=Depends(g
 
 
 # ---------------------------------------------------------------------------- #
+# Waste Decision Engine & Coherence Checking (Step 5 & Coherence Rule)
+# ---------------------------------------------------------------------------- #
+
+def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stock: int, actual_sold: float, expected_by_now: float):
+    """
+    Deterministic decision engine for intraday waste risk classification.
+    Evaluates:
+      1. isPerishable == True (non-perishables ignored)
+      2. isDismissed == False (dismissed items skipped)
+      3. curr_stock > 0 (out of stock items produce no waste alert)
+      4. sales_pace_ratio = round(actual_sold / expected_by_now, 2)
+         - pace >= 0.70: Normal pace (No Alert)
+         - 0.35 <= pace < 0.70: Low Pace (10% discount suggested)
+         - pace < 0.35: Critical (20% discount + partner combo bundle suggested)
+    """
+    if not is_perishable or is_dismissed:
+        return None
+    if curr_stock <= 0:
+        return None
+    if expected_by_now <= 0:
+        expected_by_now = 1.0
+
+    sales_pace_ratio = round(actual_sold / expected_by_now, 2)
+    if sales_pace_ratio >= 0.70:
+        return None
+
+    if sales_pace_ratio < 0.35:
+        return {
+            "severityLabel": "Critical",
+            "severityColor": "#D97706",
+            "discount_pct": 20,
+            "recommendedActionText": "Apply 20% Bundle",
+            "recommendedActionColor": "#FFB702",
+            "recommendedDoneText": "Bundle Applied",
+            "primaryActionText": "Apply Bundle",
+            "primaryDoneText": "Bundle Active",
+            "layoutStyle": "sideBySide",
+            "salesPaceRatio": sales_pace_ratio,
+        }
+    else:
+        return {
+            "severityLabel": "Low Pace",
+            "severityColor": "#B91C1C",
+            "discount_pct": 10,
+            "recommendedActionText": "Suggest 10% Discount",
+            "recommendedActionColor": "#8B1E22",
+            "recommendedDoneText": "Discount Suggested",
+            "primaryActionText": "Apply Discount",
+            "primaryDoneText": "Discount Applied",
+            "layoutStyle": "stacked",
+            "salesPaceRatio": sales_pace_ratio,
+        }
+
+
+def check_item_waste_alert_sync(doc: dict, current_user: dict, predicted_demand: int, curr_stock: int):
+    """
+    Evaluates whether an item currently has an active Low or Critical waste alert.
+    Returns (has_alert, alert_label).
+    """
+    if doc.get("isPerishable", False) and not doc.get("isDismissed", False):
+        try:
+            now_local = get_store_local_now(current_user)
+            current_hour = now_local.hour + (now_local.minute / 60.0)
+            open_hour = float(current_user.get("opening_hour", STORE_OPEN_HOUR))
+            close_hour = float(current_user.get("closing_hour", STORE_CLOSE_HOUR))
+            if open_hour <= current_hour < close_hour:
+                total_hours = max(1.0, close_hour - open_hour)
+                elapsed_fraction = (current_hour - open_hour) / total_hours
+                actual_sold = doc.get("intradaySales", 0)
+                expected_by_now = max(1.0, predicted_demand * elapsed_fraction)
+                tier = evaluate_waste_alert_tier(
+                    is_perishable=True,
+                    is_dismissed=False,
+                    curr_stock=curr_stock,
+                    actual_sold=actual_sold,
+                    expected_by_now=expected_by_now,
+                )
+                if tier is not None:
+                    return True, tier.get("severityLabel", "Waste Risk")
+        except Exception:
+            pass
+
+    # Explicit alert indicators from mock, request, or prior classification
+    if doc.get("activeAlert") or doc.get("hasWasteAlert"):
+        return True, doc.get("alertSeverity") or "Waste Risk"
+    if str(doc.get("riskLevel", "")).lower() in ["critical", "low pace", "waste risk"]:
+        return True, "Waste Risk"
+
+    return False, None
+
+
+# ---------------------------------------------------------------------------- #
 # Forecasts — Step 2: The ML Read Layer
 # ---------------------------------------------------------------------------- #
 
@@ -814,6 +949,13 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
 
         curr_stock = doc.get("currentStock", 0)
         restock_qty = max(0, predicted_demand + safety_stock - curr_stock)
+
+        # COHERENCE ENFORCEMENT: If item has active waste alert, restock held to 0
+        has_waste_alert, alert_label = check_item_waste_alert_sync(doc, current_user, predicted_demand, curr_stock)
+        if has_waste_alert:
+            restock_qty = 0
+            description = f"Restock held to 0: {alert_label} waste alert active (waste mitigation priority)."
+
         denom = max(1, predicted_demand + safety_stock)
         stock_progress = round(min(1.0, max(0.0, curr_stock / denom)), 2)
 
@@ -846,6 +988,7 @@ async def get_todays_forecasts(current_user=Depends(get_current_user)):
             "predictedDemand": predicted_demand,
             "safetyStock": safety_stock,
             "restockQuantity": restock_qty,
+            "hasWasteAlert": has_waste_alert,
             "stockProgress": stock_progress,
             "daysOfData": days_of_data,
             "maturity": maturity,
@@ -889,6 +1032,15 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
     safety_stock = (forecast.get("safetyStock") if forecast else item.get("safetyStock")) or DEFAULT_FALLBACK_SAFETY
     curr_stock = item.get("currentStock", 0)
     restock_qty = max(0, predicted_demand + safety_stock - curr_stock)
+
+    description = (forecast.get("explanation") if forecast else item.get("description")) or "Demand steady — standard restocking pattern"
+
+    # COHERENCE ENFORCEMENT: If item has active waste alert, restock held to 0
+    has_waste_alert, alert_label = check_item_waste_alert_sync(item, current_user, predicted_demand, curr_stock)
+    if has_waste_alert:
+        restock_qty = 0
+        description = f"Restock held to 0: {alert_label} waste alert active (waste mitigation priority)."
+
     denom = max(1, predicted_demand + safety_stock)
     stock_progress = round(min(1.0, max(0.0, curr_stock / denom)), 2)
 
@@ -936,12 +1088,13 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_curren
         "predictedDemand": predicted_demand,
         "safetyStock": safety_stock,
         "restockQuantity": restock_qty,
+        "hasWasteAlert": has_waste_alert,
         "stockProgress": stock_progress,
         "daysOfData": days_of_data,
         "maturity": maturity,
         "maturityLabel": maturity_label,
         "confidence_interval": None,  # Point-estimate constraint
-        "description": (forecast.get("explanation") if forecast else item.get("description")) or "Demand steady — standard restocking pattern",
+        "description": description,
         "riskLevel": (forecast.get("riskLevel") if forecast else item.get("riskLevel")) or "normal",
         "historical_chart": historical_chart,
         "forecast_chart": forecast_chart,
@@ -1354,56 +1507,6 @@ async def record_intraday_sale(req: IntradaySaleRequest, current_user=Depends(ge
     }
 
 
-def evaluate_waste_alert_tier(is_perishable: bool, is_dismissed: bool, curr_stock: int, actual_sold: float, expected_by_now: float):
-    """
-    Deterministic decision engine for intraday waste risk classification.
-    Evaluates:
-      1. isPerishable == True (non-perishables ignored)
-      2. isDismissed == False (dismissed items skipped)
-      3. curr_stock > 0 (out of stock items produce no waste alert)
-      4. sales_pace_ratio = round(actual_sold / expected_by_now, 2)
-         - pace >= 0.70: Normal pace (No Alert)
-         - 0.35 <= pace < 0.70: Low Pace (10% discount suggested)
-         - pace < 0.35: Critical (20% discount + partner combo bundle suggested)
-    """
-    if not is_perishable or is_dismissed:
-        return None
-    if curr_stock <= 0:
-        return None
-    if expected_by_now <= 0:
-        expected_by_now = 1.0
-        
-    sales_pace_ratio = round(actual_sold / expected_by_now, 2)
-    if sales_pace_ratio >= 0.70:
-        return None
-        
-    if sales_pace_ratio < 0.35:
-        return {
-            "severityLabel": "Critical",
-            "severityColor": "#D97706",
-            "discount_pct": 20,
-            "recommendedActionText": "Apply 20% Bundle",
-            "recommendedActionColor": "#FFB702",
-            "recommendedDoneText": "Bundle Applied",
-            "primaryActionText": "Apply Bundle",
-            "primaryDoneText": "Bundle Active",
-            "layoutStyle": "sideBySide",
-            "salesPaceRatio": sales_pace_ratio,
-        }
-    else:
-        return {
-            "severityLabel": "Low Pace",
-            "severityColor": "#B91C1C",
-            "discount_pct": 10,
-            "recommendedActionText": "Suggest 10% Discount",
-            "recommendedActionColor": "#8B1E22",
-            "recommendedDoneText": "Discount Suggested",
-            "primaryActionText": "Apply Discount",
-            "primaryDoneText": "Discount Applied",
-            "layoutStyle": "stacked",
-            "salesPaceRatio": sales_pace_ratio,
-        }
-
 
 @app.get("/api/v1/waste-alerts")
 async def get_waste_alerts(current_user=Depends(get_current_user)):
@@ -1643,13 +1746,33 @@ class AssistantChatRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=500, description="Manager operational query (1 to 500 characters)")
 
 
+# In-memory Briefing Cache with 10-minute cooldown (Requirement 1c)
+BRIEFING_CACHE: Dict[Tuple[str, str], Dict[str, Any]] = {}
+BRIEFING_COOLDOWN_SECONDS = 600  # 10 minutes
+
+
 @app.get("/api/v1/briefing/today")
 async def get_today_executive_briefing(current_user=Depends(get_current_user)):
     """
     Synthesizes an executive daily operational briefing for the on-duty manager
     using Google Gemini. Strictly grounded in verified MongoDB Atlas metrics.
+    Caches per (owner_id, store-local date) with a 10-minute refresh cooldown.
     """
     user_id = current_user["_id"]
+    local_date = get_store_local_now(current_user).strftime("%Y-%m-%d")
+    cache_key = (user_id, local_date)
+    now_ts = time.time()
+
+    cached_entry = BRIEFING_CACHE.get(cache_key)
+    if cached_entry and (now_ts - cached_entry.get("cached_at", 0)) < BRIEFING_COOLDOWN_SECONDS:
+        cached_data = cached_entry["briefing"].copy()
+        cached_data["cached"] = True
+        cached_data["cache_age_seconds"] = int(now_ts - cached_entry["cached_at"])
+        return {
+            "status": "success",
+            "briefing": cached_data,
+        }
+
     cursor = db.items.find({"owner_id": user_id})
     items = await cursor.to_list(length=100)
 
@@ -1658,6 +1781,11 @@ async def get_today_executive_briefing(current_user=Depends(get_current_user)):
     alerts = alerts_resp.get("alerts", [])
 
     briefing = generate_daily_briefing(items, alerts)
+    BRIEFING_CACHE[cache_key] = {
+        "briefing": briefing,
+        "cached_at": now_ts,
+    }
+
     return {
         "status": "success",
         "briefing": briefing,

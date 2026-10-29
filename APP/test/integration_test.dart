@@ -35,7 +35,7 @@ void main() {
             jsonEncode({
               'id': 'fake_user_id',
               'name': 'Store Manager',
-              'email': 'admin@test.com',
+              'email': 'manager@cornercrumb.com',
               'role': 'owner',
               'store_name': 'Corner Crumb Bakery',
               'timezone': 'Asia/Kolkata',
@@ -167,12 +167,12 @@ void main() {
       expect(find.text('Welcome Back'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
 
-      // Enter credentials: admin@test.com / 123456
+      // Enter credentials
       final emailFinder = find.byType(TextFormField).first;
       final passwordFinder = find.byType(TextFormField).last;
 
-      await tester.enterText(emailFinder, 'admin@test.com');
-      await tester.enterText(passwordFinder, '123456');
+      await tester.enterText(emailFinder, 'manager@cornercrumb.com');
+      await tester.enterText(passwordFinder, 'SecurePassword123');
       await tester.pump();
 
       // Tap Login button

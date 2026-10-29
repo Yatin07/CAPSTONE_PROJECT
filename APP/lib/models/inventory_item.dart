@@ -18,6 +18,8 @@ class InventoryItem {
   final String maturityLabel;
   final int? shelfLifeDays;
   final bool isReplayedDataset;
+  final int? serverRestockQuantity;
+  final bool hasActiveAlert;
 
   const InventoryItem({
     required this.id,
@@ -37,9 +39,13 @@ class InventoryItem {
     this.maturityLabel = 'Learning (0/7 days)',
     this.shelfLifeDays,
     this.isReplayedDataset = false,
+    this.serverRestockQuantity,
+    this.hasActiveAlert = false,
   });
 
   int get restockQuantity {
+    if (serverRestockQuantity != null) return serverRestockQuantity!;
+    if (hasActiveAlert) return 0;
     final demand = predictedDemand ?? 0;
     final safety = safetyStock ?? 0;
     return max(0, demand + safety - currentStock);
@@ -69,6 +75,8 @@ class InventoryItem {
     String? maturityLabel,
     int? shelfLifeDays,
     bool? isReplayedDataset,
+    int? serverRestockQuantity,
+    bool? hasActiveAlert,
   }) {
     return InventoryItem(
       id: id ?? this.id,
@@ -88,6 +96,8 @@ class InventoryItem {
       maturityLabel: maturityLabel ?? this.maturityLabel,
       shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
       isReplayedDataset: isReplayedDataset ?? this.isReplayedDataset,
+      serverRestockQuantity: serverRestockQuantity ?? this.serverRestockQuantity,
+      hasActiveAlert: hasActiveAlert ?? this.hasActiveAlert,
     );
   }
 
@@ -119,6 +129,10 @@ class InventoryItem {
     final matLbl = json['maturityLabel']?.toString() ??
         (dod >= 28 ? 'Mature ($dod days)' : (dod >= 7 ? 'Improving ($dod/28 days)' : 'Learning ($dod/7 days)'));
 
+    final explicitRestock = (json['restockQuantity'] as num?)?.toInt();
+    final hasAlert = json['hasWasteAlert'] == true ||
+        (json['description'] != null && json['description'].toString().contains('Restock held to 0'));
+
     return InventoryItem(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
@@ -137,6 +151,8 @@ class InventoryItem {
       maturityLabel: matLbl,
       shelfLifeDays: (json['shelfLifeDays'] as num?)?.toInt(),
       isReplayedDataset: json['replayed_dataset'] == true || json['isReplayedDataset'] == true,
+      serverRestockQuantity: explicitRestock,
+      hasActiveAlert: hasAlert,
     );
   }
 
@@ -159,6 +175,8 @@ class InventoryItem {
       'maturityLabel': maturityLabel,
       'shelfLifeDays': shelfLifeDays,
       'replayed_dataset': isReplayedDataset,
+      'restockQuantity': restockQuantity,
+      'hasWasteAlert': hasActiveAlert,
     };
   }
 }
