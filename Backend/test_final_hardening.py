@@ -46,6 +46,8 @@ class TestFinalHardeningP0Full(unittest.IsolatedAsyncioTestCase):
             "name": "Test Owner",
             "role": "owner",
             "timezone": "Asia/Kolkata",
+            "opening_hour": 0.0,
+            "closing_hour": 24.0,
             "currency": "₹",
         }
         await self.mock_db.users.insert_one(self.test_user)
