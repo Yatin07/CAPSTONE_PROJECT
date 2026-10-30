@@ -164,25 +164,48 @@ class _WasteAlertsScreenState extends State<WasteAlertsScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  const Icon(
-                                    Icons.check_circle_outline_rounded,
-                                    size: 56,
-                                    color: AppColors.primary,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No waste alerts',
-                                    style: AppTypography.headlineLg.copyWith(
-                                      fontSize: 22,
-                                      color: AppColors.primaryDark,
+                                  if (alertsProvider.storeStatus == 'closed') ...[
+                                    const Icon(
+                                      Icons.nightlight_round,
+                                      size: 56,
+                                      color: Color(0xFFD97706),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'All items are currently performing well.',
-                                    style: AppTypography.bodyMd,
-                                    textAlign: TextAlign.center,
-                                  ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Store Currently Closed',
+                                      style: AppTypography.headlineLg.copyWith(
+                                        fontSize: 22,
+                                        color: AppColors.primaryDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      alertsProvider.storeMessage ??
+                                          'Store operating hours: 08:00 - 20:00 local time.\nIntraday pace monitoring will resume when the store opens at 08:00 AM.',
+                                      style: AppTypography.bodyMd,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ] else ...[
+                                    const Icon(
+                                      Icons.check_circle_outline_rounded,
+                                      size: 56,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No waste alerts',
+                                      style: AppTypography.headlineLg.copyWith(
+                                        fontSize: 22,
+                                        color: AppColors.primaryDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'All items are currently performing well.',
+                                      style: AppTypography.bodyMd,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
                                   const SizedBox(height: 20),
                                   // Only show Reset Demo Alerts during demo tour
                                   if (Provider.of<InventoryProvider>(context, listen: false).isDemoTour)

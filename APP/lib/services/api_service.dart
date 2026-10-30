@@ -26,6 +26,9 @@ class ApiService {
 
   bool _isFirstRequest = true;
 
+  String? lastStoreStatus;
+  String? lastStoreMessage;
+
   /// Default API base URL:
   static String get defaultBaseUrl {
     const definedUrl = String.fromEnvironment('API_BASE_URL');
@@ -492,6 +495,8 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        lastStoreStatus = data['store_status']?.toString();
+        lastStoreMessage = data['message']?.toString();
         final rawAlerts = data['alerts'] as List? ?? [];
         return rawAlerts
             .map((alert) => WasteAlert.fromJson(alert as Map<String, dynamic>))

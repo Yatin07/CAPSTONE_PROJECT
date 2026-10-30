@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/waste_alert.dart';
 import '../repositories/app_repository.dart';
+import '../services/api_service.dart';
 
 class WasteAlertsProvider extends ChangeNotifier {
   AppRepository _repository;
@@ -8,6 +9,11 @@ class WasteAlertsProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  String? _storeStatus;
+  String? _storeMessage;
+  String? get storeStatus => _storeStatus;
+  String? get storeMessage => _storeMessage;
 
   List<WasteAlert> get activeAlerts =>
       _alerts.where((alert) => !alert.isDismissed).toList();
@@ -83,6 +89,8 @@ class WasteAlertsProvider extends ChangeNotifier {
 
     try {
       final cloudAlerts = await _repository.fetchWasteAlerts();
+      _storeStatus = ApiService.instance.lastStoreStatus;
+      _storeMessage = ApiService.instance.lastStoreMessage;
       _alerts.clear();
       _alerts.addAll(cloudAlerts);
     } catch (_) {
