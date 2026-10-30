@@ -57,6 +57,25 @@ except ImportError:
         return -x if q < 0 else x
 
 
+# Synchronized cold-start category priors (shared with Backend/constants.py)
+try:
+    from constants import CATEGORY_PRIORS
+except ImportError:
+    try:
+        backend_dir = Path(__file__).resolve().parent.parent / "Backend"
+        if backend_dir.exists() and str(backend_dir) not in sys.path:
+            sys.path.insert(0, str(backend_dir))
+        from constants import CATEGORY_PRIORS
+    except ImportError:
+        CATEGORY_PRIORS = {
+            "Bakery": {"predictedDemand": 24, "safetyStock": 7, "norm_cat": "Breads & Baguettes"},
+            "Beverage": {"predictedDemand": 18, "safetyStock": 5, "norm_cat": "Beverages"},
+            "Food": {"predictedDemand": 15, "safetyStock": 5, "norm_cat": "Prepared Food"},
+            "Dessert": {"predictedDemand": 12, "safetyStock": 4, "norm_cat": "Desserts & Pastries"},
+            "Snack": {"predictedDemand": 10, "safetyStock": 3, "norm_cat": "Snacks"},
+            "Other": {"predictedDemand": 10, "safetyStock": 3, "norm_cat": "General Merchandise"},
+        }
+
 # Primary item name mapping
 NAME_MAP = {
     "croissant": "CROISSANT",
@@ -371,8 +390,7 @@ class MLSharedEngine:
             W = n / (n + k)
 
             if n == 0:
-                # FIX 18: Synchronized cold-start prior
-                from constants import CATEGORY_PRIORS
+                # Synchronized cold-start prior
                 cat_prior = CATEGORY_PRIORS.get(raw_cat, CATEGORY_PRIORS.get("Other", {"predictedDemand": 20, "safetyStock": 4}))
                 predicted_demand = cat_prior["predictedDemand"]
                 safety_stock = cat_prior["safetyStock"]
