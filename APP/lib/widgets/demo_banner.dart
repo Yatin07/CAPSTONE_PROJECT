@@ -14,6 +14,12 @@ class DemoBanner extends StatelessWidget {
 
   Future<void> _handleReset(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Resetting demo sandbox...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
     try {
       await ApiService.instance.resetDemo();
       if (!context.mounted) return;
@@ -27,9 +33,9 @@ class DemoBanner extends StatelessWidget {
       await stock.fetchYesterdayReviewRoutine();
       scaffoldMessenger.showSnackBar(
         const SnackBar(
-          content: Text('Demo sandbox reset to initial 60-day replayed state.'),
+          content: Text('Demo sandbox reset! 7 demo bakery items & active alerts loaded.'),
           backgroundColor: Color(0xFF2E7D32),
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
     } catch (e) {
@@ -47,11 +53,11 @@ class DemoBanner extends StatelessWidget {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: Text(
-          'Start My Store',
+          'Switch to My Store',
           style: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
         ),
         content: const Text(
-          'Starting your store will delete all sample bakery data. Your live store will start fresh and empty.\n\nReady to set up your real store?',
+          'Exiting demo mode will return you to your real store inventory and active stock counts.\n\nSwitch to My Store now?',
         ),
         actions: [
           TextButton(
@@ -60,11 +66,11 @@ class DemoBanner extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD97706),
+              backgroundColor: const Color(0xFF2E7D32),
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(dialogCtx, true),
-            child: const Text('Start My Store'),
+            child: const Text('Switch to My Store'),
           ),
         ],
       ),
@@ -72,20 +78,18 @@ class DemoBanner extends StatelessWidget {
 
     if (confirmed != true || !context.mounted) return;
 
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Switching to My Store...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
     try {
       await ApiService.instance.exitDemo();
     } catch (e) {
-      // FIX 13: Tour exit proceeds if DELETE /demo fails (set workspace null and surface notice; TTL cleans up)
       ApiService.instance.setWorkspace(null);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Demo sandbox cleanup deferred (server TTL cleans up): $e'),
-            backgroundColor: const Color(0xFF6B7280),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
     }
 
     if (!context.mounted) return;
@@ -104,6 +108,14 @@ class DemoBanner extends StatelessWidget {
     final onboardingDone = profile?['onboarding_completed'] == true;
 
     if (!context.mounted) return;
+
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Switched to My Store (Live Mode)'),
+        backgroundColor: Color(0xFF2E7D32),
+        duration: Duration(seconds: 2),
+      ),
+    );
 
     if (onboardingDone) {
       Navigator.pushAndRemoveUntil(

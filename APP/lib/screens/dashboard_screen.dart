@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/waste_alerts_provider.dart';
+import '../providers/stock_check_provider.dart';
+import '../repositories/app_repository.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -21,6 +24,202 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  Future<void> _showWorkspaceDialog(BuildContext context, bool isDemo) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final inv = Provider.of<InventoryProvider>(context, listen: false);
+    final waste = Provider.of<WasteAlertsProvider>(context, listen: false);
+    final stock = Provider.of<StockCheckProvider>(context, listen: false);
+
+    await showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              isDemo ? Icons.science_rounded : Icons.storefront_rounded,
+              color: isDemo ? const Color(0xFFD97706) : const Color(0xFF2E7D32),
+              size: 26,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              isDemo ? 'Demo Sandbox' : 'My Store (Live)',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isDemo
+                  ? 'Currently using the replayed French bakery dataset with 7 sample items and simulated midday waste alerts.'
+                  : 'Currently connected to your live personal store inventory and real tracking.',
+              style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade800),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDemo ? const Color(0xFFFFF7ED) : const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDemo ? const Color(0xFFFFD8A8) : const Color(0xFFBBF7D0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 18,
+                    color: isDemo ? const Color(0xFFB45309) : const Color(0xFF15803D),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      isDemo
+                          ? 'Demo data is completely isolated. You can switch to My Store or reset sample bakery data at any time.'
+                          : 'You can test the app with 60 days of replayed bakery sales by switching to Demo Sandbox.',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isDemo ? const Color(0xFF92400E) : const Color(0xFF166534),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Close'),
+          ),
+          if (isDemo) ...[
+            OutlinedButton.icon(
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Resetting demo sandbox...'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+                try {
+                  await ApiService.instance.resetDemo();
+                  if (!context.mounted) return;
+                  await inv.fetchDashboardItems();
+                  await waste.fetchCloudWasteAlerts();
+                  stock.syncWithInventoryItems(inv.items);
+                  await stock.fetchYesterdayReviewRoutine();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Demo sandbox reset! 7 demo bakery items & active alerts loaded.'),
+                      backgroundColor: Color(0xFF2E7D32),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Reset failed: $e'),
+                      backgroundColor: Colors.red.shade700,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text('Reset Demo'),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E7D32),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Switching to My Store...'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+                try {
+                  await ApiService.instance.exitDemo();
+                } catch (_) {
+                  ApiService.instance.setWorkspace(null);
+                }
+                if (!context.mounted) return;
+                inv.setRepository(LiveRepository());
+                waste.setRepository(LiveRepository());
+                stock.setRepository(LiveRepository());
+                await inv.fetchDashboardItems();
+                await waste.fetchCloudWasteAlerts();
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Switched to My Store (Live Mode)'),
+                    backgroundColor: Color(0xFF2E7D32),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.storefront_rounded, size: 16),
+              label: const Text('Go to My Store'),
+            ),
+          ] else ...[
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD97706),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Starting Demo Sandbox...'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+                try {
+                  await ApiService.instance.startDemo();
+                  if (!context.mounted) return;
+                  inv.setRepository(LiveRepository());
+                  waste.setRepository(LiveRepository());
+                  stock.setRepository(LiveRepository());
+                  await inv.fetchDashboardItems();
+                  await waste.fetchCloudWasteAlerts();
+                  stock.syncWithInventoryItems(inv.items);
+                  await stock.fetchYesterdayReviewRoutine();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Demo Sandbox Ready! 7 French bakery items loaded.'),
+                      backgroundColor: Color(0xFF2E7D32),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to start demo: $e'),
+                      backgroundColor: Colors.red.shade700,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.science_rounded, size: 16),
+              label: const Text('Try Demo Mode'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   String _formatTime(DateTime? dt) {
     if (dt == null) return 'Synchronized';
     final h = dt.hour.toString().padLeft(2, '0');
@@ -78,46 +277,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const Spacer(),
 
-                    // LIVE / DEMO TOUR Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: isDemo
-                            ? const Color(0xFFFFF3E0)
-                            : const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
+                    // LIVE / DEMO Badge (Interactive Switcher)
+                    InkWell(
+                      onTap: () => _showWorkspaceDialog(context, isDemo),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
                           color: isDemo
-                              ? const Color(0xFFFFB74D)
-                              : const Color(0xFFA5D6A7),
-                          width: 1.0,
+                              ? const Color(0xFFFFF3E0)
+                              : const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDemo
+                                ? const Color(0xFFFFB74D)
+                                : const Color(0xFFA5D6A7),
+                            width: 1.0,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDemo
+                                    ? const Color(0xFFE65100)
+                                    : const Color(0xFF2E7D32),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              modeLabel,
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: isDemo
+                                    ? const Color(0xFFE65100)
+                                    : const Color(0xFF2E7D32),
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            Icon(
+                              Icons.arrow_drop_down_rounded,
+                              size: 14,
                               color: isDemo
                                   ? const Color(0xFFE65100)
                                   : const Color(0xFF2E7D32),
                             ),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            modeLabel,
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: isDemo
-                                  ? const Color(0xFFE65100)
-                                  : const Color(0xFF2E7D32),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],

@@ -764,6 +764,9 @@ class ApiService {
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       setWorkspace('demo');
+      try {
+        await setDemoClock(14.0);
+      } catch (_) {}
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
       throw Exception('Failed to start demo sandbox: ${response.statusCode}');
@@ -778,6 +781,10 @@ class ApiService {
       ).timeout(timeout),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      setWorkspace('demo');
+      try {
+        await setDemoClock(14.0);
+      } catch (_) {}
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
       throw Exception('Failed to reset demo sandbox: ${response.statusCode}');
