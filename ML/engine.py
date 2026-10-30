@@ -58,23 +58,14 @@ except ImportError:
 
 
 # Synchronized cold-start category priors (shared with Backend/constants.py)
-try:
-    from constants import CATEGORY_PRIORS
-except ImportError:
-    try:
-        backend_dir = Path(__file__).resolve().parent.parent / "Backend"
-        if backend_dir.exists() and str(backend_dir) not in sys.path:
-            sys.path.insert(0, str(backend_dir))
-        from constants import CATEGORY_PRIORS
-    except ImportError:
-        CATEGORY_PRIORS = {
-            "Bakery": {"predictedDemand": 24, "safetyStock": 7, "norm_cat": "Breads & Baguettes"},
-            "Beverage": {"predictedDemand": 18, "safetyStock": 5, "norm_cat": "Beverages"},
-            "Food": {"predictedDemand": 15, "safetyStock": 5, "norm_cat": "Prepared Food"},
-            "Dessert": {"predictedDemand": 12, "safetyStock": 4, "norm_cat": "Desserts & Pastries"},
-            "Snack": {"predictedDemand": 10, "safetyStock": 3, "norm_cat": "Snacks"},
-            "Other": {"predictedDemand": 10, "safetyStock": 3, "norm_cat": "General Merchandise"},
-        }
+CATEGORY_PRIORS = {
+    "Bakery": {"predictedDemand": 24, "safetyStock": 7, "norm_cat": "Breads & Baguettes"},
+    "Beverage": {"predictedDemand": 18, "safetyStock": 5, "norm_cat": "Beverages"},
+    "Food": {"predictedDemand": 15, "safetyStock": 5, "norm_cat": "Prepared Food"},
+    "Dessert": {"predictedDemand": 12, "safetyStock": 4, "norm_cat": "Desserts & Pastries"},
+    "Snack": {"predictedDemand": 10, "safetyStock": 3, "norm_cat": "Snacks"},
+    "Other": {"predictedDemand": 10, "safetyStock": 3, "norm_cat": "General Merchandise"},
+}
 
 # Primary item name mapping
 NAME_MAP = {

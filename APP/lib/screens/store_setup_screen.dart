@@ -60,9 +60,9 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
 
     if (!_formKey.currentState!.validate()) return;
 
-    if (_closingHour <= _openingHour) {
+    if (_closingHour == _openingHour) {
       setState(() {
-        _errorMessage = 'Closing hour must be strictly after opening hour.';
+        _errorMessage = 'Opening and closing hours must be distinct.';
       });
       return;
     }

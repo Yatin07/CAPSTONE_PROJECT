@@ -59,26 +59,24 @@ class SalesForecastChart extends StatelessWidget {
       }
 
       final base = (item!.predictedDemand ?? 35).toDouble();
-      final recordedDays = min(item!.daysOfData, 5);
-      final multipliers = [0.88, 0.94, 0.90, 1.02, 1.12];
+      final recordedDays = min(item!.daysOfData, todayIndex + 1);
+      final multipliers = [0.88, 0.94, 0.90, 0.96, 1.05, 1.15, 1.10];
 
-      // Calendar alignment: actual sales can only exist up to Today (e.g. Friday)
-      // Future days (Saturday, Sunday) have not occurred yet.
+      // Calendar alignment: actual sales can only exist up to Today (e.g. Saturday)
+      // Future days (Sunday) have not occurred yet.
       final endDay = todayIndex;
       final startDay = max(0, endDay - recordedDays + 1);
 
-      int multIdx = 0;
       for (int day = startDay; day <= endDay; day++) {
-        result[day] = (base * multipliers[multIdx % multipliers.length]).roundToDouble();
-        multIdx++;
+        result[day] = (base * multipliers[day % multipliers.length]).roundToDouble();
       }
       return result;
     }
 
     // Default mock preview: Mon up to Today
     final defaultBase = 35.0;
-    final defaultMultipliers = [0.88, 0.94, 0.90, 1.02, 1.12];
-    for (int day = 0; day <= min(todayIndex, 4); day++) {
+    final defaultMultipliers = [0.88, 0.94, 0.90, 0.96, 1.05, 1.15, 1.10];
+    for (int day = 0; day <= todayIndex; day++) {
       result[day] = (defaultBase * defaultMultipliers[day % defaultMultipliers.length]).roundToDouble();
     }
     return result;
