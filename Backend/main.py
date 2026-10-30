@@ -192,6 +192,8 @@ def get_store_local_now(user: Optional[Dict[str, Any]] = None, item: Optional[Di
 
             sim_h = DEMO_SIMULATED_CLOCKS[user["_id"]]
 
+        if sim_h is None:
+            sim_h = 14.0  # Default demo to 2:00 PM for active waste alerts
         if sim_h is not None:
 
             hours = int(sim_h)
@@ -4446,9 +4448,10 @@ async def start_demo_sandbox(real_user=Depends(get_current_user)):
 
         "name": f"Demo Store ({real_user.get('name', 'Owner')})",
 
-        "email": f"demo_{real_user.get('email', 'user')}",
+        "email": f"demo_{user_id}_{int(now_ts)}@sandbox.local",
 
         "role": "demo_shadow",
+        "simulated_clock_hour": 14.0,
 
         "shadow_of": user_id,
 
@@ -4473,6 +4476,7 @@ async def start_demo_sandbox(real_user=Depends(get_current_user)):
     }
 
     await db.users.insert_one(shadow_user_doc)
+    DEMO_SIMULATED_CLOCKS[shadow_id] = 14.0
 
 
 

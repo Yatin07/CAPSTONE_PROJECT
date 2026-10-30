@@ -128,12 +128,14 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
+                indicatorSize: TabBarIndicatorSize.tab,
                 labelColor: Colors.white,
                 unselectedLabelColor: AppColors.primaryDark,
-                labelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                labelStyle: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600),
                 tabs: const [
-                  Tab(text: 'Closing Count'),
                   Tab(text: 'Mid-Day Pace'),
+                  Tab(text: 'Closing Count'),
                   Tab(text: 'Yesterday Review'),
                 ],
               ),
@@ -144,8 +146,8 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildClosingCountTab(stockCheckProvider, entries),
                   _buildMiddayTab(stockCheckProvider, entries),
+                  _buildClosingCountTab(stockCheckProvider, entries),
                   _buildYesterdayReviewTab(stockCheckProvider),
                 ],
               ),
@@ -329,33 +331,98 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                       const SizedBox(height: 10),
 
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             flex: 5,
-                            child: TextField(
-                              controller: ctrl,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'Units Left at Close',
-                                labelStyle: const TextStyle(fontSize: 12),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                errorText: entry.validationError,
-                              ),
-                              onChanged: (val) {
-                                final parsed = int.tryParse(val.trim()) ?? 0;
-                                provider.updateClosingUnitsLeft(entry.id, parsed);
-                              },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Units Left at Close',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                TextField(
+                                  controller: ctrl,
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                    errorText: entry.validationError,
+                                  ),
+                                  onChanged: (val) {
+                                    final parsed = int.tryParse(val.trim()) ?? 0;
+                                    provider.updateClosingUnitsLeft(entry.id, parsed);
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            flex: 4,
+                            flex: 5,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Sold: ${entry.soldUnits ?? 0}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-                                Text('Waste: ${entry.wasteUnits ?? 0}', style: GoogleFonts.inter(fontSize: 12, color: entry.wasteUnits != null && entry.wasteUnits! > 0 ? Colors.red.shade700 : AppColors.onSurfaceVariant)),
+                                Text(
+                                  'Calculated Breakdown',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F5F0),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text('Sold', style: GoogleFonts.inter(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                                          Text(
+                                            '${entry.soldUnits ?? 0}',
+                                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(width: 1, height: 26, color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text('Waste', style: GoogleFonts.inter(fontSize: 11, color: (entry.wasteUnits != null && entry.wasteUnits! > 0) ? Colors.red.shade700 : AppColors.onSurfaceVariant)),
+                                          Text(
+                                            '${entry.wasteUnits ?? 0}',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                              color: (entry.wasteUnits != null && entry.wasteUnits! > 0) ? Colors.red.shade700 : AppColors.primaryDark,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),

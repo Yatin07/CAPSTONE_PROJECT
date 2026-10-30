@@ -355,52 +355,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 18),
 
-                      // Server Selector Chip (Local Target A vs Render Cloud Target B)
-                      Center(
-                        child: InkWell(
-                          onTap: _showServerSelectDialog,
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.25),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  ApiService.instance.baseUrl.contains('127.0.0.1') || ApiService.instance.baseUrl.contains('localhost')
-                                      ? Icons.usb_rounded
-                                      : Icons.cloud_done_rounded,
-                                  size: 14,
-                                  color: AppColors.primary,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  ApiService.instance.baseUrl.contains('127.0.0.1') || ApiService.instance.baseUrl.contains('localhost')
-                                      ? 'Server: Localhost (127.0.0.1:8000)'
-                                      : 'Server: Cloud (Render)',
-                                  style: AppTypography.captionBold.copyWith(
-                                    color: AppColors.primary,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.arrow_drop_down,
-                                  size: 16,
-                                  color: AppColors.primary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
                     ],
                   ),
                 ),
@@ -412,47 +366,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showServerSelectDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Select Backend Server', style: AppTypography.headlineMd),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.usb_rounded, color: AppColors.primary),
-              title: const Text('Localhost (PC USB)'),
-              subtitle: const Text('http://127.0.0.1:8000/api/v1 (via adb reverse)'),
-              selected: ApiService.instance.baseUrl.contains('127.0.0.1') || ApiService.instance.baseUrl.contains('localhost'),
-              onTap: () {
-                setState(() {
-                  ApiService.instance.baseUrl = 'http://127.0.0.1:8000/api/v1';
-                });
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Switched to Localhost (127.0.0.1:8000)')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.cloud_done_rounded, color: AppColors.primary),
-              title: const Text('Cloud (Render)'),
-              subtitle: const Text('https://restockiq-backend.onrender.com/api/v1'),
-              selected: ApiService.instance.baseUrl.contains('onrender.com'),
-              onTap: () {
-                setState(() {
-                  ApiService.instance.baseUrl = 'https://restockiq-backend.onrender.com/api/v1';
-                });
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Switched to Cloud (Render onrender.com)')),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
-}
