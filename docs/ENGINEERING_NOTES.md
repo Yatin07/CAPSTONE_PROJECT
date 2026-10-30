@@ -803,3 +803,9 @@ Every entry documents:
 3. **P1.C: Runtime Predictor vs Batch Harness Parity**
    - Batch evaluation operates on continuous floating-point predictions (`24.89% WAPE`).
    - Single-item runtime endpoint (`predict_item`) applies discrete integer rounding (`max(1, int(round(p)))`) for operational physical inventory restock units, yielding `24.96% WAPE` (+0.07 pp discretization divergence).
+
+
+### 4. P2 Adaptive Forecasting Engine ("Model Tournament")
+- Implemented pure Python standard library per-store adaptive model tournament in [`Backend/adaptive_forecast.py`](file:///E:/CAP/Backend/adaptive_forecast.py) behind feature flag `FORECAST_MODE=adaptive` (default `legacy`).
+- Smoothly eliminates the 28-day boundary cliff (reducing day-over-day jump by 46.4%) and improves overall WAPE on test SKUs from 40.41% to 35.30% (-5.11 pp).
+- For complete algorithmic specifications, simulation benchmark tables, operational controls, and evaluation instructions, see [`docs/ADAPTIVE_FORECAST.md`](file:///E:/CAP/docs/ADAPTIVE_FORECAST.md).

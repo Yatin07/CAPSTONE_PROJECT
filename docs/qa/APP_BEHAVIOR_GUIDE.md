@@ -1,81 +1,56 @@
-# RestockIQ - Complete App Behavior and Operational Guide
+# RestockIQ App Behavior & Verification Guide
 
-This guide provides a comprehensive, ground-truth reference for RestockIQ's architecture, workflows, mathematical forecasting engines, and edge-case behaviors as verified on physical hardware over USB.
-
----
-
-## 1. Authentication & Onboarding Architecture
-
-### 1.1 State-Driven Routing
-RestockIQ determines user navigation based on a dual-state verification model:
-1. **Unauthenticated**: User is directed to `Welcome Back` (`LoginScreen`), with immediate access to `RegisterScreen`.
-2. **Authenticated (First Time / Onboarding Incomplete)**: If `profile.onboarding_completed == false`, the app navigates immediately to `TourScreen(isReplay: false)`. The user experiences the 7-step interactive walkthrough before setting up their store catalog.
-3. **Authenticated (Active Store)**: If `profile.onboarding_completed == true`, the app directly opens `DashboardScreen` bound to `LiveRepository`.
-
-### 1.2 Validation Rules
-- **Email Validation**:
-  - Client enforces regex `^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$`.
-  - Backend enforces RFC compliant email parsing via Pydantic `EmailStr`. Reserved TLDs (e.g. `.test`, `.local`) trigger HTTP 422 Unprocessable Entity.
-- **Password Validation**:
-  - Minimum 8 characters required.
-  - Failure to meet criteria blocks submission client-side with red inline error banners.
-- **Duplicate Email Prevention**:
-  - MongoDB unique index enforces unique emails. Attempting duplicate registration returns HTTP 409 Conflict (`Email already registered`).
-- **Account Lockout Protection**:
-  - 5 consecutive failed login attempts trigger an automatic account lockout.
-  - The 5th and subsequent attempts return HTTP 401: `Invalid email or password. Account is temporarily locked. Please try again later.`.
-  - The client displays both a card-level error container and a floating red SnackBar.
+## 1. System Overview
+RestockIQ is an AI-powered predictive inventory optimization platform designed specifically for artisan bakeries, cafes, and perishable retail businesses.
 
 ---
 
-## 2. Interactive Tour (Demo Sandbox)
-
-The interactive tour is an isolated simulator designed to demonstrate RestockIQ's capabilities using French bakery dataset replay without writing to production collections.
-
-### 2.1 Fallback Resilience
-If the cloud demo tenant fails or is cold (HTTP 500/503), the tour does **not** crash. It activates `SampleRepository` with an offline amber pill (`DEMO TOUR`) and continues to guide the user seamlessly through all 7 steps.
-
-### 2.2 Tour Steps & Capabilities
-- **Step 1 - Demand & Restock Formula**: Demonstrates Croissant demand calculation (Current Stock: 30, Predicted Demand: 80, Safety Stock: 40, Recommended Restock: +90).
-- **Step 2 - Waste Mitigation**: Demonstrates alert triggering on perishable items (Whole Milk) with suggested bundle promotions.
-- **Step 3 - Traditional Baguette Formula**: Dynamic formula: $\text{Restock} = \max(0, \text{Demand} + \text{Safety} - \text{Stock})$.
-- **Step 4 - Intraday Tracking & Clock Simulation**: Allows the manager to simulate afternoon hours (14:30) to test sales pacing alerts.
-- **Step 5 - Closing Count Review**: Displays sell-through percentages (Croissant 92%, Baguettes 78%, Milk 35%).
-- **Step 6 - Executive AI Briefing**: Demonstrates Gemini-grounded natural language Q&A. Responds to inventory questions based strictly on catalog context without fabricating math.
-- **Step 7 - Clean Slate Transition**: Prompts the user to start their real store, warning that tour demo fixtures will not carry over into live inventory.
-
----
-
-## 3. Forecasting Engine & Mathematical Formulations
-
-RestockIQ combines two forecasting engines depending on store data maturity:
+## 2. Real Store vs Demo Sandbox Architecture
 
 ```mermaid
 flowchart TD
-    Start[New Item Added] --> CheckHistory{Historical Sales Days >= 7?}
-    CheckHistory -- No (Days 0 to 6) --> ColdStart[Cold-Start Engine: Category Priors]
-    CheckHistory -- Yes (Days >= 7) --> TimeSeries[ML Engine: Holt-Winters / XGBoost / Ridge]
-    ColdStart --> Formula[Compute Restock Quantity]
-    TimeSeries --> Formula
+    AppLaunch[Flutter App Launches] --> AuthCheck{User Logged In?}
+    AuthCheck -- No --> LoginChoice[Login / Register / Start Demo Tour]
+    AuthCheck -- Yes --> RoleCheck{User Role?}
+    RoleCheck -- owner / manager --> LiveTenant[Live Store Tenant: Authenticated MongoDB Collections]
+    RoleCheck -- demo_shadow --> ShadowTenant[Ephemeral Shadow Tenant: Auto-Expiring Sandbox]
+```
+
+- **Live Store Tenant**: Real business managers entering physical inventory counts. History is built through actual daily closing counts.
+- **Demo Sandbox**: Ephemeral shadow tenant pre-populated with simulated reference catalog and data for evaluator testing. Never touches live user records.
+
+---
+
+## 3. Demand Forecasting & Inventory Optimization
+
+RestockIQ delivers automated demand forecasts and safety stock recommendations based on real store data maturity:
+
+```mermaid
+flowchart TD
+    Start[New Item Added] --> CheckHistory{Historical Sales Days >= 5?}
+    CheckHistory -- "0 to 4 Days" --> EarlyStage[Cold Start Prior & EWMA Shrinkage]
+    CheckHistory -- ">= 5 Days" --> MatureMode[Adaptive Model Tournament / Legacy Blend]
+    EarlyStage --> Formula[Compute Restock Quantity]
+    MatureMode --> Formula
     Formula --> RestockOutput["Restock = max(0, Demand + Safety - Stock)"]
 ```
 
-### 3.1 Cold-Start Engine (Days 0 to 6)
-When an item has fewer than 7 days of historical sales, time-series statistical models lack sufficient degrees of freedom. RestockIQ uses **Category Bayesian Priors**:
-- **Bakery**: Base daily demand prior $\mu = 24.0\text{ units}$, Safety stock $= 7\text{ units}$.
-- **Beverage**: Base daily demand prior $\mu = 18.0\text{ units}$, Safety stock $= 5\text{ units}$.
-- **Dairy / Produce**: Category-specific standard consumption distributions.
-- **Confidence Intervals**: 80% confidence interval computed via category standard deviation $\sigma$.
+### 3.1 Cold-Start & Early Traction
+When an item has fewer than 5 days of historical sales:
+- **Cold Start ($n = 0$)**: Evaluates category benchmark prior (e.g. Bakery $= 24.0\text{ units/day}$, Safety stock $= 6\text{ units}$).
+- **Early Traction ($1 \le n < 5$)**: Blends Exponentially Weighted Moving Average (EWMA, $\alpha=0.5$) with category benchmark prior via empirical Bayesian shrinkage $w = \frac{n}{n + 1}$.
+- **Point Estimates**: By design, point forecasts are generated; `confidence_interval` field is set to `null`.
 
-### 3.2 Mature ML Forecasting (Days 7+)
-Once 7+ days of daily closing counts exist:
-- Model evaluates Ridge Regression, Holt-Winters Exponential Smoothing, and LightGBM/XGBoost.
-- Cross-validation selects the model with minimal MAPE (Mean Absolute Percentage Error).
+### 3.2 Mature Forecasting ($n \ge 5$ Days)
+Once 5+ days of daily closing counts exist:
+- **Adaptive Mode (`FORECAST_MODE=adaptive`)**: Runs an automated per-store model tournament backtesting 5 candidate algorithms (`last`, `ewma`, `ma7`, `swd`, `blend`) over rolling historical windows. A candidate must achieve $\ge 5\%$ lower MAE than the robust 7-day average (`ma7`) to unseat it.
+- **Legacy Mode (`FORECAST_MODE=legacy`)**: Uses TSB credibility shrinkage for days 1–27, and transitions to a 4-week same-weekday + 7-day rolling mean for days 28+.
+- **Demo Replayed Stores**: Use reference GBDT models trained on bakery benchmark data.
 
 ### 3.3 The Core Restock Formula
 For any target date $t$:
 $$\text{Recommended Restock} = \max(0, \text{Predicted Demand}_t + \text{Safety Stock}_t - \text{Current Stock}_t)$$
-- If the item is marked with a **Critical Waste Alert**, Restock is capped to `0` to prevent compounding expired inventory.
+- If the item is marked with an active **Critical Waste Alert**, restock is held to `0` to prevent compounding expired inventory.
 
 ---
 
@@ -92,14 +67,18 @@ RestockIQ guides store managers through three distinct operational check-ins:
   - $\text{Sold} = \text{Available} - \text{Left}$
   - **Perishable items**: Leftover units become **Waste**: $\text{Waste} = \text{Left}$.
   - **Non-perishable items**: Leftover units carry over into next day's opening stock: $\text{Carryover} = \text{Left}$, $\text{Waste} = 0$.
-- **Learning Progression**: Each submitted closing count increments catalog history days ($0/7 \to 1/7 \to \dots \to 7/7$), unlocking full ML forecasting.
+- **Learning Progression**: Each submitted closing count increments catalog history days, advancing forecast accuracy.
 
 ### 4.2 Mid-Day Pace Check (Intraday)
 - Manager inputs remaining shelf counts during business hours.
 - Engine calculates sales velocity:
   $$\text{Actual Velocity} = \frac{\text{Opening Stock} - \text{Remaining}}{\text{Elapsed Hours}}$$
   $$\text{Expected Velocity} = \frac{\text{Predicted Demand}}{\text{Total Store Hours}}$$
-- If $\text{Pace Ratio} = \frac{\text{Actual Velocity}}{\text{Expected Velocity}} < 0.5$, a **Lagging Pace Alert** is generated, advising bundle promotions or discount tags before closing.
+  $$\text{Pace Ratio} = \frac{\text{Actual Velocity}}{\text{Expected Velocity}}$$
+- **Pace Alert Severity Thresholds**:
+  - **Critical Pace Alert (Red)**: $\text{Pace Ratio} < 0.35$ (Severe lag; urgent discount/bundling advised).
+  - **Low Pace Alert (Amber)**: $0.35 \le \text{Pace Ratio} < 0.70$ (Moderate lag; monitor afternoon pace).
+  - **Normal / High Pace**: $\text{Pace Ratio} \ge 0.70$ (On track for full sell-through).
 
 ### 4.3 Yesterday Performance Review
 - Aggregates yesterday's sell-through rate:
@@ -115,9 +94,8 @@ RestockIQ guides store managers through three distinct operational check-ins:
 
 ## 5. Offline Resilience & Session Continuity
 
-1. **Session Persistence**: JWT auth tokens and user profile documents are stored in secure local storage. Force-stopping or killing the app and relaunching immediately re-hydrates the active user session directly into `• LIVE` Dashboard in $< 2.5\text{s}$.
+1. **Session Persistence**: JWT auth tokens and user profile documents are stored in secure local storage (`SharedPreferences`). Killing the app and relaunching immediately re-hydrates the active user session directly into the Dashboard in $< 2.5\text{s}$.
 2. **Airplane Mode / Network Drop**:
    - When network disconnects, local providers serve the latest cached store state.
    - Live badge transitions gracefully to offline indicator.
-   - When network is restored, background auto-reconnect synchronizes pending updates without requiring manual re-login.
-
+   - Network requests employ exponential backoff retries upon network restoration.

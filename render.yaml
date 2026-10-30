@@ -28,6 +28,8 @@ services:
         value: "0.4"
       - key: ENGINE
         value: legacy
+      - key: FORECAST_MODE
+        value: legacy
       - key: MONGODB_DB
         value: restockiq
       - key: ALLOWED_ORIGINS
