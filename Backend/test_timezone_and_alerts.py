@@ -116,5 +116,51 @@ class TestTimezoneAndWasteAlerts(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(item_0030["isPrimaryActionDone"])
             print("[TEST] 23:30 -> 00:30 midnight boundary: Successfully rolled over intradaySales to 0 and reverted price to $3.40.")
 
+
+    async def test_overnight_store_operating_window_and_alerts(self):
+        night_user = {
+            "_id": "night_owner_01",
+            "role": "owner",
+            "timezone": "Asia/Kolkata",
+            "opening_hour": 20.0,
+            "closing_hour": 4.0
+        }
+        night_item = {
+            "_id": "night_croissant",
+            "owner_id": "night_owner_01",
+            "name": "Night Croissant",
+            "isPerishable": True,
+            "currentStock": 30,
+            "intradaySales": 2,
+            "intradayDate": "2026-10-30",
+            "price": 3.0,
+            "isDismissed": False,
+        }
+        await self.mock_db.items.insert_one(night_item)
+
+        # 1. Test at 22:00 (10 PM) -> OPEN
+        dt_2200 = datetime(2026, 10, 30, 22, 0, tzinfo=timezone.utc)
+        with patch("main.get_store_local_now", return_value=dt_2200):
+            res_2200 = await main.get_waste_alerts(current_user=night_user)
+            self.assertEqual(res_2200.get("store_status"), "open")
+            self.assertGreater(res_2200.get("total_alerts", 0), 0)
+            print("[TEST] Overnight store at 22:00 -> Store is OPEN, alerts returned successfully.")
+
+        # 2. Test at 02:00 (2 AM post-midnight) -> OPEN, shift sales preserved
+        dt_0200 = datetime(2026, 10, 31, 2, 0, tzinfo=timezone.utc)
+        with patch("main.get_store_local_now", return_value=dt_0200):
+            res_0200 = await main.get_waste_alerts(current_user=night_user)
+            self.assertEqual(res_0200.get("store_status"), "open")
+            self.assertGreater(res_0200.get("total_alerts", 0), 0)
+            print("[TEST] Overnight store at 02:00 AM -> Store is OPEN, active across midnight boundary.")
+
+        # 3. Test at 12:00 (Noon) -> CLOSED
+        dt_1200 = datetime(2026, 10, 31, 12, 0, tzinfo=timezone.utc)
+        with patch("main.get_store_local_now", return_value=dt_1200):
+            res_1200 = await main.get_waste_alerts(current_user=night_user)
+            self.assertEqual(res_1200.get("store_status"), "closed")
+            self.assertEqual(res_1200.get("total_alerts"), 0)
+            print("[TEST] Overnight store at 12:00 Noon -> Store is CLOSED.")
+
 if __name__ == "__main__":
     unittest.main()

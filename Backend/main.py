@@ -205,6 +205,74 @@ def get_store_local_now(user: Optional[Dict[str, Any]] = None, item: Optional[Di
     return base_now
 
 
+def get_store_operating_window(user: Optional[Dict[str, Any]], current_hour: float) -> Tuple[bool, float, float, float]:
+    """
+    Universally evaluates store open status, total operating hours, and elapsed fraction,
+    supporting standard day stores (08:00 - 20:00), 24/7 stores (00:00 - 00:00),
+    and overnight/night stores spanning midnight (e.g., 20:00 - 04:00).
+    
+    Returns:
+        (is_open: bool, elapsed_fraction: float, open_hour: float, close_hour: float)
+    """
+    if not user:
+        open_h = float(STORE_OPEN_HOUR)
+        close_h = float(STORE_CLOSE_HOUR)
+    else:
+        open_h = float(user.get("opening_hour", STORE_OPEN_HOUR))
+        close_h = float(user.get("closing_hour", STORE_CLOSE_HOUR))
+    
+    # 24/7 store
+    if open_h == close_h:
+        return True, max(0.05, min(0.95, current_hour / 24.0)), open_h, close_h
+        
+    # Standard daytime schedule (e.g. 08:00 - 20:00)
+    if open_h < close_h:
+        total_hours = max(1.0, close_h - open_h)
+        if current_hour < open_h:
+            return False, 0.05, open_h, close_h
+        elif current_hour >= close_h:
+            return False, 1.0, open_h, close_h
+        else:
+            elapsed = current_hour - open_h
+            return True, max(0.05, min(0.99, elapsed / total_hours)), open_h, close_h
+            
+    # Overnight schedule spanning midnight (e.g. 20:00 - 04:00)
+    else:
+        total_hours = max(1.0, (24.0 - open_h) + close_h)
+        if current_hour >= open_h:
+            # Evening portion (e.g. 21:00 for a 20:00 - 04:00 store)
+            elapsed = current_hour - open_h
+            return True, max(0.05, min(0.99, elapsed / total_hours)), open_h, close_h
+        elif current_hour < close_h:
+            # Early morning portion after midnight (e.g. 02:00 for a 20:00 - 04:00 store)
+            elapsed = (24.0 - open_h) + current_hour
+            return True, max(0.05, min(0.99, elapsed / total_hours)), open_h, close_h
+        else:
+            # Daytime between morning close and evening open (store closed)
+            return False, 0.05, open_h, close_h
+
+
+def get_store_business_date(user: Optional[Dict[str, Any]], now_local: datetime) -> str:
+    """
+    Returns the logical store business date YYYY-MM-DD.
+    For standard daytime stores (open < close), matches calendar date.
+    For overnight stores (open > close, e.g. 20:00 - 04:00), the post-midnight
+    hours before closing belong to the business shift that opened yesterday evening.
+    """
+    if not user:
+        return now_local.strftime("%Y-%m-%d")
+        
+    open_h = float(user.get("opening_hour", STORE_OPEN_HOUR))
+    close_h = float(user.get("closing_hour", STORE_CLOSE_HOUR))
+    current_h = now_local.hour + (now_local.minute / 60.0)
+    
+    if open_h > close_h and current_h < close_h:
+        # Post-midnight hours before morning closing belong to previous calendar day's shift
+        return (now_local - timedelta(days=1)).strftime("%Y-%m-%d")
+        
+    return now_local.strftime("%Y-%m-%d")
+
+
 
 
 async def refresh_item_forecast(owner_id: str, item: dict, for_date: str) -> Optional[dict]:
@@ -323,7 +391,7 @@ async def rollover_if_new_day(item: dict, user: Optional[dict] = None) -> dict:
 
     now_local = get_store_local_now(user, item)
 
-    today_local_str = now_local.strftime("%Y-%m-%d")
+    today_local_str = get_store_business_date(user, now_local)
 
 
 
@@ -1603,9 +1671,9 @@ async def update_my_profile(req: UserProfileUpdateRequest, current_user=Depends(
 
     cl_h = req.closing_hour if req.closing_hour is not None else current_user.get("closing_hour", STORE_CLOSE_HOUR)
 
-    if op_h >= cl_h:
+    if op_h < 0.0 or op_h > 24.0 or cl_h < 0.0 or cl_h > 24.0:
 
-        raise HTTPException(status_code=400, detail="opening_hour must be strictly less than closing_hour")
+        raise HTTPException(status_code=400, detail="opening_hour and closing_hour must be between 0.0 and 24.0")
 
     if req.opening_hour is not None:
 
@@ -2407,15 +2475,9 @@ def check_item_waste_alert_sync(doc: dict, current_user: dict, predicted_demand:
 
             current_hour = now_local.hour + (now_local.minute / 60.0)
 
-            open_hour = float(current_user.get("opening_hour", STORE_OPEN_HOUR))
+            is_open, elapsed_fraction, _, _ = get_store_operating_window(current_user, current_hour)
 
-            close_hour = float(current_user.get("closing_hour", STORE_CLOSE_HOUR))
-
-            if open_hour <= current_hour < close_hour:
-
-                total_hours = max(1.0, close_hour - open_hour)
-
-                elapsed_fraction = (current_hour - open_hour) / total_hours
+            if is_open:
 
                 actual_sold = doc.get("intradaySales", 0)
 
@@ -3254,29 +3316,11 @@ async def record_midday_count(req: MiddayCountRequest, current_user=Depends(get_
 
     now_local = get_store_local_now(current_user)
 
-    today_str = now_local.strftime("%Y-%m-%d")
+    today_str = get_store_business_date(current_user, now_local)
 
     current_hour = now_local.hour + (now_local.minute / 60.0)
 
-    open_h = float(current_user.get("opening_hour", STORE_OPEN_HOUR))
-
-    close_h = float(current_user.get("closing_hour", STORE_CLOSE_HOUR))
-
-    total_hours = max(1.0, close_h - open_h)
-
-
-
-    if current_hour <= open_h:
-
-        elapsed_fraction = 0.05
-
-    elif current_hour >= close_h:
-
-        elapsed_fraction = 1.0
-
-    else:
-
-        elapsed_fraction = (current_hour - open_h) / total_hours
+    is_open, elapsed_fraction, open_h, close_h = get_store_operating_window(current_user, current_hour)
 
 
 
@@ -3750,15 +3794,19 @@ async def get_waste_alerts(current_user=Depends(get_workspace_user)):
 
     
 
-    open_hour = float(current_user.get("opening_hour", STORE_OPEN_HOUR))
+    is_open, elapsed_fraction, open_hour, close_hour = get_store_operating_window(current_user, current_hour)
 
-    close_hour = float(current_user.get("closing_hour", STORE_CLOSE_HOUR))
 
-    
 
-    # Store operating hours check: closed outside open-close hours
+    # Store operating hours check: closed outside operating window (supports daytime & overnight)
 
-    if current_hour < open_hour or current_hour >= close_hour:
+    if not is_open:
+
+        sched_str = f"{int(open_hour):02d}:00 - {int(close_hour):02d}:00 local time"
+
+        if open_hour > close_hour:
+
+            sched_str += " (Overnight Shift)"
 
         return {
 
@@ -3768,17 +3816,11 @@ async def get_waste_alerts(current_user=Depends(get_workspace_user)):
 
             "store_status": "closed",
 
-            "message": f"Store is currently closed. Operating hours: {int(open_hour):02d}:00 - {int(close_hour):02d}:00 local time.",
+            "message": f"Store is currently closed. Operating hours: {sched_str}.",
 
             "local_time": now_local.strftime("%Y-%m-%d %H:%M:%S"),
 
         }
-
-
-
-    total_hours = max(1.0, close_hour - open_hour)
-
-    elapsed_fraction = (current_hour - open_hour) / total_hours
 
     
 
