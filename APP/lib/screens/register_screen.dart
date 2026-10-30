@@ -142,19 +142,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Store Icon Badge
+                      // Store Logo Badge
                       Container(
-                        width: 68,
-                        height: 68,
+                        width: 76,
+                        height: 76,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.10),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.storefront_rounded,
-                            size: 34,
-                            color: AppColors.primary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            width: 76,
+                            height: 76,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: AppColors.inputFill,
+                              child: const Icon(
+                                Icons.storefront_rounded,
+                                size: 34,
+                                color: AppColors.primary,
+                              ),
+                            ),
                           ),
                         ),
                       ),

@@ -313,7 +313,7 @@ def get_derived_sales_history(db_conn, owner_id: str, item_id: str, as_of_date: 
 def run_batch_job(dry_run: bool = False, as_of: str = None, engine: str = None):
     active_engine = (engine or os.getenv("ENGINE", "legacy")).strip().lower()
     today_str = as_of if as_of else datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    items = list(db.items.find())
+    items = list(db.items.find({"owner_id": {"$not": {"$regex": "^shadow_"}}}))
     
     mode_str = "[DRY-RUN]" if dry_run else "[LIVE]"
     print(f"\n[BATCH {mode_str}] Processing {len(items)} items for forecast date: {today_str} using ENGINE={active_engine}")

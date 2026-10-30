@@ -1,4 +1,5 @@
 import asyncio
+import pytest
 from fastapi import Request, HTTPException
 from main import InMemoryRateLimiter
 
@@ -17,6 +18,7 @@ def create_mock_request(client_ip: str, path: str = "/api/v1/test") -> Request:
     }
     return Request(scope)
 
+@pytest.mark.asyncio
 async def test_multi_ip_rate_limiting():
     print("=" * 60)
     print("   TESTING MULTI-IP RATE LIMITER & PROXY HEADER COUNTERS   ")

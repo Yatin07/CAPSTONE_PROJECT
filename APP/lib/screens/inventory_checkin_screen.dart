@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../utils/string_extensions.dart';
 import 'package:provider/provider.dart';
 import '../models/stock_check_entry.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/stock_check_provider.dart';
 import '../theme/app_colors.dart';
+import '../utils/string_extensions.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../widgets/demo_banner.dart';
 import '../widgets/dotted_background.dart';
 import '../widgets/primary_button.dart';
 import 'dashboard_screen.dart';
@@ -75,7 +74,6 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
       body: DottedBackground(
         child: Column(
           children: [
-            const DemoBanner(),
             // Top Header Bar
             SafeArea(
               bottom: false,
@@ -126,10 +124,6 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
               ),
               child: TabBar(
                 controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 14),
-                indicatorSize: TabBarIndicatorSize.tab,
                 indicator: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
@@ -181,18 +175,14 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Date Mode Selector: Today vs Yesterday
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Target Date:',
                     style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
                   ),
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       ChoiceChip(
                         label: const Text('Today'),
@@ -304,7 +294,7 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                         children: [
                           Expanded(
                             child: Text(
-                              entry.name.toTitleCase(),
+                              entry.name,
                               style: GoogleFonts.montserrat(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -339,86 +329,34 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                       const SizedBox(height: 10),
 
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             flex: 5,
+                            child: TextField(
+                              controller: ctrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: 'Units Left at Close',
+                                labelStyle: const TextStyle(fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                errorText: entry.validationError,
+                              ),
+                              onChanged: (val) {
+                                final parsed = int.tryParse(val.trim()) ?? 0;
+                                provider.updateClosingUnitsLeft(entry.id, parsed);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 4,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Units Left at Close',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                TextField(
-                                  controller: ctrl,
-                                  keyboardType: TextInputType.number,
-                                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-                                  decoration: InputDecoration(
-                                    hintText: '0',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(color: AppColors.outlineVariant),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                                    ),
-                                    errorText: entry.validationError,
-                                  ),
-                                  onChanged: (val) {
-                                    final parsed = int.tryParse(val.trim()) ?? 0;
-                                    provider.updateClosingUnitsLeft(entry.id, parsed);
-                                  },
-                                ),
+                                Text('Sold: ${entry.soldUnits ?? 0}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                                Text('Waste: ${entry.wasteUnits ?? 0}', style: GoogleFonts.inter(fontSize: 12, color: entry.wasteUnits != null && entry.wasteUnits! > 0 ? Colors.red.shade700 : AppColors.onSurfaceVariant)),
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            flex: 4,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 20),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Sold: ${entry.soldUnits ?? 0}',
-                                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Waste: ${entry.wasteUnits ?? 0}',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: entry.wasteUnits != null && entry.wasteUnits! > 0
-                                            ? Colors.red.shade700
-                                            : AppColors.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
                           ),
                         ],
@@ -430,32 +368,15 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
 
               const SizedBox(height: 16),
               PrimaryButton(
-                label: 'Submit Closing Routine',
+                label: 'Submit Daily Closing Routine',
                 icon: Icons.check_circle_outline_rounded,
                 isLoading: provider.isSubmitting,
                 onPressed: provider.hasValidationErrors
                     ? null
-                    : () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        final inv = Provider.of<InventoryProvider>(context, listen: false);
-                        final ok = await provider.submitClosingRoutine(
+                    : () {
+                        provider.submitClosingRoutine(
                           targetDate: _dateMode == 'yesterday' ? 'yesterday' : null,
                         );
-                        if (ok && mounted) {
-                          _controllers.clear();
-                          await inv.fetchDashboardItems();
-                          if (mounted) {
-                            provider.syncWithInventoryItems(inv.items);
-                            await provider.fetchYesterdayReviewRoutine();
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                content: Text('Closing routine saved! Stock & forecasts updated.'),
-                                backgroundColor: AppColors.primary,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        }
                       },
               ),
               const SizedBox(height: 24),
@@ -526,27 +447,20 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                     children: [
                       Expanded(
                         child: Text(
-                          entry.name.toTitleCase(),
+                          entry.name,
                           style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w600),
                         ),
                       ),
                       SizedBox(
                         width: 100,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Remaining', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.onSurfaceVariant)),
-                            const SizedBox(height: 4),
-                            TextField(
-                              controller: ctrl,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                hintText: '0',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                            ),
-                          ],
+                        child: TextField(
+                          controller: ctrl,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Remaining',
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
                         ),
                       ),
                     ],
@@ -652,7 +566,7 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item['itemName']?.toString() ?? 'Item',
+                              (item['itemName']?.toString() ?? 'Item').toTitleCase(),
                               style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 4),

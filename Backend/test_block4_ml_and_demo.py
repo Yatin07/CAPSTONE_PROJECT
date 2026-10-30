@@ -89,6 +89,7 @@ class TestBlock4MLAndDemo(unittest.TestCase):
             "category": "Breads & Baguettes",
             "currentStock": 10,
             "isPerishable": True,
+            "replayed_dataset": True,
         }
         # 60 days of historical sales
         history_60 = [25 + int(np.sin(i)*5) for i in range(60)]

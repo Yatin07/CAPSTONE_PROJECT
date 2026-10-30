@@ -68,10 +68,9 @@ NAME_MAP = {
     "banette": "BANETTE",
     "cookie": "COOKIE",
     "cafe": "CAFE OU EAU",
-    "espresso": "CAFE OU EAU",
-    "espresso beans": "CAFE OU EAU",
-    "milk": "COUPE",
-    "whole milk": "COUPE",
+    "coffee": "CAFE OU EAU",
+    "coupe dessert": "COUPE",
+    "coupe": "COUPE",
 }
 
 # Features specification for Model (iv)
@@ -189,7 +188,7 @@ class MLSharedEngine:
         df["pred_weekday4w_cal"] = [get_weekday4w(a, d) for a, d in zip(df["article"], df["ds"])]
         df["y_lag_7_cal"] = [lookup.get((art, d - pd.Timedelta(days=7)), np.nan) for art, d in zip(df["article"], df["ds"])]
         df["y_lag_1"] = df.groupby("article")["y"].shift(1)
-        df["y_roll_7"] = df.groupby("article")["y"].shift(1).rolling(7, min_periods=3).mean()
+        df["y_roll_7"] = df.groupby("article")["y"].transform(lambda s: s.shift(1).rolling(7, min_periods=3).mean())
 
         # Holiday features (French calendar for primary bakery reference dataset)
         try:
@@ -321,8 +320,9 @@ class MLSharedEngine:
                 {"day": day_names[(dow_idx - 7 + i) % 7], "date": (now - timedelta(days=7 - i)).strftime("%Y-%m-%d"), "sales": int(sales_history[-7+i]) if len(sales_history) >= 7 else int(predicted_demand * 0.9)}
                 for i in range(7)
             ]
+            # FIX 19: Labeled indicative
             forecast_7d = [
-                {"day": day_names[(dow_idx + i) % 7], "date": (now + timedelta(days=i)).strftime("%Y-%m-%d"), "predicted": max(1, int(round(predicted_demand * (1.15 if (dow_idx + i) % 7 in [4, 5, 6] else 0.95))))}
+                {"day": day_names[(dow_idx + i) % 7], "date": (now + timedelta(days=i)).strftime("%Y-%m-%d"), "predicted": max(1, int(round(predicted_demand * (1.15 if (dow_idx + i) % 7 in [4, 5, 6] else 0.95)))), "type": "indicative"}
                 for i in range(7)
             ]
 
@@ -351,17 +351,32 @@ class MLSharedEngine:
         cat_data = self.category_priors.get(norm_cat, {})
         p90_prior = float(cat_data.get(dow_str, {}).get("p90", 2.0))
 
-        # Check if cold start / sparse (< 28 days or unmapped)
-        if days_of_data < 28 or not ref_article:
+        # FIX 17: Own-data path for real-store items (never reads French reference if not replayed)
+        is_replayed = bool(item.get("replayed_dataset") or item.get("source") == "replayed_dataset")
+
+        if not is_replayed and days_of_data >= 28:
+            # FIX 17: Real store >= 28 days uses own-data blend (mean of last 4 same weekdays + 7-day rolling mean)
+            w4_vals = [sales_history[-7*k] for k in [1, 2, 3, 4] if len(sales_history) >= 7*k]
+            weekday4w = float(np.mean(w4_vals)) if w4_vals else float(np.mean(sales_history[-7:]))
+            roll_7 = float(np.mean(sales_history[-7:]))
+            predicted_demand = max(1, int(round(0.60 * weekday4w + 0.40 * roll_7)))
+            own_sigma = float(np.std(sales_history[-28:])) if len(sales_history) >= 28 else 3.0
+            safety_stock, z_val, cr_val = self.compute_safety_stock(price=price, sigma=max(1.0, own_sigma))
+            explanation = f"Own-data blend active ({days_of_data} days observed). Blended 4-week weekday ({weekday4w:.1f}) and 7-day pace ({roll_7:.1f}). Safety stock derived from Newsvendor critical ratio (SL={cr_val:.0%}, sigma={own_sigma:.1f})."
+            tier = "own_data_blend"
+        elif days_of_data < 28 or not ref_article:
             # Credibility shrinkage W = n / (n + 14)
             n = days_of_data
             k = 14.0
             W = n / (n + k)
 
             if n == 0:
-                predicted_demand = int(round(p90_prior))
-                safety_stock = max(1, int(round(p90_prior * 0.3)))
-                explanation = f"Cold start active: initialized to {norm_cat} 90th percentile prior ({predicted_demand} units) for {dow_name}."
+                # FIX 18: Synchronized cold-start prior
+                from constants import CATEGORY_PRIORS
+                cat_prior = CATEGORY_PRIORS.get(raw_cat, CATEGORY_PRIORS.get("Other", {"predictedDemand": 20, "safetyStock": 4}))
+                predicted_demand = cat_prior["predictedDemand"]
+                safety_stock = cat_prior["safetyStock"]
+                explanation = f"Cold start active: initialized to {raw_cat} prior ({predicted_demand} units, {safety_stock} safety stock)."
             else:
                 series = np.array(sales_history, dtype=float)
                 tsb_val = self.tsb_forecast(series)
@@ -372,7 +387,7 @@ class MLSharedEngine:
 
             tier = "sparse_cold_start"
         else:
-            # Legacy primary benchmark (historical mean + weekend factor)
+            # Replayed store legacy primary benchmark (historical mean + weekend factor)
             art_df = self.historical_ref[self.historical_ref["article"] == ref_article].sort_values("ds")
             last_30 = art_df.tail(30)["y"]
             base_demand = int(last_30.mean()) if len(last_30) > 0 else 25
@@ -401,8 +416,9 @@ class MLSharedEngine:
             {"day": day_names[(dow_idx - 7 + i) % 7], "date": (now - timedelta(days=7 - i)).strftime("%Y-%m-%d"), "sales": int(sales_history[-7+i]) if len(sales_history) >= 7 else int(predicted_demand * 0.8)}
             for i in range(7)
         ]
+        # FIX 19: Labeled indicative
         forecast_7d = [
-            {"day": day_names[(dow_idx + i) % 7], "date": (now + timedelta(days=i)).strftime("%Y-%m-%d"), "predicted": max(1, int(round(predicted_demand * (1.15 if (dow_idx + i) % 7 in [4, 5, 6] else 0.95))))}
+            {"day": day_names[(dow_idx + i) % 7], "date": (now + timedelta(days=i)).strftime("%Y-%m-%d"), "predicted": max(1, int(round(predicted_demand * (1.15 if (dow_idx + i) % 7 in [4, 5, 6] else 0.95)))), "type": "indicative"}
             for i in range(7)
         ]
 

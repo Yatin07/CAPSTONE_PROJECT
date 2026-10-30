@@ -565,45 +565,45 @@
       "weekday_forecasts": {
         "0": {
           "predictedDemand": 26,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 26 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         },
         "1": {
           "predictedDemand": 23,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         },
         "2": {
           "predictedDemand": 23,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         },
         "3": {
           "predictedDemand": 23,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         },
         "4": {
           "predictedDemand": 25,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 25 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         },
         "5": {
           "predictedDemand": 31,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 31 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         },
         "6": {
           "predictedDemand": 40,
-          "safetyStock": 15,
+          "safetyStock": 2,
           "tier": "Mature",
-          "explanation": "Historical 40 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BAGUETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=9.0)."
         }
       }
     },
@@ -1164,45 +1164,45 @@
       "weekday_forecasts": {
         "0": {
           "predictedDemand": 31,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 31 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         },
         "1": {
           "predictedDemand": 24,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 24 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         },
         "2": {
           "predictedDemand": 26,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 26 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         },
         "3": {
           "predictedDemand": 27,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 27 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         },
         "4": {
           "predictedDemand": 29,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 29 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         },
         "5": {
           "predictedDemand": 46,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 46 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         },
         "6": {
           "predictedDemand": 81,
-          "safetyStock": 40,
+          "safetyStock": 5,
           "tier": "Mature",
-          "explanation": "Historical 81 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (CROISSANT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=19.7)."
         }
       }
     },
@@ -1763,45 +1763,45 @@
       "weekday_forecasts": {
         "0": {
           "predictedDemand": 27,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 27 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         },
         "1": {
           "predictedDemand": 23,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 23 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         },
         "2": {
           "predictedDemand": 25,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         },
         "3": {
           "predictedDemand": 25,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         },
         "4": {
           "predictedDemand": 29,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 29 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         },
         "5": {
           "predictedDemand": 39,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 39 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         },
         "6": {
           "predictedDemand": 64,
-          "safetyStock": 27,
+          "safetyStock": 4,
           "tier": "Mature",
-          "explanation": "Historical 64 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (PAIN AU CHOCOLAT). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=16.7)."
         }
       }
     },
@@ -2362,45 +2362,45 @@
       "weekday_forecasts": {
         "0": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         },
         "1": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         },
         "2": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         },
         "3": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         },
         "4": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         },
         "5": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         },
         "6": {
           "predictedDemand": 5,
-          "safetyStock": 2,
+          "safetyStock": 1,
           "tier": "Mature",
-          "explanation": "Historical 5 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BRIOCHE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=2.5)."
         }
       }
     },
@@ -2961,55 +2961,55 @@
       "weekday_forecasts": {
         "0": {
           "predictedDemand": 28,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 28 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         },
         "1": {
           "predictedDemand": 24,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 24 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         },
         "2": {
           "predictedDemand": 25,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         },
         "3": {
           "predictedDemand": 27,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 27 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         },
         "4": {
           "predictedDemand": 26,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 26 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         },
         "5": {
           "predictedDemand": 33,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 33 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         },
         "6": {
           "predictedDemand": 40,
-          "safetyStock": 12,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 40 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (BANETTE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=10.9)."
         }
       }
     },
     {
-      "fixture_id": "item_whole_milk",
-      "name": "Whole Milk",
+      "fixture_id": "item_coupe",
+      "name": "Coupe Dessert",
       "article": "COUPE",
-      "category": "Dairy",
-      "unit": "liter",
-      "price": 60.0,
+      "category": "Dessert",
+      "unit": "cup",
+      "price": 65.0,
       "isPerishable": true,
       "shelfLifeDays": 2,
       "currentStock": 4,
@@ -3560,47 +3560,48 @@
       "weekday_forecasts": {
         "0": {
           "predictedDemand": 28,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 28 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         },
         "1": {
           "predictedDemand": 25,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         },
         "2": {
           "predictedDemand": 25,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 25 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         },
         "3": {
           "predictedDemand": 26,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 26 units/day expectation (weekday baseline)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         },
         "4": {
           "predictedDemand": 31,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 31 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         },
         "5": {
           "predictedDemand": 37,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 37 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         },
         "6": {
           "predictedDemand": 43,
-          "safetyStock": 19,
+          "safetyStock": 3,
           "tier": "Mature",
-          "explanation": "Historical 43 units/day expectation (weekend peak)."
+          "explanation": "Replayed French bakery dataset (COUPE). Safety stock derived from Newsvendor critical ratio (CR=60%, z=0.25, sigma=11.5)."
         }
-      }
+      },
+      "disclaimer": "Sales replayed from a French bakery dataset (COUPE); production and waste are simulated."
     }
   ],
   "cold_start_item": {

@@ -86,14 +86,14 @@ class TestDemoSandboxSuite(unittest.TestCase):
         main.db.daily_stock.insert_many = AsyncMock()
         main.db.forecasts.insert_many = AsyncMock()
 
-        with patch("time.time", side_effect=[now_ts + i * 10 for i in range(20)]):
+        with patch("time.time", side_effect=[now_ts + i * 2 for i in range(50)]):
             with patch("main.purge_shadow_tenant", AsyncMock()):
-                # 5 starts succeed
-                for _ in range(5):
+                # 20 starts succeed (Fix 13)
+                for _ in range(20):
                     res = main.asyncio.run(main.start_demo_sandbox(real_user=user))
                     self.assertEqual(res["status"], "started")
 
-                # 6th start raises HTTP 429
+                # 21st start raises HTTP 429
                 with self.assertRaises(HTTPException) as ctx:
                     main.asyncio.run(main.start_demo_sandbox(real_user=user))
                 self.assertEqual(ctx.exception.status_code, 429)

@@ -42,9 +42,8 @@ def should_call_live_gemini() -> bool:
     """
     if not is_llm_configured():
         return False
-    import sys
-    is_test = "unittest" in sys.modules or "pytest" in sys.modules
-    if is_test:
+    # FIX 10: Replace sys.modules unittest guard with explicit env TESTING=1
+    if os.getenv("TESTING") == "1":
         return os.getenv("RUN_LIVE_GEMINI") == "1"
     return True
 
@@ -68,9 +67,11 @@ def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: fl
 
     model_candidates = [
         GEMINI_MODEL,
+        "gemini-3.1-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemini-flash-lite-latest",
         "gemini-3.5-flash",
         "gemini-3.8-flash",
-        "gemini-3.1-flash-lite",
         "gemini-flash-latest"
     ]
     # Deduplicate while preserving order
@@ -92,15 +93,15 @@ def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: fl
                 break
             except Exception as e:
                 err_str = str(e).lower()
-                is_daily_limit = any(k in err_str for k in ["per day limit", "quota exceeded", "limit exceeded on free tier"])
-                if is_daily_limit:
-                    logger.warning("Gemini API model %s daily quota reached. Trying next model candidate.", active_model)
+                is_quota_limit = any(k in err_str for k in ["quota", "resource_exhausted", "per day limit", "limit exceeded", "429", "rate"])
+                if is_quota_limit:
+                    logger.warning("Gemini API model %s quota/rate limit reached. Trying next model candidate immediately.", active_model)
                     break
-                is_retryable = any(k in err_str for k in ["429", "rate", "exhausted", "500", "502", "503", "504", "server error", "timeout"])
+                is_retryable = any(k in err_str for k in ["500", "502", "503", "504", "server error", "timeout"])
                 logger.warning("Gemini API (model %s) attempt %d/%d failed: %s", active_model, attempt, max_retries, e)
                 if attempt < max_retries and is_retryable:
                     time.sleep(delay)
-                    delay *= 2.0
+                    delay *= 1.5
                 else:
                     break
     return None

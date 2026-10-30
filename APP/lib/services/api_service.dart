@@ -81,7 +81,7 @@ class ApiService {
     required Future<http.Response> Function(Duration currentTimeout) requestFn,
     int maxTries = 3,
     Duration firstRequestTimeout = const Duration(seconds: 40),
-    Duration normalTimeout = const Duration(seconds: 15),
+    Duration normalTimeout = const Duration(seconds: 25),
   }) async {
     int attempt = 0;
     final timeoutToUse = _isFirstRequest ? firstRequestTimeout : normalTimeout;
@@ -734,7 +734,7 @@ class ApiService {
             headers: _headers,
             body: jsonEncode({'query': cleanQuery}),
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

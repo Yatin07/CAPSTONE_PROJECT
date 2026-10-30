@@ -418,12 +418,19 @@ class TestBlock2BackendSuite(unittest.TestCase):
             })
         asyncio.run(seed())
 
-        # 1. Health contract
+        # 1. Health contract (tiny liveness on /health; details on /health/details)
         r_health = self.client.get("/api/v1/health")
         self.assertEqual(r_health.status_code, 200)
         h_json = r_health.json()
-        for key in ["status", "database", "last_forecast_time", "counts", "RENDER_GIT_COMMIT", "store_timezone", "llm_configured", "timestamp"]:
+        for key in ["status", "service", "timestamp"]:
             self.assertIn(key, h_json, f"Missing health contract key: {key}")
+
+        os.environ["JOB_SECRET"] = "contract_secret"
+        r_details = self.client.get("/health/details", headers={"X-Job-Secret": "contract_secret"})
+        self.assertEqual(r_details.status_code, 200)
+        det_json = r_details.json()
+        for key in ["status", "database", "last_forecast_time", "counts", "RENDER_GIT_COMMIT", "store_timezone", "llm_configured", "timestamp"]:
+            self.assertIn(key, det_json, f"Missing health details key: {key}")
 
         # 2. User profile contract (GET /api/v1/me)
         r_me = self.client.get("/api/v1/me", headers=self.headers_a)

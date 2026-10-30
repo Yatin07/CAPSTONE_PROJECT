@@ -269,7 +269,7 @@ class StockCheckProvider extends ChangeNotifier {
       final countsPayload = remainingCounts.entries.map((entry) {
         return {
           'item_id': entry.key,
-          'remaining_count': entry.value,
+          'remaining': entry.value,
         };
       }).toList();
 

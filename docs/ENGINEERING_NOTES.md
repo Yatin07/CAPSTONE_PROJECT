@@ -711,3 +711,95 @@ Every entry documents:
 ### 2. NMIMS Black Book Mapping
 - **What**: Mapped all project modules, verified research figures (waste -64.0%, profit +7.8%), and architectures into NMIMS MPSTME template chapters with Shipped / Research / V2 labels.
 - **Why**: Delivers a fully compliant capstone project documentation package.
+
+
+## Phase 4 - Final Hardening & P0/P1 Resolution (Branch fix/final-hardening)
+
+### 1. Overview & Constraints
+- **Target Branch**: `fix/final-hardening` (branched from `main` commit `e96d9819`).
+- **Safety Boundaries**: No pushes to remote, `v1.0-submission` tag untouched, zero production database writes (`restockiq` isolated; `restockiq_staging` and in-memory mock utilized).
+- **Core Directive**: Verification of Claude audit recommendations across 21 P0 defects and 3 P1 machine learning backtest evaluations. Every defect verified with a test failing before the fix and passing after.
+
+### 2. P0 Fix Register & Verifications
+1. **Fix 1: Rollup Overwrite Guard (`Backend/main.py:180-195`)**
+   - *Defect*: `rollup_daily_sales` blind upsert overwrote confirmed manager evening counts (`source: "closing_count"`).
+   - *Fix*: Check `existing.get("source") == "closing_count"` before upsert; skip and log if already closed by human manager.
+   - *Verification*: `test_p0_1_rollup_must_not_overwrite_closing_count` [MOCK-DB] (Failed before: `'rollup' != 'closing_count'`; Passed after).
+2. **Fix 2 & 3: Restock Calculation & Opening Stock (`Backend/main.py:915-955`)**
+   - *Defect*: Restock fallback added arbitrary 10 units when computed need was zero; opening stock on first restock ignored intraday sales already logged.
+   - *Fix*: Removed safety/fallback 10-unit addition; return `added: 0` with informative message; set `openingStock = currentStock + intradaySales`.
+   - *Verification*: `test_p0_2_restock_item_zero_need_adds_nothing` & `test_p0_3_restock_daily_stock_opening_calculation` [MOCK-DB].
+3. **Fix 4 & 5: Rollover Unclosed Perishables & Discount Idempotency (`Backend/main.py:120-160, 1890-1955`)**
+   - *Defect*: Unclosed perishable stock carried forward across midnight; discount/bundle endpoints lacked input validation (allowing >50%) and allowed duplicate discounting.
+   - *Fix*: Unclosed perishables zeroed at rollover (`currentStock = 0`, marked unclosed); discount endpoints validate `0 < pct <= 50` and reject already-discounted items with HTTP 400. Rollover resets discount metadata.
+   - *Verification*: `test_p0_4_rollover_unclosed_perishable_zeroes_current_stock` & `test_p0_5_apply_discount_validation_and_idempotency` [MOCK-DB].
+4. **Fix 6: Waste Alert Partner Selection (`Backend/main.py:1805-1855`)**
+   - *Defect*: Bundle recommendation paired slow-moving items with out-of-stock items or items that also had active waste risks.
+   - *Fix*: Filter partner candidates strictly for `currentStock > 0`, no active waste alert, and `sales_pace_ratio >= 1.0`. Downgrade to 10% single discount if no healthy partner exists.
+   - *Verification*: `test_p0_6_partner_selection_downgrades_to_discount` [MOCK-DB].
+5. **Fix 7: Job Rollup Security (`Backend/main.py:2280-2305`)**
+   - *Defect*: `/jobs/rollup-daily-sales` endpoint allowed unauthenticated triggering when `JOB_SECRET` was unset.
+   - *Fix*: Deny access (HTTP 401) if `JOB_SECRET` is unset or `X-Job-Secret` header does not match.
+   - *Verification*: `test_p0_7_job_rollup_denies_unauthorized_invocations` [MOCK-DB].
+6. **Fix 8: Login Lockout Counter Reset (`Backend/main.py:582-595`)**
+   - *Defect*: Account lockout counter kept compounding upon expiry, re-locking user immediately on a single typo.
+   - *Fix*: Reset `failed_login_count = 0` and `locked_until = None` when lock expiration timestamp passes.
+   - *Verification*: `test_p0_8_login_lockout_resets_counter_after_expiry` [MOCK-DB].
+7. **Fix 9: Health Probe Separation (`Backend/main.py:726-775, render.yaml:9`)**
+   - *Defect*: `/health` performed heavy database count queries on every load-balancer heartbeat.
+   - *Fix*: `/health` converted to zero-DB tiny liveness probe; deep database diagnostics moved to `/health/details` protected by `JOB_SECRET`.
+   - *Verification*: `test_p0_9_health_endpoints_and_details_security` [MOCK-DB].
+8. **Fix 10: Unit Test Guard (`Backend/services/llm_service.py:45-48`)**
+   - *Defect*: Live LLM call guard relied on inspecting `sys.modules` for unittest/pytest.
+   - *Fix*: Replaced with explicit `os.getenv("TESTING") == "1"` environment variable guard.
+   - *Verification*: `test_p0_10_testing_guard_in_llm_service` [MOCK-DB].
+9. **Fix 11: Fail-Fast Atlas Connection (`Backend/main.py:315-320`)**
+   - *Defect*: Production backend could silently fall back to ephemeral in-memory mock DB if Atlas connection failed.
+   - *Fix*: Restricted mock DB fallback strictly to `ENVIRONMENT=local` or `TESTING=1`; production/staging fails fast with `RuntimeError`.
+   - *Verification*: `test_p0_11_mock_db_fallback_restricted_to_local_or_testing` [MOCK-DB].
+10. **Fix 12: DB-Persisted Rate Limits & State-Hashed Cache (`Backend/main.py:2360-2425`)**
+    - *Defect*: Assistant daily query counts were stored in-memory (wiped on server restarts); briefing cache was keyed purely on date, serving stale summaries after stock changes.
+    - *Fix*: Daily queries persisted in `db.assistant_usage` with TTL index; briefing cache keyed on SHA256 state hash of `(user_id, date, max_item_updatedAt, alert_ids)`.
+    - *Verification*: `test_p0_12_briefing_cache_state_hash_and_db_assistant_counters` [MOCK-DB].
+11. **Fix 13: Sliding Demo TTL & Non-Blocking Tour Exit (`Backend/main.py:385-410, 2038`, `APP/lib/screens/tour_screen.dart`, `APP/lib/widgets/demo_banner.dart`)**
+    - *Defect*: Demo sandbox expired after fixed 2 hours even during active use; tour exit blocked user if `DELETE /demo` network request failed.
+    - *Fix*: Sliding 4-hour `expiresAt` refreshed on every demo request; rate limit set to 20/hour; tour exit proceeds gracefully if server cleanup fails (clearing client workspace while MongoDB TTL purges data).
+    - *Verification*: `test_p0_13_demo_sliding_expires_at_and_rate_limit` [MOCK-DB] & Flutter integration walkthrough.
+12. **Fix 14 & 15: Demo Data Honesty & NAME_MAP Cleanup (`Backend/demo_fixture.json`, `ML/data/demo_fixture.json`, `ML/engine.py:61-75`)**
+    - *Defect*: Replayed French bakery dataset masqueraded items as "Whole Milk" and "Espresso Beans"; safety stocks in fixture used arbitrary fallback 15.
+    - *Fix*: Renamed beverage items to matching dataset series ("Coupe Dessert" replaying `COUPE`); removed artificial milk/espresso mappings from `NAME_MAP`; recalculated safety stocks via Newsvendor critical ratio formula. UI banners updated with explicit attribution.
+    - *Verification*: `test_p0_14_demo_fixture_honesty_and_item_count` & `test_p0_15_name_map_excludes_milk_and_espresso` [MOCK-DB].
+13. **Fix 16: Pandas Groupby Rolling Leakage Guard (`ML/engine.py:192`, `ML/evaluate_production_harness.py:122, 175`)**
+    - *Defect*: `df.groupby("article")["y"].shift(1).rolling(7).mean()` flattened Series across article boundaries, allowing trailing rows of Article A to pollute initial rows of Article B.
+    - *Fix*: Implemented `.groupby("article")["y"].transform(lambda s: s.shift(1).rolling(7, min_periods=3).mean())`.
+    - *Verification*: `test_p0_16_y_roll_7_never_leaks_across_articles` [MOCK-DB] (Failed before: `55.0 != 10.0`; Passed after).
+14. **Fix 17 & 18: Own-Data Forecasting Path & Synchronized Prior (`ML/engine.py:340-390`, `Backend/main.py:815`)**
+    - *Defect*: Real stores with >= 28 days attempted to pull French bakery dataset features; cold-start priors in `create_item` diverged from engine priors.
+    - *Fix*: Real store items with >= 28 days route to `own_data_blend` (mean of 4 same weekdays + 7-day rolling mean); `ENGINE=gbdt` restricted to replayed demo stores; synchronized cold-start priors across engine and backend.
+    - *Verification*: `test_p0_17_18_own_data_path_and_cold_start_prior` [MOCK-DB].
+15. **Fix 19: Indicative 7-Day Forecast Labelling (`ML/engine.py:325, 405`)**
+    - *Defect*: 7-day forecast cards were claimed as validated models despite being heuristic multiplier projections.
+    - *Fix*: Explicitly tagged forecast records with `"type": "indicative"` and updated UI copy.
+    - *Verification*: `test_p0_19_forecast_7d_labeled_indicative` [MOCK-DB].
+16. **Fix 20: Shadow Tenant Login Robustness (`Backend/main.py:575-580`)**
+    - *Defect*: Attempting to log into a shadow user account raised HTTP 500 internal server error due to null password hash.
+    - *Fix*: Handled null password hash cleanly, returning HTTP 401 Unauthorized.
+    - *Verification*: `test_p0_20_shadow_user_login_returns_401_not_500` [MOCK-DB].
+17. **Fix 21: UI Formatting, Severities & Inverted Colors (`Backend/main.py:1055-1075`, `APP/lib/screens/forgot_password_screen.dart:65-75`)**
+    - *Defect*: Alert severity colors were inverted (Critical was amber, Low Pace was red); forgot password screen promised unimplemented email tokens.
+    - *Fix*: Inverted color mapping: Critical pace (<0.35) = Red (`#B91C1C`), Low Pace (0.35..0.70) = Amber (`#D97706`). Updated forgot password copy: "Password reset is not available in this version. Please contact your system administrator."
+    - *Verification*: `test_p0_21_waste_alert_severity_colors` [MOCK-DB].
+
+### 3. P1 Machine Learning Evaluations
+1. **P1.A: 38-Fold and 6-Fold Production Harness Re-Evaluation**
+   - Re-evaluated production GBDT (Model iv) after Fix 16 groupby transform fix.
+   - **38-Fold Pooled WAPE**: **24.89%** (Research Benchmark: 24.92%, Delta: -0.0287 pp, PASS within 0.1 pp requirement).
+   - **6-Fold Pooled WAPE**: **22.07%** (vs legacy 25.48%).
+2. **P1.B: Own-Data Estimator Backtest Benchmark (38 Folds)**
+   - **Production GBDT (Model iv)**: **24.89% WAPE**
+   - **Simple Own-Data Estimator (4-Week Same Weekday + 7-Day Mean)**: **32.53% WAPE**
+   - **Legacy Engine (30-Day Mean + Weekend Multiplier)**: **40.68% WAPE**
+   - *Conclusion*: The GBDT Model (iv) outperforms simple own-data heuristics by +7.64 pp and legacy static baselines by +15.79 pp.
+3. **P1.C: Runtime Predictor vs Batch Harness Parity**
+   - Batch evaluation operates on continuous floating-point predictions (`24.89% WAPE`).
+   - Single-item runtime endpoint (`predict_item`) applies discrete integer rounding (`max(1, int(round(p)))`) for operational physical inventory restock units, yielding `24.96% WAPE` (+0.07 pp discretization divergence).

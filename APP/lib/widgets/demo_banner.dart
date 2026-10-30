@@ -75,15 +75,17 @@ class DemoBanner extends StatelessWidget {
     try {
       await ApiService.instance.exitDemo();
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to delete demo sandbox on server: $e. Please retry.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
+      // FIX 13: Tour exit proceeds if DELETE /demo fails (set workspace null and surface notice; TTL cleans up)
+      ApiService.instance.setWorkspace(null);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Demo sandbox cleanup deferred (server TTL cleans up): $e'),
+            backgroundColor: const Color(0xFF6B7280),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
 
     if (!context.mounted) return;
@@ -141,7 +143,7 @@ class DemoBanner extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'DEMO - sample bakery (replayed dataset). Not your data.',
+                'DEMO: sales replayed from a French bakery dataset; production and waste are simulated',
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,

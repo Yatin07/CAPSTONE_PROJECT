@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/inventory_item.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../utils/string_extensions.dart';
 
 class InventoryItemCard extends StatelessWidget {
   final InventoryItem item;
@@ -85,7 +86,7 @@ class InventoryItemCard extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              item.name,
+                              item.name.toTitleCase(),
                               style: AppTypography.labelBold.copyWith(
                                 fontSize: 16,
                                 color: AppColors.onSurface,

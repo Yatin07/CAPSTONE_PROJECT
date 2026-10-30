@@ -163,15 +163,7 @@ class _TourScreenState extends State<TourScreen> {
     } catch (e) {
       _seedingError = e.toString();
       _useSampleFallback();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Demo server sandbox unavailable: $e. Operating in preview mode.'),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
+      // Graceful offline preview fallback: top status pill reflects preview mode without jarring red popup
     }
   }
 
@@ -210,6 +202,22 @@ class _TourScreenState extends State<TourScreen> {
   }
 
   Future<void> _finishTour() async {
+    if (widget.isReplay) {
+      if (ApiService.instance.isAuthenticated && ApiService.instance.isDemoWorkspace) {
+        try {
+          await ApiService.instance.exitDemo();
+        } catch (_) {}
+      }
+      ApiService.instance.setWorkspace('live');
+      if (mounted) {
+        Provider.of<InventoryProvider>(context, listen: false).setRepository(LiveRepository());
+        Provider.of<WasteAlertsProvider>(context, listen: false).setRepository(LiveRepository());
+        Provider.of<StockCheckProvider>(context, listen: false).setRepository(LiveRepository());
+        Navigator.pop(context);
+      }
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -244,15 +252,17 @@ class _TourScreenState extends State<TourScreen> {
         await ApiService.instance.exitDemo();
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to delete demo sandbox on server: $e. Please retry.'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
+      // FIX 13: Tour exit proceeds if DELETE /demo fails (set workspace null and surface notice; TTL cleans up)
+      ApiService.instance.setWorkspace(null);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Demo sandbox cleanup deferred (server TTL cleans up): $e'),
+            backgroundColor: const Color(0xFF6B7280),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
 
     if (!mounted) return;
@@ -347,8 +357,8 @@ class _TourScreenState extends State<TourScreen> {
                 ),
                 child: Text(
                   _seedingError != null
-                      ? 'Offline sample demonstration. Zero network requests — nothing is saved.'
-                      : 'Sample data demonstration. Zero network requests — nothing is saved.',
+                      ? 'Offline sample demonstration. Sales replayed from a French bakery dataset; production and waste are simulated.'
+                      : 'Demo tour: sales replayed from a French bakery dataset; production and waste are simulated.',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
