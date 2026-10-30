@@ -415,6 +415,10 @@ void main() {
       expect(find.text('Daily Inventory Routines'), findsOneWidget);
       expect(find.text('Closing Count'), findsOneWidget);
 
+      // Switch to Closing Count tab
+      await tester.tap(find.text('Closing Count'));
+      await tester.pumpAndSettle();
+
       // Find first units left input field (Croissants, available: 40)
       final textFields = find.byType(TextField);
       expect(textFields, findsWidgets);

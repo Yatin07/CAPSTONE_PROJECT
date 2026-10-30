@@ -177,14 +177,19 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Date Mode Selector: Today vs Yesterday
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   Text(
                     'Target Date:',
                     style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
                   ),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       ChoiceChip(
                         label: const Text('Today'),
@@ -194,7 +199,6 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                           if (val) setState(() => _dateMode = 'today');
                         },
                       ),
-                      const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('Yesterday (Backfill)'),
                         selected: _dateMode == 'yesterday',

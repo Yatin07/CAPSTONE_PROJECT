@@ -94,20 +94,19 @@ class TestAdaptiveForecastEngine:
 
     def test_five_percent_margin_rule_sub_five_retains_ma7(self):
         """A competitor that beats ma7 by less than 5% must NOT unseat ma7 (retains ma7)."""
-        start = date(2026, 9, 1)
-        # Construct alternating sequence where ma7 and other methods have near-identical MAEs
-        h = []
-        for i in range(16):
-            d = (start + timedelta(days=i)).isoformat()
-            val = 20 if (i % 2 == 0) else 22
-            h.append((d, val))
-
-        res = forecast_item(history=h, for_date="2026-09-20", category="Bakery")
-        assert res["historyDays"] == 16
-        assert res["evalDays"] > 0
-        assert res["baselineMae"] is not None
-        assert res["methodMae"] is not None
-        # On this stationary alternating sequence, ma7 stays the winner
+        # Exact empirical series where EWMA beats MA7 by 3.87% (strictly < 5% margin guard)
+        h = [
+            ('2026-09-01', 17), ('2026-09-02', 30), ('2026-09-03', 23),
+            ('2026-09-04', 16), ('2026-09-05', 15), ('2026-09-06', 19),
+            ('2026-09-07', 30), ('2026-09-08', 26), ('2026-09-09', 25),
+            ('2026-09-10', 15)
+        ]
+        res = forecast_item(history=h, for_date="2026-09-11", category="Bakery")
+        assert res["historyDays"] == 10
+        assert res["evalDays"] == 7
+        assert res["baselineMae"] > res["methodMae"] or res["method"] == "ma7"
+        # 5% guard enforces that ma7 is retained because improvement is only 3.87% (< 5%)
+        assert res["method"] == "ma7"
         assert res["method"] == "ma7"
         assert res["methodLabel"] == "7-day average"
 

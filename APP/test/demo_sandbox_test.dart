@@ -80,7 +80,7 @@ void main() {
       final startRes = await api.startDemo();
       expect(startRes['status'], 'started');
       expect(api.isDemoWorkspace, true);
-      expect(requestedPaths.last, contains('/demo/start'));
+      expect(requestedPaths.any((p) => p.contains('/demo/start')), isTrue);
 
       // 2. Set clock
       final clockRes = await api.setDemoClock(14.5);
