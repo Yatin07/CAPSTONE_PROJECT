@@ -1,23 +1,17 @@
 """
-Simulation and Proof of Adaptive Forecasting Engine
-===================================================
-Runs offline simulation on primary_items.csv (35 French bakery SKUs).
-Evaluates pooled WAPE by history bucket:
-  - 1-6 days
-  - 7-13 days
-  - 14-27 days
-  - 28-60 days
-  - Overall (1-60)
-
+Offline Adaptive Tournament Simulation Benchmark
+================================================
 Compares:
-  (A) CURRENT code path (TSB with W=n/(n+14) -> abrupt switch to 0.6 swd + 0.4 ma7 at n=28)
-  (B) Yesterday only (y_{t-1})
+  (A) Current production code path (ML/engine.py:predict_item for real stores:
+      prior on day 0, TSB credibility shrinkage W=n/(n+14) for 1-27, 4-week weekday + roll7 for 28+)
+  (B) Yesterday baseline (last)
   (C) 7-day moving average (ma7)
   (D) Same-weekday 4-week average (swd)
   (E) Adaptive model tournament (Backend/adaptive_forecast.py)
 
 Dev split (SKUs 1-17) selects K in {1, 3, 5, 14}.
 Holdout test split (SKUs 18-35) reports final evaluation.
+Priors for current code path are computed strictly CUTOFF-SAFE (using only data < target date).
 """
 
 from __future__ import annotations
@@ -36,7 +30,8 @@ sys.path.insert(0, str(BACKEND_DIR))
 from adaptive_forecast import forecast_item
 
 DATA_PATH = Path(__file__).resolve().parent / "data" / "processed" / "primary_items.csv"
-PRIORS_PATH = Path(__file__).resolve().parent / "data" / "processed" / "category_priors_percentiles.json"
+SPARSE_DATA_PATH = Path(__file__).resolve().parent / "data" / "processed" / "sparse_items.csv"
+SPARSE_CATS_PATH = Path(__file__).resolve().parent / "data" / "processed" / "sparse_categories.json"
 
 
 def tsb_forecast_py(series: list[float], alpha: float = 0.2, beta: float = 0.2) -> float:
@@ -77,9 +72,31 @@ def predict_current_code_path(history: list[tuple[str, int]], target_dow: int, p
         return max(1, int(round(0.60 * weekday4w + 0.40 * roll_7)))
 
 
+def compute_cutoff_safe_priors(sparse_csv: Path, cats_json: Path, target_dates: list) -> dict:
+    """Computes category DOW p90 priors strictly using sparse observations preceding each target date (ds < T)."""
+    df_sparse = pd.read_csv(sparse_csv)
+    df_sparse["ds"] = pd.to_datetime(df_sparse["ds"])
+    df_sparse["dow"] = df_sparse["ds"].dt.dayofweek
+
+    with open(cats_json, "r", encoding="utf-8") as f:
+        categories = json.load(f)
+    item_to_category = {item: cat for cat, items in categories.items() for item in items}
+    df_sparse["category"] = df_sparse["article"].map(item_to_category)
+    bread_df = df_sparse[df_sparse["category"] == "Breads & Baguettes"].sort_values("ds")
+
+    priors_by_date = {}
+    for d in sorted(set(target_dates)):
+        sub = bread_df[bread_df["ds"] < d]
+        if len(sub) > 0:
+            priors_by_date[pd.to_datetime(d).strftime("%Y-%m-%d")] = sub.groupby("dow")["y"].quantile(0.90).to_dict()
+        else:
+            priors_by_date[pd.to_datetime(d).strftime("%Y-%m-%d")] = {}
+    return priors_by_date
+
+
 def run_simulation():
     print("=" * 70)
-    print("   RESTOCKIQ: OFFLINE ADAPTIVE TOURNAMENT SIMULATION")
+    print("   RESTOCKIQ: OFFLINE ADAPTIVE TOURNAMENT SIMULATION (CUTOFF-SAFE)")
     print("=" * 70)
 
     df = pd.read_csv(DATA_PATH)
@@ -94,9 +111,18 @@ def run_simulation():
     print(f"Dev SKUs (1-17): {dev_articles[:3]} ... {dev_articles[-1]}")
     print(f"Test SKUs (18-35): {test_articles[:3]} ... {test_articles[-1]}")
 
-    with open(PRIORS_PATH, "r", encoding="utf-8") as f:
-        priors_data = json.load(f)
-    bread_priors = priors_data.get("Breads & Baguettes", {})
+    # Collect all evaluation target dates to precompute cutoff-safe priors
+    all_target_dates = []
+    for art in articles:
+        art_df = df[df["article"] == art].reset_index(drop=True)
+        for start_idx in [0, 60, 90, 120]:
+            sub_df = art_df.iloc[start_idx : start_idx + 61].reset_index(drop=True)
+            if len(sub_df) >= 61:
+                all_target_dates.extend(sub_df["ds"].tolist())
+
+    print("\nComputing cutoff-safe category priors (strictly ds < target_date)...")
+    cutoff_priors_by_date = compute_cutoff_safe_priors(SPARSE_DATA_PATH, SPARSE_CATS_PATH, all_target_dates)
+    print(f"Precomputed cutoff-safe priors for {len(cutoff_priors_by_date)} unique dates.")
 
     # Step 1: Tune K in {1, 3, 5, 14} on Dev split
     print("\n--- Step 1: Tuning K in {1, 3, 5, 14} on Dev Split (SKUs 1-17) ---")
@@ -109,7 +135,6 @@ def run_simulation():
 
         for art in dev_articles:
             art_df = df[df["article"] == art].reset_index(drop=True)
-            # Use 2 different start points for diversity
             for start_idx in [0, 90]:
                 sub_df = art_df.iloc[start_idx : start_idx + 61].reset_index(drop=True)
                 if len(sub_df) < 61:
@@ -183,7 +208,9 @@ def run_simulation():
                 target_dow = target_row["ds"].weekday()
                 actual = float(target_row["y"])
 
-                p90_prior = float(bread_priors.get(str(target_dow), {}).get("p90", 2.0))
+                # Cutoff-safe p90 prior strictly preceding target_date
+                date_priors = cutoff_priors_by_date.get(target_date, {})
+                p90_prior = float(date_priors.get(target_dow, 2.0))
 
                 # (A) CURRENT
                 pred_curr = float(predict_current_code_path(hist, target_dow, p90_prior))
@@ -208,7 +235,7 @@ def run_simulation():
                 )
                 pred_adapt = float(res_adapt["predictedDemand"])
 
-                # Check boundary cliff at n=27 -> 28
+                # Track transition cliff between n=27 and n=28
                 if h_len == 27:
                     prev_pred_curr = pred_curr
                     prev_pred_adapt = pred_adapt
@@ -216,37 +243,45 @@ def run_simulation():
                     day_diffs_current.append(abs(pred_curr - prev_pred_curr))
                     day_diffs_adaptive.append(abs(pred_adapt - prev_pred_adapt))
 
-                # Determine bucket
-                b_name = next(b for b, (lo, hi) in buckets.items() if lo <= h_len <= hi)
+                # Classify into bucket
+                target_bucket = None
+                for b_name, (b_low, b_high) in buckets.items():
+                    if b_low <= h_len <= b_high:
+                        target_bucket = b_name
+                        break
 
-                for m_name, p_val in [
-                    ("CURRENT", pred_curr),
-                    ("YESTERDAY", pred_yest),
-                    ("MA7", pred_ma7),
-                    ("SWD", pred_swd),
-                    ("ADAPTIVE", pred_adapt),
-                ]:
-                    e = abs(p_val - actual)
-                    metrics[m_name][b_name]["err"] += e
-                    metrics[m_name][b_name]["actual"] += actual
-                    metrics[m_name]["Overall"]["err"] += e
+                methods = {
+                    "CURRENT": pred_curr,
+                    "YESTERDAY": pred_yest,
+                    "MA7": pred_ma7,
+                    "SWD": pred_swd,
+                    "ADAPTIVE": pred_adapt,
+                }
+
+                for m_name, pred_val in methods.items():
+                    err = abs(pred_val - actual)
+                    metrics[m_name]["Overall"]["err"] += err
                     metrics[m_name]["Overall"]["actual"] += actual
+                    if target_bucket:
+                        metrics[m_name][target_bucket]["err"] += err
+                        metrics[m_name][target_bucket]["actual"] += actual
 
-    # Compile Table
-    wape_table = {}
-    for m_name in metrics:
-        wape_table[m_name] = {}
-        for b_name in list(buckets.keys()) + ["Overall"]:
-            err = metrics[m_name][b_name]["err"]
-            act = metrics[m_name][b_name]["actual"]
-            w = (err / act) * 100.0 if act > 0 else 0.0
-            wape_table[m_name][b_name] = w
-
+    # Compile Results Table
     print("\n" + "=" * 70)
     print("POOLED WAPE (%) BY HISTORY BUCKET (TEST SET: SKUs 18-35)")
     print("=" * 70)
     print(f"{'Method':<12} | {'1-6d':<8} | {'7-13d':<8} | {'14-27d':<8} | {'28-60d':<8} | {'Overall':<8}")
     print("-" * 65)
+
+    wape_table = {}
+    for m in ["CURRENT", "YESTERDAY", "MA7", "SWD", "ADAPTIVE"]:
+        wape_table[m] = {}
+        for b in ["1-6", "7-13", "14-27", "28-60", "Overall"]:
+            err = metrics[m][b]["err"]
+            act = metrics[m][b]["actual"]
+            w = (err / act * 100.0) if act > 0 else 0.0
+            wape_table[m][b] = w
+
     for m in ["CURRENT", "YESTERDAY", "MA7", "SWD", "ADAPTIVE"]:
         print(
             f"{m:<12} | {wape_table[m]['1-6']:6.2f}% | {wape_table[m]['7-13']:6.2f}% | "

@@ -143,10 +143,10 @@ def forecast_item(
                  Store-local calendar dates. Missing days must be absent, never zero.
         for_date: Target date to predict (YYYY-MM-DD). Only history < for_date is used.
         category: Item category for cold-start and shrinkage prior.
-        price: Unit sale price.
+        price: Unit sale price (accepted for catalog margin context).
         cogs_ratio: COGS / Price ratio (default 0.40).
         prior_by_dow: Optional DOW percentile dictionary {"0": {"mean": ..., "p90": ...}}.
-        k_shrinkage: Shrinkage parameter K in w = n / (n + K) (default 3).
+        k_shrinkage: Shrinkage parameter K in w = n / (n + K) (default 1, empirically tuned).
 
     Returns:
         dict adhering to the RestockIQ forecast schema with adaptive metadata.
@@ -154,13 +154,13 @@ def forecast_item(
     target_dt = date.fromisoformat(for_date)
     target_dow = target_dt.weekday()
 
-    # Strictly filter history to dates strictly before for_date, strictly non-negative units
-    valid_history = [
-        (d_str, int(u))
-        for d_str, u in history
-        if d_str < for_date and u is not None and u >= 0
-    ]
-    valid_history.sort(key=lambda x: x[0])
+    # Strictly filter history to dates strictly before for_date, strictly non-negative units.
+    # Deduplicate same-date records (keeping the latest observation per date) to prevent duplicate distortion.
+    by_date: Dict[str, int] = {}
+    for d_str, u in history:
+        if d_str < for_date and u is not None and u >= 0:
+            by_date[d_str] = int(u)
+    valid_history = sorted(by_date.items(), key=lambda x: x[0])
     n = len(valid_history)
     based_on_date = valid_history[-1][0] if n > 0 else None
 

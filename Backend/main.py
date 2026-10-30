@@ -12,7 +12,7 @@ from pathlib import Path
 
 from collections import defaultdict
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, date, timedelta, timezone
 
 from zoneinfo import ZoneInfo
 
@@ -218,18 +218,22 @@ async def refresh_item_forecast(owner_id: str, item: dict, for_date: str) -> Opt
 
     try:
         from adaptive_forecast import forecast_item
+        # Bounded history query (last 120 days) to prevent unbounded memory usage and query load
+        cutoff_date = (date.fromisoformat(for_date) - timedelta(days=120)).isoformat()
         cursor = db.daily_sales.find({
             "owner_id": owner_id,
             "item_id": item["_id"],
             "status": "completed",
-            "date": {"$lt": for_date}
+            "date": {"$gte": cutoff_date, "$lt": for_date}
         }).sort("date", 1)
 
-        raw_history = []
+        # Deduplicate same-date entries in history (keeping latest observation per date)
+        sales_by_date = {}
         async for doc in cursor:
             units = doc.get("units", doc.get("sales", 0))
-            if units is not None:
-                raw_history.append((doc["date"], int(units)))
+            if units is not None and doc.get("date"):
+                sales_by_date[doc["date"]] = int(units)
+        raw_history = sorted(sales_by_date.items(), key=lambda x: x[0])
 
         cogs = float(os.getenv("COGS_RATIO", 0.40))
         price = float(item.get("price") or 50.0)
@@ -775,11 +779,45 @@ async def startup_db():
 
 
 
+    # Deduplicate forecasts before creating unique index on (owner_id, item_id, forecast_date)
+    try:
+        seen_forecasts = set()
+        async for doc in db.forecasts.find({}).sort("_id", -1):
+            owner = str(doc.get("owner_id", ""))
+            item_id = str(doc.get("item_id", ""))
+            fc_date = str(doc.get("forecast_date", ""))
+            if owner and item_id and fc_date:
+                k = (owner, item_id, fc_date)
+                if k in seen_forecasts:
+                    await db.forecasts.delete_one({"_id": doc["_id"]})
+                else:
+                    seen_forecasts.add(k)
+    except Exception as dedup_fc_err:
+        print(f"[DB] Non-fatal forecasts dedup note: {dedup_fc_err}")
+
+    # Deduplicate daily_sales before unique index
+    try:
+        seen_sales = set()
+        async for doc in db.daily_sales.find({}).sort("_id", -1):
+            owner = str(doc.get("owner_id", ""))
+            item_id = str(doc.get("item_id", ""))
+            s_date = str(doc.get("date", ""))
+            if owner and item_id and s_date:
+                k = (owner, item_id, s_date)
+                if k in seen_sales:
+                    await db.daily_sales.delete_one({"_id": doc["_id"]})
+                else:
+                    seen_sales.add(k)
+    except Exception as dedup_sales_err:
+        print(f"[DB] Non-fatal daily_sales dedup note: {dedup_sales_err}")
+
     await _safe_create_index(db.users, "email", unique=True)
 
     await _safe_create_index(db.daily_sales, [("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
 
     await _safe_create_index(db.daily_stock, [("owner_id", 1), ("item_id", 1), ("date", 1)], unique=True)
+
+    await _safe_create_index(db.forecasts, [("owner_id", 1), ("item_id", 1), ("forecast_date", 1)], unique=True)
 
     await _safe_create_index(db.items, [("owner_id", 1), ("name_lower", 1)], unique=True)
 
@@ -1859,35 +1897,43 @@ async def create_item(req: ItemCreateRequest, current_user=Depends(get_workspace
 
     today_str = get_store_local_now(current_user).strftime("%Y-%m-%d")
 
-    forecast_doc = {
-
-        "_id": str(ObjectId()),
-
-        "item_id": item_id,
-
-        "owner_id": current_user["_id"],
-
-        "forecast_date": today_str,
-
-        "predictedDemand": predicted_demand,
-
-        "safetyStock": safety_stock,
-
-        "explanation": explanation,
-
-        "tier": "Learning",
-
-        "riskLevel": "normal",
-
-        "createdAt": datetime.now(timezone.utc).isoformat(),
-
-    }
-
-    if shadow_expiry:
-
-        forecast_doc["expiresAt"] = shadow_expiry
-
-    await db.forecasts.insert_one(forecast_doc)
+    # In adaptive mode, compute cold-start forecast via adaptive engine immediately
+    if os.getenv("FORECAST_MODE", "legacy").strip().lower() == "adaptive":
+        refreshed = await refresh_item_forecast(current_user["_id"], item_doc, today_str)
+        if refreshed:
+            forecast_doc = refreshed
+        else:
+            forecast_doc = {
+                "_id": str(ObjectId()),
+                "item_id": item_id,
+                "owner_id": current_user["_id"],
+                "forecast_date": today_str,
+                "predictedDemand": predicted_demand,
+                "safetyStock": safety_stock,
+                "explanation": explanation,
+                "tier": "Learning",
+                "riskLevel": "normal",
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+            if shadow_expiry:
+                forecast_doc["expiresAt"] = shadow_expiry
+            await db.forecasts.insert_one(forecast_doc)
+    else:
+        forecast_doc = {
+            "_id": str(ObjectId()),
+            "item_id": item_id,
+            "owner_id": current_user["_id"],
+            "forecast_date": today_str,
+            "predictedDemand": predicted_demand,
+            "safetyStock": safety_stock,
+            "explanation": explanation,
+            "tier": "Learning",
+            "riskLevel": "normal",
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+        }
+        if shadow_expiry:
+            forecast_doc["expiresAt"] = shadow_expiry
+        await db.forecasts.insert_one(forecast_doc)
 
 
 
@@ -1963,7 +2009,7 @@ async def get_items(current_user=Depends(get_workspace_user)):
 
             "category": doc["category"],
 
-            "unit": doc["unit"],
+            "unit": doc.get("unit", "units"),
 
             "currentStock": doc["currentStock"],
 
@@ -2455,6 +2501,8 @@ async def get_todays_forecasts(current_user=Depends(get_workspace_user)):
             needs_refresh = False
             if not forecast or forecast.get("forecast_date") != today_local_str:
                 needs_refresh = True
+            elif forecast.get("engine") != "adaptive-v1":
+                needs_refresh = True
             else:
                 latest_sale = await db.daily_sales.find_one(
                     {"owner_id": current_user["_id"], "item_id": doc["_id"], "status": "completed", "date": {"$lt": today_local_str}},
@@ -2565,7 +2613,7 @@ async def get_todays_forecasts(current_user=Depends(get_workspace_user)):
 
             "category": doc["category"],
 
-            "unit": doc["unit"],
+            "unit": doc.get("unit", "units"),
 
             "currentStock": curr_stock,
 
@@ -2674,6 +2722,8 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_worksp
     if os.getenv("FORECAST_MODE", "legacy").strip().lower() == "adaptive":
         needs_refresh = False
         if not forecast or forecast.get("forecast_date") != today_local_str:
+            needs_refresh = True
+        elif forecast.get("engine") != "adaptive-v1":
             needs_refresh = True
         else:
             latest_sale = await db.daily_sales.find_one(

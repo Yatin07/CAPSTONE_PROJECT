@@ -1,9 +1,11 @@
 """
 Unit Tests for Adaptive Forecasting Engine (Backend/adaptive_forecast.py)
 ========================================================================
-Validates Phase 1 requirements:
+Validates:
 - Hand-computed vectors for each candidate
-- 5% margin rule on ma7 baseline
+- Strict 5% margin rule around the boundary (<5% stays ma7, >=5% unseats ma7)
+- Exact winner candidate verification and mutation detection
+- Deduplication of duplicate dates
 - Ineligible candidate exclusion
 - Zero future-peeking guarantee
 - Missing days non-zero handling
@@ -30,8 +32,6 @@ class TestAdaptiveForecastEngine:
 
     def test_hand_computed_candidates(self):
         """Validates exact numerical output for each candidate on hand-crafted series."""
-        # History: Mon(10), Tue(20), Wed(30), Thu(40), Fri(50), Sat(60), Sun(70)
-        # 2026-10-05 was Monday (dow=0)
         h = [
             ("2026-10-05", 10),
             ("2026-10-06", 20),
@@ -50,13 +50,7 @@ class TestAdaptiveForecastEngine:
         assert _predict_ma7(h, target_dow) == 40.0
 
         # 3. ewma:
-        # s0 = 10
-        # s1 = 0.5*20 + 0.5*10 = 15
-        # s2 = 0.5*30 + 0.5*15 = 22.5
-        # s3 = 0.5*40 + 0.5*22.5 = 31.25
-        # s4 = 0.5*50 + 0.5*31.25 = 40.625
-        # s5 = 0.5*60 + 0.5*40.625 = 50.3125
-        # s6 = 0.5*70 + 0.5*50.3125 = 60.15625
+        # s0 = 10; s1 = 15; s2 = 22.5; s3 = 31.25; s4 = 40.625; s5 = 50.3125; s6 = 60.15625
         assert _predict_ewma(h, target_dow) == pytest.approx(60.15625, rel=1e-5)
 
         # 4. swd: only 1 Monday in h ("2026-10-05"), needs >= 2 -> None
@@ -65,12 +59,9 @@ class TestAdaptiveForecastEngine:
 
         # Add second Monday ("2026-10-12", 90)
         h2 = h + [("2026-10-12", 90)]
-        # Two Mondays: 10, 90 -> mean = 50.0
         assert _predict_swd(h2, target_dow) == 50.0
-        # ma7 on h2: last 7 = [20, 30, 40, 50, 60, 70, 90] -> sum=360/7 = 51.42857
         ma7_h2 = 360.0 / 7.0
         assert _predict_ma7(h2, target_dow) == pytest.approx(ma7_h2, rel=1e-5)
-        # blend = 0.60 * 50.0 + 0.40 * (360/7) = 30 + 20.5714 = 50.5714
         assert _predict_blend(h2, target_dow) == pytest.approx(0.60 * 50.0 + 0.40 * ma7_h2, rel=1e-5)
 
     def test_n0_returns_category_prior(self):
@@ -79,6 +70,7 @@ class TestAdaptiveForecastEngine:
         assert res["predictedDemand"] == 24
         assert res["safetyStock"] == 6  # max(1, round(0.25 * 24)) = 6
         assert res["method"] == "prior"
+        assert res["methodLabel"] == "Category benchmark"
         assert res["historyDays"] == 0
         assert res["basedOnDate"] is None
         assert "Category benchmark active" in res["explanation"]
@@ -96,32 +88,74 @@ class TestAdaptiveForecastEngine:
         res = forecast_item(history=h, for_date="2026-10-03", category="Bakery")
         assert res["historyDays"] == 2
         assert res["method"] == "ewma"
+        assert res["methodLabel"] == "Smoothed recent sales"
         assert res["predictedDemand"] == 31
         assert res["basedOnDate"] == "2026-10-02"
 
-    def test_five_percent_margin_rule(self):
-        """Tests that a competitor must beat ma7 by at least 5% to be selected."""
-        # Generate series where 'last' is slightly better (3%) than ma7: ma7 should STAY
-        # Series of length 15
+    def test_five_percent_margin_rule_sub_five_retains_ma7(self):
+        """A competitor that beats ma7 by less than 5% must NOT unseat ma7 (retains ma7)."""
         start = date(2026, 9, 1)
-        # Construct synthetic series
+        # Construct alternating sequence where ma7 and other methods have near-identical MAEs
         h = []
-        for i in range(15):
+        for i in range(16):
             d = (start + timedelta(days=i)).isoformat()
-            # alternating slightly
-            val = 20 if i % 2 == 0 else 22
+            val = 20 if (i % 2 == 0) else 22
             h.append((d, val))
 
         res = forecast_item(history=h, for_date="2026-09-20", category="Bakery")
-        assert res["historyDays"] == 15
+        assert res["historyDays"] == 16
         assert res["evalDays"] > 0
-        # Check baselineMae and methodMae are present
         assert res["baselineMae"] is not None
         assert res["methodMae"] is not None
-        if res["method"] != "ma7":
-            # If a different method won, verify it beat ma7 by at least 5%
-            improvement = (res["baselineMae"] - res["methodMae"]) / res["baselineMae"]
-            assert improvement >= 0.05
+        # On this stationary alternating sequence, ma7 stays the winner
+        assert res["method"] == "ma7"
+        assert res["methodLabel"] == "7-day average"
+
+    def test_five_percent_margin_rule_super_five_unseats_ma7(self):
+        """A competitor that beats ma7 by >= 5% must unseat ma7."""
+        start = date(2026, 9, 1)
+        # Trending sequence: +10 units every day.
+        # On a steep trend, 'last' significantly beats ma7 (MAE ~10 vs MAE ~40, ~75% better)
+        h = []
+        for i in range(16):
+            d = (start + timedelta(days=i)).isoformat()
+            h.append((d, 10 + i * 10))
+
+        res = forecast_item(history=h, for_date="2026-09-20", category="Bakery")
+        assert res["method"] != "ma7"
+        # Verify improvement is >= 5%
+        improvement = (res["baselineMae"] - res["methodMae"]) / res["baselineMae"]
+        assert improvement >= 0.05
+        # Specifically, on a monotonic positive trend, 'last' is the lowest error predictor
+        assert res["method"] == "last"
+        assert res["methodLabel"] == "Yesterday's sales"
+
+    def test_mutation_detection_swapped_candidates(self):
+        """
+        Guarantees that swapping candidate algorithms (e.g. last <-> ma7) breaks this test.
+        On a monotonic linear trend, 'last' must strictly win over 'ma7'.
+        """
+        start = date(2026, 8, 1)
+        h = [( (start + timedelta(days=i)).isoformat(), 100 + i * 15 ) for i in range(20)]
+        target = "2026-08-25"
+        res = forecast_item(h, target, category="Bakery")
+        # On strong momentum/trend, yesterday's sales ('last') is strictly the best candidate
+        assert res["method"] == "last", f"Expected 'last' to win on trend, got '{res['method']}'"
+        assert res["methodLabel"] == "Yesterday's sales"
+
+    def test_duplicate_same_date_deduplication(self):
+        """Validates that duplicate entries for the same date are deduplicated (keeping latest)."""
+        h_with_dups = [
+            ("2026-10-01", 10),
+            ("2026-10-01", 20),  # Duplicate date, later entry has 20
+            ("2026-10-02", 30),
+            ("2026-10-03", 40),
+            ("2026-10-03", 50),  # Duplicate date, later entry has 50
+        ]
+        res = forecast_item(h_with_dups, "2026-10-04", category="Bakery")
+        # Deduplicated history count must be 3 (not 5)
+        assert res["historyDays"] == 3
+        assert res["basedOnDate"] == "2026-10-03"
 
     def test_ineligible_candidates_excluded(self):
         """When history is short (e.g. n=6), swd has fewer than 4 common days and is excluded."""
@@ -164,16 +198,13 @@ class TestAdaptiveForecastEngine:
 
     def test_missing_days_never_zero(self):
         """Gaps in store operations (e.g. closed Sundays/Mondays) are omitted, never zeroed."""
-        # 3 distinct dates with a 5-day gap in between
         h = [
             ("2026-10-01", 30),
             ("2026-10-06", 32),  # 5-day gap
             ("2026-10-12", 34),  # 6-day gap
         ]
         res = forecast_item(h, "2026-10-13", category="Bakery")
-        # History length must be strictly 3 (not 12 with 9 zeroes)
         assert res["historyDays"] == 3
-        # Prediction must be near 30s, not dragged down by imaginary zeroes to ~8
         assert res["predictedDemand"] > 20
 
     def test_determinism(self):
@@ -186,14 +217,12 @@ class TestAdaptiveForecastEngine:
             assert first == subsequent
 
     def test_continuity_without_boundary_cliffs(self):
-        """A stationary series (e.g. constant 25 units) must have smooth transitions at n=4, 7, 14, 28."""
+        """A stationary series (e.g. constant 24 units) must have smooth transitions at n=4, 7, 14, 28."""
         start = date(2026, 8, 1)
-        # Test series of constant demand = 24 (matching Bakery prior)
         for n_test in [3, 4, 5, 6, 7, 8, 13, 14, 15, 27, 28, 29]:
             h = [( (start + timedelta(days=i)).isoformat(), 24 ) for i in range(n_test)]
             target = (start + timedelta(days=n_test)).isoformat()
             res = forecast_item(h, target, category="Bakery")
-            # Stationary 24 demand should remain within +/- 2 units across all boundaries
             assert abs(res["predictedDemand"] - 24) <= 2, f"Cliff observed at n={n_test}: pred={res['predictedDemand']}"
 
     def test_runtime_under_50ms(self):
