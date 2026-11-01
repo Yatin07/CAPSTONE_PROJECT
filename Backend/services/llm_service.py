@@ -15,7 +15,7 @@ if not logger.handlers:
     logger.setLevel(logging.INFO)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
 # Initialize client safely if key exists
 _client = None
@@ -67,9 +67,9 @@ def _call_gemini_with_retry(prompt: str, max_retries: int = 3, initial_delay: fl
 
     model_candidates = [
         GEMINI_MODEL,
-        "gemini-3.1-flash-lite",
         "gemini-3.5-flash-lite",
         "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
         "gemini-3.5-flash",
         "gemini-3.8-flash",
         "gemini-flash-latest"

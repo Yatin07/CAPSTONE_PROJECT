@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/stock_check_entry.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/stock_check_provider.dart';
+import '../providers/waste_alerts_provider.dart';
 import '../theme/app_colors.dart';
 import '../utils/string_extensions.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -498,6 +499,46 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                         'Elapsed Store Hours Fraction: ${((provider.middayResult!['elapsed_fraction'] as num?)?.toDouble() ?? 0.5 * 100).toStringAsFixed(1)}%',
                         style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF1565C0)),
                       ),
+                      if (provider.middayResult!['items'] != null) ...[
+                        const SizedBox(height: 10),
+                        const Divider(height: 1, color: Color(0xFF90CAF9)),
+                        const SizedBox(height: 8),
+                        ...((provider.middayResult!['items'] as List).cast<Map<String, dynamic>>()).map((mItem) {
+                          final pace = (mItem['same_day_pace'] as num?)?.toDouble() ?? 1.0;
+                          final name = mItem['name']?.toString() ?? 'Item';
+                          final isCrit = pace < 0.35;
+                          final isLow = pace < 0.70 && !isCrit;
+                          final badgeColor = isCrit ? const Color(0xFFB91C1C) : (isLow ? const Color(0xFFD97706) : const Color(0xFF10B981));
+                          final statusText = isCrit ? 'Critical Spoilage Alert' : (isLow ? 'Low Pace Alert' : 'On Pace');
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    name.toTitleCase(),
+                                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF0D47A1)),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: badgeColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Text(
+                                    '$statusText (${(pace * 100).toInt()}%)',
+                                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: badgeColor),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
                     ],
                   ),
                 ),
@@ -544,13 +585,21 @@ class _InventoryCheckInScreenState extends State<InventoryCheckInScreen>
                 label: 'Calculate Mid-Day Pace',
                 icon: Icons.speed_rounded,
                 isLoading: provider.isMiddaySubmitting,
-                onPressed: () {
+                onPressed: () async {
                   final map = <String, int>{};
                   for (final e in entries) {
                     final ctrl = _getMiddayController(e);
                     map[e.id] = int.tryParse(ctrl.text.trim()) ?? e.actualQuantity;
                   }
-                  provider.submitMiddayRoutine(map);
+                  final wasteProvider = Provider.of<WasteAlertsProvider>(context, listen: false);
+                  final invProvider = Provider.of<InventoryProvider>(context, listen: false);
+                  final ok = await provider.submitMiddayRoutine(map);
+                  if (ok) {
+                    try {
+                      await wasteProvider.fetchCloudWasteAlerts();
+                      await invProvider.fetchDashboardItems();
+                    } catch (_) {}
+                  }
                 },
               ),
               const SizedBox(height: 24),

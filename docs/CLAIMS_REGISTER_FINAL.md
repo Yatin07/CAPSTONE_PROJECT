@@ -20,3 +20,4 @@
 | `README.md:58` | "RestockIQ reduces 5,090 units of food waste and cuts 366 stockout units compared to seasonal naive." | **SAY WITH CAVEAT** | Supported by the 90-day static replay simulation in `docs/simulation_report.md` on the historical French bakery dataset. Cannot guarantee identical percentage gains for arbitrary new stores without history. |
 | `docs/ADAPTIVE_FORECAST.md` | "Zero external dependencies: runs with pure Python standard library (no pandas, numpy, or sklearn in API process)." | **SAFE TO SAY** | Verified: `Backend/adaptive_forecast.py` imports only `math`, `datetime`, `statistics.NormalDist`, `typing`. Benchmark per call: 0.096 ms. |
 | `docs/qa/APP_BEHAVIOR_GUIDE.md` | "Offline local providers serve latest cached store state with session persistence across app kills." | **SAFE TO SAY** | Handled via `SharedPreferences` in `APP/lib/services/storage_service.dart`. Verified on physical device relaunch. |
+
