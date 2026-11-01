@@ -119,7 +119,10 @@ def seed_demo_store(mongo_uri: str = None, db_name: str = "restockiq_staging", d
         sys.exit(1)
 
     # Password extraction (never print)
-    raw_password = demo_password or os.getenv("DEMO_PASSWORD", "DemoStorePass2026!")
+    raw_password = demo_password or os.getenv("DEMO_PASSWORD")
+    if not raw_password:
+        print("[ERROR] DEMO_PASSWORD must be provided via environment variable or argument.")
+        sys.exit(1)
     if len(raw_password) < 8:
         print("[ERROR] DEMO_PASSWORD must be >= 8 characters.")
         sys.exit(1)

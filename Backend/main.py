@@ -1041,11 +1041,13 @@ async def get_workspace_user(request: Request, current_user=Depends(get_current_
 
                     await res_u
 
-                res_i = db.items.update_many({"owner_id": shadow_id}, {"$set": {"expiresAt": new_expires_at}})
+                for col in [db.items, db.daily_sales, db.daily_stock, db.forecasts, db.waste_alerts, db.intraday_sales, db.assistant_usage]:
 
-                if hasattr(res_i, "__await__"):
+                    res_c = col.update_many({"owner_id": shadow_id}, {"$set": {"expiresAt": new_expires_at}})
 
-                    await res_i
+                    if hasattr(res_c, "__await__"):
+
+                        await res_c
 
             except Exception:
 
@@ -1271,7 +1273,7 @@ class ItemUpdateRequest(BaseModel):
 
 class RestockRequest(BaseModel):
 
-    quantity: Optional[int] = None
+    quantity: Optional[int] = Field(None, gt=0, description="Restock quantity must be positive")
 
 
 
@@ -1279,7 +1281,7 @@ class IntradaySaleRequest(BaseModel):
 
     item_id: str
 
-    quantity: int
+    quantity: int = Field(..., gt=0, description="Sale quantity must be positive")
 
 
 
@@ -2122,6 +2124,9 @@ async def update_item(item_id: str, req: ItemUpdateRequest, current_user=Depends
 
 
     update_data = {k: v for k, v in req.model_dump().items() if v is not None}
+    # Disallow client mutation of forecast fields via standard item update
+    update_data.pop("predictedDemand", None)
+    update_data.pop("safetyStock", None)
 
 
 
@@ -2845,25 +2850,41 @@ async def get_item_forecast_detail(item_id: str, current_user=Depends(get_worksp
 
     else:
 
-        # Synthesize realistic 7-day window based on item's base pace
-
-        base = max(5, predicted_demand)
+        # Query actual completed sales from daily_sales for the past 7 calendar days
 
         days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-        now = datetime.now(timezone.utc)
+        target_ref_date = date.fromisoformat(today_local_str)
+
+        past_7_dates = [(target_ref_date - timedelta(days=7 - i)).isoformat() for i in range(7)]
+
+        sales_cursor = db.daily_sales.find({
+
+            "owner_id": current_user["_id"],
+
+            "item_id": item_id,
+
+            "status": "completed",
+
+            "date": {"$in": past_7_dates}
+
+        })
+
+        sales_by_date = {d["date"]: int(d.get("units", d.get("sales", 0))) async for d in sales_cursor}
 
         historical_chart = [
 
-            {"day": days[(now.weekday() - 7 + i) % 7], "sales": int(base * (0.85 + (i * 0.04)))}
+            {"day": days[date.fromisoformat(d_str).weekday()], "sales": sales_by_date.get(d_str, 0)}
 
-            for i in range(7)
+            for d_str in past_7_dates
 
         ]
 
+        base_demand = predicted_demand or 20
+
         forecast_chart = [
 
-            {"day": days[(now.weekday() + i) % 7], "predicted": int(base * (0.95 + ((i % 3) * 0.05)))}
+            {"day": days[(target_ref_date + timedelta(days=i)).weekday()], "predicted": base_demand}
 
             for i in range(7)
 
@@ -4156,9 +4177,11 @@ async def apply_discount_action(item_id: str, req: Optional[ApplyDiscountRequest
 
 
 
-    await db.items.update_one(
+    curr_sym = current_user.get("currencySymbol") or current_user.get("currency") or "$"
 
-        {"_id": item_id, "owner_id": current_user["_id"]},
+    res_d = await db.items.update_one(
+
+        {"_id": item_id, "owner_id": current_user["_id"], "discountApplied": {"$ne": True}},
 
         {"$set": {
 
@@ -4178,11 +4201,15 @@ async def apply_discount_action(item_id: str, req: Optional[ApplyDiscountRequest
 
     )
 
+    if res_d.matched_count == 0:
+
+        raise HTTPException(status_code=400, detail=f"Discount is already applied to {item.get('name', 'this item')}.")
+
     return {
 
         "status": "success",
 
-        "message": f"Applied {discount_pct:.0f}% discount to {item['name']}. New price: ${discounted_price}",
+        "message": f"Applied {discount_pct:.0f}% discount to {item['name']}. New price: {curr_sym}{discounted_price:.2f}",
 
         "oldPrice": current_price,
 
@@ -4232,9 +4259,9 @@ async def apply_bundle_action(item_id: str, req: Optional[ApplyBundleRequest] = 
 
     now_iso = datetime.now(timezone.utc).isoformat()
 
-    await db.items.update_one(
+    res_b = await db.items.update_one(
 
-        {"_id": item_id, "owner_id": current_user["_id"]},
+        {"_id": item_id, "owner_id": current_user["_id"], "bundleApplied": {"$ne": True}},
 
         {"$set": {
 
@@ -4253,6 +4280,10 @@ async def apply_bundle_action(item_id: str, req: Optional[ApplyBundleRequest] = 
         }}
 
     )
+
+    if res_b.matched_count == 0:
+
+        raise HTTPException(status_code=400, detail=f"Bundle discount is already applied to {item.get('name', 'this item')}.")
 
     return {
 
@@ -4340,6 +4371,11 @@ async def purge_shadow_tenant(shadow_id: str) -> dict:
 
     res_alerts = await db.waste_alerts.delete_many(filter_dict)
 
+    if hasattr(db, "assistant_usage") and hasattr(db.assistant_usage, "delete_many"):
+        del_usage_op = db.assistant_usage.delete_many(filter_dict)
+        if hasattr(del_usage_op, "__await__"):
+            await del_usage_op
+
     DEMO_SIMULATED_CLOCKS.pop(shadow_id, None)
 
 
@@ -4400,7 +4436,7 @@ async def start_demo_sandbox(real_user=Depends(get_current_user)):
 
 
 
-    # 1. Rate limiter: 5 starts per hour
+    # 1. Rate limiter: 20 starts per hour
 
     window_start = now_ts - 3600
 
@@ -4927,6 +4963,10 @@ async def trigger_daily_sales_rollup(
             if not scoped_owner_id:
 
                 raise HTTPException(status_code=401, detail="Invalid token payload.")
+
+            if request.headers.get("X-Workspace", "").strip().lower() == "demo":
+
+                scoped_owner_id = f"shadow_{scoped_owner_id}"
 
         except Exception:
 

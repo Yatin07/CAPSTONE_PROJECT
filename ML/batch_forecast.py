@@ -293,18 +293,38 @@ def compute_primary_forecast(item: dict) -> dict:
 
 def get_derived_sales_history(db_conn, owner_id: str, item_id: str, as_of_date: str, fallback_history: list) -> list:
     """
-    Derives 90-day sales history from the daily_sales collection.
-    If daily_sales has records for this item, returns the dated history.
-    Otherwise falls back to the item's salesHistory array.
+    Derives 90-day continuous calendar sales history from completed closing counts.
+    Ensures:
+    1. Only status: 'completed' rows are used (filtering out partial intraday rollups).
+    2. Missing calendar days are mapped to 0 rather than compressed, preserving
+       strict day-of-week lag alignment for lag_7 and 4-week weekday averages.
     """
     try:
-        query = {"owner_id": owner_id, "item_id": item_id}
+        query = {"owner_id": owner_id, "item_id": item_id, "status": "completed"}
         if as_of_date:
-            query["date"] = {"$lt": as_of_date}
-        cursor = db_conn.daily_sales.find(query).sort("date", 1)
-        records = list(cursor)
-        if records:
-            return [int(r.get("units", r.get("sales", 0))) for r in records][-90:]
+            from datetime import date as d_cls, timedelta as td_cls
+            target_dt = d_cls.fromisoformat(as_of_date)
+            start_dt = target_dt - td_cls(days=90)
+            query["date"] = {"$gte": start_dt.isoformat(), "$lt": as_of_date}
+            cursor = db_conn.daily_sales.find(query).sort("date", 1)
+            records = list(cursor)
+            if records:
+                sales_by_date = {}
+                for r in records:
+                    d_str = r.get("date")
+                    if d_str:
+                        sales_by_date[d_str] = int(r.get("units", r.get("sales", 0)))
+                history_continuous = []
+                for offset in range(90, 0, -1):
+                    cal_date = (target_dt - td_cls(days=offset)).isoformat()
+                    history_continuous.append(sales_by_date.get(cal_date, 0))
+                return history_continuous
+            return fallback_history[-90:] if fallback_history else []
+        else:
+            cursor = db_conn.daily_sales.find(query).sort("date", 1)
+            records = list(cursor)
+            if records:
+                return [int(r.get("units", r.get("sales", 0))) for r in records][-90:]
     except Exception:
         pass
     return fallback_history[-90:] if fallback_history else []
