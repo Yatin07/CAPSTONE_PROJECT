@@ -37,7 +37,7 @@ The frontend must strictly adhere to the **RestockIQ Mobile UI Design** system c
 This is the exact sequence in which the UI should be built, using the Stitch screens as the source of truth. **Do not skip Item Setup (Screen 2)**, as the entire Machine Learning backend will crash if items are not defined first!
 
 ### 1. Login & Authentication Screen
-*   **Function:** Standard email/password login (connected to Firebase Auth).
+*   **Function:** Standard email/password login (connected to FastAPI JWT Auth against MongoDB).
 *   **Role-Based UI:** The app must support 2 roles (Owner vs. Manager/Employee).
 *   *Requirement:* Only the Owner role can see the "Manage Staff" section in Settings.
 
