@@ -65,6 +65,15 @@ try:
     client.admin.command("ping")
     print("[DB] Connected to MongoDB Atlas successfully.")
 except Exception as e:
+    # Close the failed client to avoid ResourceWarning in tests;
+    # db stays None until the test runner or batch entrypoint injects a working client.
+    if client is not None:
+        try:
+            client.close()
+        except Exception:
+            pass
+    client = None
+    db = None
     print(f"[DB NOTICE] Direct Atlas connection unavailable on import ({e}). Can be injected by test runner.")
 
 # ---------------------------------------------------------------------------- #
