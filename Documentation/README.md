@@ -15,7 +15,7 @@ Documentation/
 ├── research-paper/                # IEEE conference paper documents & generation scripts
 ├── research-papers/               # Curated library of 25 reference papers collected by team
 ├── summaries/                     # Text transcripts, notes, and structured JSON summaries
-└── tools/                         # Slide automation scripts, pptx mergers, and raw dumps
+└── tools/                         # Slide automation scripts and pptx presentation tools
 ```
 
 ---
@@ -66,7 +66,5 @@ Curated collection of primary academic literature across 25 peer-reviewed papers
 Automation tooling for programmatic PowerPoint creation and layout verification:
 * **`improved_slides.js`**: Node.js script using `pptxgenjs` to programmatically build styled slides.
 * **`create_ppt2.py` / `create_final_slides.py` / `design_pro_slides.py`**: Python-pptx generation scripts for Review II deck.
-* **`merge_pptx.py` (v1–v4)**: PPTX merging utilities to assemble final multi-section presentation decks.
+* **`merge_pptx4.py`**: PPTX merging utility to assemble final multi-section presentation decks.
 * **`check_layouts.py` / `dump_pptx.py`**: Layout inspection utilities to parse shapes, placeholders, and coordinates from existing presentations.
-* **`dumps/`**: Intermediate text dumps (`all_papers_text.txt`, `dump.txt`, `dump_utf8.txt`, `dump_merged_utf8.txt`, `extraction_results.json`).
-* **`archive/`**: Obsolete/scratch test files (`Trash/analyze_datasets.py`, `Trash/test.py`).
