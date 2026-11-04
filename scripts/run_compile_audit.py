@@ -47,7 +47,8 @@ def main():
     log_lines.append("=" * 75)
 
     full_log = "\n".join(log_lines)
-    with open("compile.log", "w", encoding="utf-8") as f:
+    log_path = os.path.join("docs", "review", "compile.log")
+    with open(log_path, "w", encoding="utf-8") as f:
         f.write(full_log)
     print(full_log)
 

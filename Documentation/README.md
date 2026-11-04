@@ -28,14 +28,11 @@ Documentation/
 * **`improved_slides.pptx`**: Redesigned presentation slides implementing enhanced typographic hierarchy and layout cards.
 
 ### 2. [`black-book/`](file:///e:/CAP/Documentation/black-book/)
-* Master University Capstone Project Report ("Black Book") deliverables:
-  * Chapter 1: Introduction & Problem Statement
-  * Chapter 2: Literature Review & Gap Analysis
-  * Chapter 3: Methodology & Proposed System Architecture
-  * Chapter 4: Empirical Results, Accuracy Benchmarks & Simulation
-  * Chapter 5: Software Implementation & User Interface Design
-  * Chapter 6: Testing, Quality Assurance & Defect Lifecycle
-  * Frontmatter: Certificates, declarations, acknowledgements, table of contents, and list of figures/tables.
+* **`final/`**: Master University Capstone Project Report (`RestockIQ_Black_Book.docx` & `RestockIQ_Black_Book.pdf`).
+* **`drafts/`**: Pre-submission and intermediate review drafts (`CAPSTONE_PROJECT_BLACK_BOOK.*`, `Restock_citated_chinmay*`).
+* **`log-book/`**: Completed project log book deliverables (`CAPSTONE_PROJECT_LOG_BOOK.*`).
+* **`audit/`**: Gap analysis and alignment audit documentation.
+* **`assets/`**: High-resolution figures and extracted diagrams for report chapters.
 
 ### 3. [`literature-review/`](file:///e:/CAP/Documentation/literature-review/)
 * **`LocalDemand_LitReview_IEEE.tex`**: Literature review formatted in standard two-column IEEE Conference template with BibTeX citations.
@@ -47,6 +44,16 @@ Documentation/
 ### 4. [`research-paper/`](file:///e:/CAP/Documentation/research-paper/)
 * **`IEEE_Conference_Paper.docx`**: Camera-ready IEEE format conference manuscript.
 * **`generate_paper.py`**: Automated script for assembling the manuscript sections from verified repository data.
+* **[`latex/`](file:///e:/CAP/Documentation/research-paper/latex/)**: Self-contained IEEE LaTeX conference paper suite:
+  * `main.tex`: Modular manuscript with `\input` tables and `\includegraphics` figures.
+  * `main_standalone.tex`: Inlined single-file LaTeX source for Overleaf submission.
+  * `paper_v2.tex`: Extended benchmark revision manuscript.
+  * `references.bib`: Complete BibTeX bibliography resolving all 25 cited keys.
+  * `IEEEtran.cls` & `IEEEtran.bst`: Official IEEE conference document class and bibliography style.
+  * `figures/`: High-resolution figures (`architecture.jpg`, `fig_accuracy_benchmark.png`, `fig_weather_placebo_distribution.png`, `fig_profit_waste_frontier.png`).
+  * `tables/`: Auto-generated LaTeX tables (`table_38fold.tex`, `table_summer.tex`, `table_simulation.tex`, `table_weather.tex`, `table_citations.tex`).
+  * `RestockIQ_IEEE_Overleaf.zip` & `RestockIQ_Overleaf_Single_Main.zip`: Ready-to-upload Overleaf project bundles.
+  * `notes.txt` & `refs25.txt`: Context notes and claim mappings for the 25 cited papers.
 
 ### 5. [`research-papers/`](file:///e:/CAP/Documentation/research-papers/)
 Curated collection of primary academic literature across 25 peer-reviewed papers:

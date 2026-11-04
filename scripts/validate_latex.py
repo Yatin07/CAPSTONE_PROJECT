@@ -17,6 +17,8 @@ def validate_file(filename, check_inputs=True, check_bib_file=True):
         print(f"ERROR: {filename} not found!")
         return False
 
+    base_dir = os.path.dirname(filename) or "."
+
     with open(filename, "r", encoding="utf-8") as f:
         tex = f.read()
 
@@ -26,9 +28,10 @@ def validate_file(filename, check_inputs=True, check_bib_file=True):
     if check_inputs and inputs:
         print(f"Found {len(inputs)} \\input statements:")
         for inp in inputs:
-            inp_path = inp if inp.endswith(".tex") else inp + ".tex"
+            inp_rel = inp if inp.endswith(".tex") else inp + ".tex"
+            inp_path = os.path.join(base_dir, inp_rel)
             if os.path.exists(inp_path):
-                print(f"  [OK] {inp_path}")
+                print(f"  [OK] {inp_rel}")
             else:
                 print(f"  [MISSING] {inp_path}")
                 all_inputs_ok = False
@@ -40,17 +43,19 @@ def validate_file(filename, check_inputs=True, check_bib_file=True):
     print(f"\nFound {len(graphics)} \\includegraphics statements:")
     all_graphics_ok = True
     for g in graphics:
-        if os.path.exists(g):
-            print(f"  [OK] {g} ({os.path.getsize(g)} bytes)")
+        g_path = os.path.join(base_dir, g)
+        if os.path.exists(g_path):
+            print(f"  [OK] {g} ({os.path.getsize(g_path)} bytes)")
         else:
-            print(f"  [MISSING] {g}")
+            print(f"  [MISSING] {g_path}")
             all_graphics_ok = False
 
     # 3. Check citation keys
     def expand_inputs(text):
         def repl(match):
             fn = match.group(1)
-            inp_path = fn if fn.endswith(".tex") else fn + ".tex"
+            inp_rel = fn if fn.endswith(".tex") else fn + ".tex"
+            inp_path = os.path.join(base_dir, inp_rel)
             if os.path.exists(inp_path):
                 with open(inp_path, "r", encoding="utf-8") as f:
                     return expand_inputs(f.read())
@@ -67,7 +72,8 @@ def validate_file(filename, check_inputs=True, check_bib_file=True):
     print(f"\nFound {len(cited_keys)} unique keys cited across document.")
 
     if check_bib_file:
-        with open("references.bib", "r", encoding="utf-8") as f:
+        bib_path = os.path.join(base_dir, "references.bib")
+        with open(bib_path, "r", encoding="utf-8") as f:
             bib = f.read()
         target_keys = set(re.findall(r'@\w+\{([^,]+),', bib))
         src_label = "references.bib"
@@ -119,9 +125,13 @@ def validate_file(filename, check_inputs=True, check_bib_file=True):
     return all_inputs_ok and all_graphics_ok and all_cites_ok and env_ok and braces_ok
 
 def main():
-    ok1 = validate_file("main.tex", check_inputs=True, check_bib_file=True)
+    latex_dir = os.path.join("Documentation", "research-paper", "latex")
+    main_tex = os.path.join(latex_dir, "main.tex") if os.path.exists(os.path.join(latex_dir, "main.tex")) else "main.tex"
+    standalone_tex = os.path.join(latex_dir, "main_standalone.tex") if os.path.exists(os.path.join(latex_dir, "main_standalone.tex")) else "main_standalone.tex"
+
+    ok1 = validate_file(main_tex, check_inputs=True, check_bib_file=True)
     print("\n")
-    ok2 = validate_file("main_standalone.tex", check_inputs=False, check_bib_file=False)
+    ok2 = validate_file(standalone_tex, check_inputs=False, check_bib_file=False)
 
     print("\n" + "=" * 70)
     if ok1 and ok2:

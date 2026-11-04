@@ -161,7 +161,14 @@ CAP/
 │   ├── review/                    # Independent code audit findings and walkthroughs
 │   ├── simulation_report.md       # 90-day retail inventory simulation results
 │   └── LIVE_DEMO_MASTER_SCRIPT.md # Step-by-step presentation script for live demo
-├── scripts/                       # Database seeding, backtesting, and staging test utilities
+├── Documentation/                 # Academic capstone deliverables (NMIMS MPSTME)
+│   ├── black-book/                # University project report (assets, audit, drafts, final, log-book)
+│   ├── research-paper/            # IEEE conference paper (docx + self-contained latex/ suite)
+│   ├── literature-review/         # Comprehensive survey manuscripts (IEEE LaTeX & Markdown)
+│   ├── research-papers/           # Curated library of 25 reference papers (Chinmay, Soumy, Yatin)
+│   ├── academic-reviews/          # Formal review presentations (Review I, Review II)
+│   └── tools/                     # Automated presentation tools & slide generators
+├── scripts/                       # Database seeding, table generation, and compile audit utilities
 ├── render.yaml                    # Infrastructure-as-Code specification for Render deployment
 └── README.md                      # Master project documentation
 ```
